@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import {
   Sparkles,
   Radio,
+  Music,
+  BookOpen,
   Flame,
   ArrowRight,
   ShieldCheck,
@@ -24,7 +26,6 @@ import { PixelButton } from '../components/common/PixelButton';
 import { SpiderwebDecor } from '../components/home/SpiderwebDecor';
 import { PixelNavDock } from '../components/home/PixelNavDock';
 import { WinampPlayerWidget } from '../components/home/WinampPlayerWidget';
-import { LiveStreamCamWidget } from '../components/home/LiveStreamCamWidget';
 import { DiarioWidget } from '../components/home/DiarioWidget';
 import { ContactoWidget } from '../components/home/ContactoWidget';
 import { useCart } from '../context/CartContext';
@@ -36,23 +37,21 @@ export const HomeView: React.FC = () => {
   const { branches, activeBranchId } = useBranch();
 
   // Active floating widgets state (can be toggled/closed for interactive desktop chaos)
-  const [showStreamCam, setShowStreamCam] = useState(true);
   const [showWinamp, setShowWinamp] = useState(true);
-  const [showDiario, setShowDiario] = useState(false);
+  const [showDiario, setShowDiario] = useState(true);
   const [showContacto, setShowContacto] = useState(false);
-  const [activeWidgetTab, setActiveWidgetTab] = useState<'stream' | 'winamp' | 'diario' | 'contacto' | null>(null);
+  const [activeWidgetTab, setActiveWidgetTab] = useState<'winamp' | 'diario' | 'contacto' | null>(null);
 
   // Quick feedback state for cart adds
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
 
   const featuredProducts = INITIAL_PRODUCTS.filter((p) => !p.isHidden);
 
-  const handleOpenWidget = (widgetId: 'diario' | 'contacto' | 'winamp' | 'stream') => {
+  const handleOpenWidget = (widgetId: 'diario' | 'contacto' | 'winamp') => {
     setActiveWidgetTab(widgetId);
     if (widgetId === 'diario') setShowDiario(true);
     if (widgetId === 'contacto') setShowContacto(true);
     if (widgetId === 'winamp') setShowWinamp(true);
-    if (widgetId === 'stream') setShowStreamCam(true);
   };
 
   const handleQuickAdd = (product: typeof featuredProducts[0]) => {
@@ -151,8 +150,8 @@ export const HomeView: React.FC = () => {
 
               {/* Status Badge & Signal Indicator */}
               <div className="inline-flex items-center gap-2 bevel-sunken px-3.5 py-1.5 font-['Silkscreen'] text-xs text-[#00d4ff] bg-black/80 border border-[#00d4ff]/30 shadow-[0_0_12px_rgba(0,212,255,0.3)]">
-                <Radio className="w-3.5 h-3.5 text-[#ff007f] animate-pulse" />
-                <span className="text-white">STREAMING ACTIVO // NODO VIÑA - VALPARAÍSO - QUILPUÉ</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#00ff66] animate-pulse shadow-[0_0_8px_#00ff66]" />
+                <span className="text-white">INVENTARIO EN TIEMPO REAL // NODO VIÑA - VALPARAÍSO - QUILPUÉ</span>
               </div>
 
               {/* Title Section */}
@@ -194,11 +193,19 @@ export const HomeView: React.FC = () => {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => setShowStreamCam(!showStreamCam)}
+                  onClick={() => setShowWinamp(!showWinamp)}
                   className="bevel-chrome bg-[#1b122e] hover:bg-[#2a1b47] px-4 py-2 text-white font-['Silkscreen'] text-xs flex items-center gap-2 cursor-pointer transition-all"
                 >
-                  <Radio className="w-3.5 h-3.5 text-[#ff007f]" />
-                  <span>{showStreamCam ? 'OCULTAR RADAR LIVE' : 'MOSTRAR RADAR LIVE'}</span>
+                  <Music className="w-3.5 h-3.5 text-[#ff007f]" />
+                  <span>{showWinamp ? 'OCULTAR CYBER_AMP' : 'REPRODUCTOR CYBER_AMP'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDiario(!showDiario)}
+                  className="bevel-chrome bg-[#1b122e] hover:bg-[#2a1b47] px-4 py-2 text-white font-['Silkscreen'] text-xs flex items-center gap-2 cursor-pointer transition-all"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-[#00d4ff]" />
+                  <span>{showDiario ? 'OCULTAR BITÁCORA' : 'VER BITÁCORA DE DROPS'}</span>
                 </button>
               </div>
             </div>
@@ -210,30 +217,23 @@ export const HomeView: React.FC = () => {
               todas con marcos cromados y negros biselados."
               ========================================================================= */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 relative z-10 pt-2">
-            {/* Widget 1: Stream Radar Cam (Col 1-7 or 1-6) */}
-            {showStreamCam && (
-              <div className="lg:col-span-6 transform lg:-rotate-0.5 hover:rotate-0 transition-transform">
-                <LiveStreamCamWidget onClose={() => setShowStreamCam(false)} />
-              </div>
-            )}
-
-            {/* Widget 2: CyberAmp Audio Player (Col 8-12) */}
-            {showWinamp && (
-              <div className="lg:col-span-6 transform lg:rotate-0.5 hover:rotate-0 transition-transform">
-                <WinampPlayerWidget onClose={() => setShowWinamp(false)} />
-              </div>
-            )}
-
-            {/* Widget 3 (Conditional Pop-up): Diario de Lanzamientos */}
+            {/* Widget 1: Diario de Lanzamientos & Bitácora */}
             {showDiario && (
-              <div className="lg:col-span-6 animate-in fade-in duration-200">
+              <div className={`transform lg:-rotate-0.5 hover:rotate-0 transition-transform ${showWinamp ? 'lg:col-span-6' : 'lg:col-span-12'}`}>
                 <DiarioWidget onClose={() => setShowDiario(false)} />
               </div>
             )}
 
-            {/* Widget 4 (Conditional Pop-up): Contacto Directo */}
+            {/* Widget 2: CyberAmp Audio Player */}
+            {showWinamp && (
+              <div className={`transform lg:rotate-0.5 hover:rotate-0 transition-transform ${showDiario ? 'lg:col-span-6' : 'lg:col-span-12'}`}>
+                <WinampPlayerWidget onClose={() => setShowWinamp(false)} />
+              </div>
+            )}
+
+            {/* Widget 3 (Pop-up): Contacto Directo & Conserjería */}
             {showContacto && (
-              <div className="lg:col-span-6 animate-in fade-in duration-200">
+              <div className="lg:col-span-12 animate-in fade-in duration-200">
                 <ContactoWidget onClose={() => setShowContacto(false)} />
               </div>
             )}
