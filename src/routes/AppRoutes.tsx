@@ -1,0 +1,88 @@
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { HomeView } from '../views/HomeView';
+import { CatalogView } from '../views/CatalogView';
+import { ProductDetailView } from '../views/ProductDetailView';
+import { CartView } from '../views/CartView';
+import { AuthView } from '../views/AuthView';
+import { ProfileView } from '../views/ProfileView';
+import { ProtectedRoute } from './ProtectedRoute';
+
+// Admin views
+import { GlobalDashboardView } from '../views/admin/GlobalDashboardView';
+import { BranchManagementView } from '../views/admin/BranchManagementView';
+import { LocalBranchAdminView } from '../views/admin/LocalBranchAdminView';
+import { LogisticsAnalyticsView } from '../views/admin/LogisticsAnalyticsView';
+import { ExpressProductUploadView } from '../views/admin/ExpressProductUploadView';
+
+export const AppRoutes: React.FC = () => {
+  return (
+    <Routes>
+      {/* 1. Public & Guest Routes */}
+      <Route path="/" element={<HomeView />} />
+      <Route path="/catalog" element={<CatalogView />} />
+      <Route path="/product/:id" element={<ProductDetailView />} />
+      <Route path="/cart" element={<CartView />} />
+      <Route path="/auth" element={<AuthView />} />
+
+      {/* 2. Registered Customer Protected Route */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute allowedRoles={['registered', 'branch_admin', 'super_admin']}>
+            <ProfileView />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 3. Branch Admin & Super Admin Protected Routes */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={['branch_admin', 'super_admin']}>
+            <GlobalDashboardView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/branches"
+        element={
+          <ProtectedRoute allowedRoles={['super_admin']}>
+            <BranchManagementView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/branch/:branchId"
+        element={
+          <ProtectedRoute allowedRoles={['branch_admin', 'super_admin']}>
+            <LocalBranchAdminView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/logistics"
+        element={
+          <ProtectedRoute allowedRoles={['branch_admin', 'super_admin']}>
+            <LogisticsAnalyticsView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/express-upload"
+        element={
+          <ProtectedRoute allowedRoles={['branch_admin', 'super_admin']}>
+            <ExpressProductUploadView />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Catch-all redirect to Home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
