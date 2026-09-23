@@ -1,7 +1,5 @@
 import React from 'react';
 
-/* Este es un comentario de parte de Alan*/
-
 interface PixelButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'accent' | 'danger' | 'retro';
   size?: 'sm' | 'md' | 'lg';
