@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   Sparkles,
   Radio,
-  Music,
   BookOpen,
   Flame,
   ArrowRight,
@@ -25,7 +24,6 @@ import { WindowFrame } from '../components/layout/WindowFrame';
 import { PixelButton } from '../components/common/PixelButton';
 import { SpiderwebDecor } from '../components/home/SpiderwebDecor';
 import { PixelNavDock } from '../components/home/PixelNavDock';
-import { WinampPlayerWidget } from '../components/home/WinampPlayerWidget';
 import { DiarioWidget } from '../components/home/DiarioWidget';
 import { ContactoWidget } from '../components/home/ContactoWidget';
 import { useCart } from '../context/CartContext';
@@ -37,21 +35,19 @@ export const HomeView: React.FC = () => {
   const { branches, activeBranchId } = useBranch();
 
   // Active floating widgets state (can be toggled/closed for interactive desktop chaos)
-  const [showWinamp, setShowWinamp] = useState(true);
   const [showDiario, setShowDiario] = useState(true);
   const [showContacto, setShowContacto] = useState(false);
-  const [activeWidgetTab, setActiveWidgetTab] = useState<'winamp' | 'diario' | 'contacto' | null>(null);
+  const [activeWidgetTab, setActiveWidgetTab] = useState<'diario' | 'contacto' | null>(null);
 
   // Quick feedback state for cart adds
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
 
   const featuredProducts = INITIAL_PRODUCTS.filter((p) => !p.isHidden);
 
-  const handleOpenWidget = (widgetId: 'diario' | 'contacto' | 'winamp') => {
+  const handleOpenWidget = (widgetId: 'diario' | 'contacto') => {
     setActiveWidgetTab(widgetId);
     if (widgetId === 'diario') setShowDiario(true);
     if (widgetId === 'contacto') setShowContacto(true);
-    if (widgetId === 'winamp') setShowWinamp(true);
   };
 
   const handleQuickAdd = (product: typeof featuredProducts[0]) => {
@@ -193,51 +189,45 @@ export const HomeView: React.FC = () => {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => setShowWinamp(!showWinamp)}
-                  className="bevel-chrome bg-[#1b122e] hover:bg-[#2a1b47] px-4 py-2 text-white font-['Silkscreen'] text-xs flex items-center gap-2 cursor-pointer transition-all"
-                >
-                  <Music className="w-3.5 h-3.5 text-[#ff007f]" />
-                  <span>{showWinamp ? 'OCULTAR CYBER_AMP' : 'REPRODUCTOR CYBER_AMP'}</span>
-                </button>
-                <button
-                  type="button"
                   onClick={() => setShowDiario(!showDiario)}
                   className="bevel-chrome bg-[#1b122e] hover:bg-[#2a1b47] px-4 py-2 text-white font-['Silkscreen'] text-xs flex items-center gap-2 cursor-pointer transition-all"
                 >
                   <BookOpen className="w-3.5 h-3.5 text-[#00d4ff]" />
                   <span>{showDiario ? 'OCULTAR BITÁCORA' : 'VER BITÁCORA DE DROPS'}</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setShowContacto(!showContacto)}
+                  className="bevel-chrome bg-[#1b122e] hover:bg-[#2a1b47] px-4 py-2 text-white font-['Silkscreen'] text-xs flex items-center gap-2 cursor-pointer transition-all"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#ff007f]" />
+                  <span>{showContacto ? 'OCULTAR CONTACTO' : 'MESA DE AYUDA / WHATSAPP'}</span>
+                </button>
               </div>
             </div>
           </div>
 
           {/* =========================================================================
-              CHAOTIC & OVERLAPPING DESKTOP WIDGETS SECTION:
-              "Paneles de Contenido: Múltiples ventanas flotantes y superpuestas,
-              todas con marcos cromados y negros biselados."
+              DESKTOP WIDGETS SECTION:
+              Paneles de Contenido: Bitácora de lanzamientos y Contacto Directo
               ========================================================================= */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 relative z-10 pt-2">
-            {/* Widget 1: Diario de Lanzamientos & Bitácora */}
-            {showDiario && (
-              <div className={`transform lg:-rotate-0.5 hover:rotate-0 transition-transform ${showWinamp ? 'lg:col-span-6' : 'lg:col-span-12'}`}>
-                <DiarioWidget onClose={() => setShowDiario(false)} />
-              </div>
-            )}
+          {(showDiario || showContacto) && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 relative z-10 pt-2">
+              {/* Widget 1: Diario de Lanzamientos & Bitácora */}
+              {showDiario && (
+                <div className={`${showContacto ? 'lg:col-span-6' : 'lg:col-span-12 max-w-2xl mx-auto w-full'} transition-transform`}>
+                  <DiarioWidget onClose={() => setShowDiario(false)} className="w-full" />
+                </div>
+              )}
 
-            {/* Widget 2: CyberAmp Audio Player */}
-            {showWinamp && (
-              <div className={`transform lg:rotate-0.5 hover:rotate-0 transition-transform ${showDiario ? 'lg:col-span-6' : 'lg:col-span-12'}`}>
-                <WinampPlayerWidget onClose={() => setShowWinamp(false)} />
-              </div>
-            )}
-
-            {/* Widget 3 (Pop-up): Contacto Directo & Conserjería */}
-            {showContacto && (
-              <div className="lg:col-span-12 animate-in fade-in duration-200">
-                <ContactoWidget onClose={() => setShowContacto(false)} />
-              </div>
-            )}
-          </div>
+              {/* Widget 2: Contacto Directo & Conserjería */}
+              {showContacto && (
+                <div className={`${showDiario ? 'lg:col-span-6' : 'lg:col-span-12 max-w-2xl mx-auto w-full'} animate-in fade-in duration-200`}>
+                  <ContactoWidget onClose={() => setShowContacto(false)} className="w-full" />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* =========================================================================
               MULTI-BRANCH TELEMETRY CLUSTER PANEL:

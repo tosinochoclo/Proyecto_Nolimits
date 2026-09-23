@@ -202,8 +202,8 @@ export const OSDesktopTaskbar: React.FC = () => {
           </button>
 
           <div className="hidden md:flex items-center gap-1 bevel-sunken px-2 py-0.5 text-slate-300">
-            <Volume2 className="w-3 h-3 text-[#00d4ff]" />
-            <span>AUDIO: ON</span>
+            <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse"></span>
+            <span>RED: EN LÍNEA</span>
           </div>
 
           <div className="flex items-center gap-1.5 bevel-sunken px-2 py-0.5 text-slate-200">

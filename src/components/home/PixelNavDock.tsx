@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 interface PixelNavDockProps {
-  onOpenWidget?: (widgetId: 'diario' | 'contacto' | 'winamp') => void;
+  onOpenWidget?: (widgetId: 'diario' | 'contacto') => void;
   activeWidget?: string | null;
 }
 
