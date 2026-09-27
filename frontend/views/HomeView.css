@@ -1,0 +1,107 @@
+/* ==========================================================================
+   HomeView.css
+   Estilos específicos para la vista principal del sistema operativo Nolimits
+   ========================================================================== */
+
+/* Contenedor general de la vista */
+.home-view-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Marco maestro de la ventana del navegador / Cyber OS */
+.master-os-window {
+  border-radius: 2px;
+  background-color: rgba(5, 3, 10, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 0 50px rgba(157, 0, 255, 0.25);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #2b223c;
+}
+
+/* Barra de título morada lavanda con controles estilo retro */
+.master-os-titlebar {
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  color: #ffffff;
+  border-bottom: 1px solid #3c1e5e;
+}
+
+@media (min-width: 640px) {
+  .master-os-titlebar {
+    padding: 0.5rem 1rem;
+  }
+}
+
+.titlebar-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.titlebar-brand-title {
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 640px) {
+  .titlebar-brand-title {
+    font-size: 0.875rem;
+  }
+}
+
+.titlebar-brand-subtitle {
+  font-family: 'VT323', monospace;
+  font-size: 0.875rem;
+  color: rgba(233, 213, 255, 0.8);
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .titlebar-brand-subtitle {
+    display: inline;
+  }
+}
+
+/* Cuerpo interior de la ventana principal */
+.master-os-body {
+  padding: 0.75rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .master-os-body {
+    padding: 1.5rem;
+  }
+}
+
+/* Grilla dinámica para widgets flotantes (Diario / Contacto) */
+.master-os-widgets-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  position: relative;
+  z-index: 10;
+  padding-top: 0.5rem;
+}
+
+@media (min-width: 1024px) {
+  .master-os-widgets-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}

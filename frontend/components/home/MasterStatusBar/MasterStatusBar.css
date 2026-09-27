@@ -1,0 +1,39 @@
+/* ==========================================================================
+   MasterStatusBar.css
+   Estilos específicos para la barra de estado inferior de la ventana principal
+   ========================================================================== */
+
+.master-status-bar {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-family: 'VT323', monospace;
+  color: #cbd5e1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-top: 1px solid #2e2044;
+  user-select: none;
+}
+
+.master-status-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.master-status-ping-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #00ff66;
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.master-status-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #a855f7;
+}

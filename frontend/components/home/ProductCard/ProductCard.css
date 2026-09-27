@@ -1,0 +1,117 @@
+/* ==========================================================================
+   ProductCard.css
+   Estilos específicos para la tarjeta de producto retro-futurista
+   ========================================================================== */
+
+.product-card-root {
+  background-color: #090710;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.product-card-root:hover {
+  border-color: #ff007f;
+}
+
+/* Contenedor de la imagen con badges */
+.product-card-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background-color: #000000;
+}
+
+.product-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.3s ease;
+}
+
+.product-card-root:hover .product-card-image {
+  transform: scale(1.05);
+}
+
+.product-card-discount {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background-color: #ff007f;
+  color: #ffffff;
+  font-family: 'Silkscreen', monospace;
+  font-size: 10px;
+  padding: 0.125rem 0.5rem;
+}
+
+.product-card-stock {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #00d4ff;
+  font-family: 'VT323', monospace;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid rgba(0, 212, 255, 0.4);
+}
+
+/* Área de contenido y metadatos */
+.product-card-details {
+  padding: 0.75rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.product-card-category {
+  font-family: 'VT323', monospace;
+  font-size: 0.75rem;
+  color: #a855f7;
+  letter-spacing: 0.05em;
+}
+
+.product-card-title {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #ffffff;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 0.2s ease;
+}
+
+.product-card-root:hover .product-card-title {
+  color: #ff007f;
+}
+
+.product-card-price-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.product-card-price-main {
+  font-family: 'Silkscreen', monospace;
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+.product-card-price-old {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 0.75rem;
+  text-decoration: line-through;
+  color: #64748b;
+}
+
+.product-card-actions {
+  padding-top: 0.25rem;
+  display: flex;
+  gap: 0.5rem;
+}

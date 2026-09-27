@@ -1,83 +1,92 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  Sparkles,
-  Radio,
-  BookOpen,
-  Flame,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
-  Truck,
-  Store,
-  Minus,
-  Square,
-  X,
-  Layers,
-  Activity,
-  CheckCircle2,
-  RefreshCw,
-  ShoppingBag,
-  ExternalLink
-} from 'lucide-react';
-import { WindowFrame } from '../components/layout/WindowFrame';
-import { PixelButton } from '../components/common/PixelButton';
-import { SpiderwebDecor } from '../components/home/SpiderwebDecor';
-import { PixelNavDock } from '../components/home/PixelNavDock';
-import { DiarioWidget } from '../components/home/DiarioWidget';
-import { ContactoWidget } from '../components/home/ContactoWidget';
+import React, { useState, useMemo } from 'react';
+import { Minus, Square, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
 import { INITIAL_PRODUCTS } from '../services/mockData';
+import { Product } from '../types';
 
+/* =========================================================================
+   Componentes Modulares Extraídos y Estilos Separados
+   ========================================================================= */
+import { CosmicBackgroundFx } from '../components/home/CosmicBackgroundFx/CosmicBackgroundFx';
+import { HeroWelcome } from '../components/home/HeroWelcome/HeroWelcome';
+import { TelemetryCluster } from '../components/home/TelemetryCluster/TelemetryCluster';
+import { FeaturedCatalog } from '../components/home/FeaturedCatalog/FeaturedCatalog';
+import { MasterStatusBar } from '../components/home/MasterStatusBar/MasterStatusBar';
+import { DiarioWidget } from '../components/home/DiarioWidget';
+import { ContactoWidget } from '../components/home/ContactoWidget';
+
+import './HomeView.css';
+
+/**
+ * Vista: HomeView
+ * 
+ * Propósito:
+ * Orquestador principal de la vista de inicio del sistema operativo Cyber-Gothic Nolimits.
+ * Integra la ambientación cósmica, el encabezado Hero, los widgets interactivos de escritorio,
+ * la telemetría de stock físico en vivo (Viña, Valparaíso, Quilpué) y el catálogo destacado.
+ * 
+ * Arquitectura y Refactorización:
+ * - Cada sección visual ha sido delegada a componentes especializados con sus propios archivos CSS.
+ * - Mantiene el estado de UI de nivel superior (widgets de diario/contacto y selección rápida de carro).
+ * - Código empático, limpio y preparado para mantenimiento en equipo.
+ */
 export const HomeView: React.FC = () => {
+  // Contextos globales para gestión de carrito y sucursal activa
   const { addToCart } = useCart();
   const { branches, activeBranchId } = useBranch();
 
-  // Active floating widgets state (can be toggled/closed for interactive desktop chaos)
-  const [showDiario, setShowDiario] = useState(true);
-  const [showContacto, setShowContacto] = useState(false);
+  // Estados de control para la apertura de widgets interactivos estilo escritorio retro
+  const [showDiario, setShowDiario] = useState<boolean>(true);
+  const [showContacto, setShowContacto] = useState<boolean>(false);
   const [activeWidgetTab, setActiveWidgetTab] = useState<'diario' | 'contacto' | null>(null);
 
-  // Quick feedback state for cart adds
+  // Estado transitorio para dar feedback visual instantáneo cuando se añade un producto
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
 
-  const featuredProducts = INITIAL_PRODUCTS.filter((p) => !p.isHidden);
+  // Memorización de productos activos para evitar recalcular en renders menores
+  const featuredProducts = useMemo(() => {
+    return INITIAL_PRODUCTS.filter((product) => !product.isHidden);
+  }, []);
 
+  /**
+   * Manejador para abrir o alternar un widget desde el Dock pixelado
+   */
   const handleOpenWidget = (widgetId: 'diario' | 'contacto') => {
     setActiveWidgetTab(widgetId);
     if (widgetId === 'diario') setShowDiario(true);
     if (widgetId === 'contacto') setShowContacto(true);
   };
 
-  const handleQuickAdd = (product: typeof featuredProducts[0]) => {
+  /**
+   * Manejador de compra rápida de productos desde la grilla destacada
+   */
+  const handleQuickAdd = (product: Product) => {
     addToCart(product, product.sizes[0], product.colors[0]);
     setAddedProductId(product.id);
     setTimeout(() => setAddedProductId(null), 2000);
   };
 
   return (
-    <div className="space-y-6 relative">
+    <div className="home-view-wrapper">
       {/* 
-        MASTER BROWSER / OS WINDOW FRAME:
-        "Borde de la Ventana del Navegador: Biseles metálicos y negros, con una barra de título
-        superior de color morado lavanda que muestra 'Nolimits' en fuente pixelada blanca.
-        Botones de control de ventana (min, max, cerrar) de aspecto retro en la esquina derecha."
+        VENTANA MAESTRA DEL NAVEGADOR / SISTEMA OPERATIVO
+        Bisel cromado, barra de título morado lavanda y controles retro
       */}
-      <div className="bevel-chrome rounded-xs bg-[#05030a]/95 backdrop-blur-xl shadow-[0_0_50px_rgba(157,0,255,0.25)] relative overflow-hidden border-2 border-[#2b223c]">
-        {/* Lavender Titlebar */}
-        <div className="os-titlebar-lavender px-3 sm:px-4 py-2 flex items-center justify-between select-none text-white border-b border-[#3c1e5e]">
-          <div className="flex items-center gap-2">
+      <div className="master-os-window bevel-chrome">
+        {/* Barra de título de la ventana OS */}
+        <header className="master-os-titlebar os-titlebar-lavender">
+          <div className="titlebar-brand-group">
             <span className="w-2.5 h-2.5 bg-[#00ff66] rounded-full animate-pulse shadow-[0_0_8px_#00ff66]" />
-            <span className="font-['Silkscreen'] text-xs sm:text-sm tracking-widest text-white font-bold drop-shadow-sm">
+            <span className="titlebar-brand-title">
               Nolimits
             </span>
-            <span className="hidden md:inline font-['VT323'] text-sm text-[#e9d5ff]/80">
+            <span className="titlebar-brand-subtitle">
               :: [Cyber-Gothic OS v2.0 - Chile Central Network]
             </span>
           </div>
 
-          {/* Retro Window Control Buttons (min, max, close) */}
+          {/* Botones de control estilo Windows 95/98 (Minimizar, Maximizar, Cerrar) */}
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
@@ -104,302 +113,54 @@ export const HomeView: React.FC = () => {
               <X className="w-2.5 h-2.5" />
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Master Window Body Area */}
-        <div className="p-3 sm:p-6 space-y-6 relative overflow-hidden">
-          {/* =========================================================================
-              BACKGROUND LIGHT RAYS, ELECTRIC GLOW & DIGITAL GLITTER
-              ========================================================================= */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
-            {/* Center Radial Electric Blue to Neon Violet Flare */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(157,0,255,0.28)_0%,rgba(0,212,255,0.18)_35%,rgba(255,0,127,0.12)_60%,transparent_80%)] blur-2xl animate-pulse-glow" />
+        {/* Cuerpo principal de la ventana */}
+        <main className="master-os-body">
+          {/* Fondo animado cósmico con haces de luz y estrellas */}
+          <CosmicBackgroundFx />
 
-            {/* Rotating Starburst / Light Beams */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] opacity-20 animate-flare bg-[conic-gradient(from_0deg,transparent_0deg,#ff007f_30deg,transparent_60deg,#00d4ff_120deg,transparent_180deg,#9d00ff_240deg,transparent_300deg)] pointer-events-none" />
+          {/* Encabezado principal Hero con logo, dock de navegación y accesos */}
+          <HeroWelcome
+            showDiario={showDiario}
+            onToggleDiario={() => setShowDiario((prev) => !prev)}
+            showContacto={showContacto}
+            onToggleContacto={() => setShowContacto((prev) => !prev)}
+            activeWidgetTab={activeWidgetTab}
+            onOpenWidget={handleOpenWidget}
+          />
 
-            {/* Sparkling Stars & Digital Glitter (★ ✦ ✵ ✧ ⋆) */}
-            <span className="absolute top-12 left-10 text-[#00d4ff] text-xl animate-twinkle font-mono">✦</span>
-            <span className="absolute top-24 left-1/4 text-[#ff007f] text-sm animate-twinkle font-mono" style={{ animationDelay: '0.7s' }}>★</span>
-            <span className="absolute top-10 right-16 text-[#e9d5ff] text-2xl animate-twinkle font-mono" style={{ animationDelay: '1.2s' }}>✵</span>
-            <span className="absolute top-36 right-1/4 text-[#00ff66] text-sm animate-twinkle font-mono" style={{ animationDelay: '1.8s' }}>✧</span>
-            <span className="absolute bottom-20 left-12 text-[#ff77b8] text-lg animate-twinkle font-mono" style={{ animationDelay: '0.4s' }}>★</span>
-            <span className="absolute bottom-24 right-16 text-[#00d4ff] text-xl animate-twinkle font-mono" style={{ animationDelay: '1.5s' }}>✦</span>
-            <span className="absolute top-1/2 left-6 text-white text-xs animate-twinkle font-mono" style={{ animationDelay: '2.1s' }}>⋆</span>
-            <span className="absolute top-1/2 right-6 text-[#a855f7] text-xs animate-twinkle font-mono" style={{ animationDelay: '1.1s' }}>✵</span>
-          </div>
-
-          {/* =========================================================================
-              HERO WELCOME WINDOW:
-              "Encabezado Principal (Welcome): Texto grande, en negrita y biselado con un
-              degradado de rosa a blanco que dice 'Nolimits'. Debajo, un texto de párrafo
-              más pequeño que dice 'Nolimits'."
-              Con telarañas estilizadas en las esquinas, purpurina digital y destellos.
-              ========================================================================= */}
-          <div className="relative z-10">
-            <div className="bevel-chrome bg-[#0a0714]/90 p-5 sm:p-10 relative overflow-hidden text-center space-y-5 shadow-[0_0_35px_rgba(255,0,127,0.2)]">
-              {/* Corner Spiderwebs (SVG with neon purple and pink threads) */}
-              <SpiderwebDecor position="top-left" color="#9d00ff" />
-              <SpiderwebDecor position="top-right" color="#ff007f" />
-              <SpiderwebDecor position="bottom-left" color="#7c3aed" />
-              <SpiderwebDecor position="bottom-right" color="#00d4ff" />
-
-              {/* Status Badge & Signal Indicator */}
-              <div className="inline-flex items-center gap-2 bevel-sunken px-3.5 py-1.5 font-['Silkscreen'] text-xs text-[#00d4ff] bg-black/80 border border-[#00d4ff]/30 shadow-[0_0_12px_rgba(0,212,255,0.3)]">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#00ff66] animate-pulse shadow-[0_0_8px_#00ff66]" />
-                <span className="text-white">INVENTARIO EN TIEMPO REAL // NODO VIÑA - VALPARAÍSO - QUILPUÉ</span>
-              </div>
-
-              {/* Title Section */}
-              <div className="space-y-1 sm:space-y-2 relative">
-                {/* Large Bold Beveled Pink to White Gradient "Nolimits" */}
-                <h1 className="font-['Syne'] font-extrabold text-5xl sm:text-7xl lg:text-8xl tracking-tight text-y2k-gradient uppercase select-none drop-shadow-[0_4px_16px_rgba(255,0,127,0.5)]">
-                  Nolimits
-                </h1>
-
-                {/* Sub-paragraph text: "Nolimits" */}
-                <p className="font-['VT323'] text-2xl sm:text-3xl text-[#e9d5ff] tracking-[0.25em] uppercase select-none drop-shadow-[0_0_10px_rgba(168,85,247,0.7)]">
-                  Nolimits
-                </p>
-
-                <p className="font-['Chakra_Petch'] text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed pt-2">
-                  E-commerce descentralizado e indumentaria cyber-gótica. Eliminamos la validación manual por chat y las listas de espera: sincronización de stock físico en tiempo real con pasarelas automáticas y despacho nacional.
-                </p>
-              </div>
-
-              {/* Pixel Navigation Dock: Hogar, Diario, Compras, Contacto */}
-              <div className="pt-2 flex justify-center">
-                <PixelNavDock
-                  onOpenWidget={handleOpenWidget}
-                  activeWidget={activeWidgetTab}
-                />
-              </div>
-
-              {/* Quick Action Buttons */}
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                <Link to="/catalog">
-                  <PixelButton
-                    variant="primary"
-                    size="lg"
-                    icon={<Flame className="w-4 h-4 text-yellow-300" />}
-                    className="text-xs sm:text-sm px-6 py-2.5"
-                  >
-                    EXPLORAR DROP COMPLETO
-                  </PixelButton>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setShowDiario(!showDiario)}
-                  className="bevel-chrome bg-[#1b122e] hover:bg-[#2a1b47] px-4 py-2 text-white font-['Silkscreen'] text-xs flex items-center gap-2 cursor-pointer transition-all"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-[#00d4ff]" />
-                  <span>{showDiario ? 'OCULTAR BITÁCORA' : 'VER BITÁCORA DE DROPS'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowContacto(!showContacto)}
-                  className="bevel-chrome bg-[#1b122e] hover:bg-[#2a1b47] px-4 py-2 text-white font-['Silkscreen'] text-xs flex items-center gap-2 cursor-pointer transition-all"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#ff007f]" />
-                  <span>{showContacto ? 'OCULTAR CONTACTO' : 'MESA DE AYUDA / WHATSAPP'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* =========================================================================
-              DESKTOP WIDGETS SECTION:
-              Paneles de Contenido: Bitácora de lanzamientos y Contacto Directo
-              ========================================================================= */}
+          {/* Widgets de escritorio desplegables (Diario de lanzamientos y Contacto) */}
           {(showDiario || showContacto) && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 relative z-10 pt-2">
-              {/* Widget 1: Diario de Lanzamientos & Bitácora */}
+            <section className="master-os-widgets-grid" aria-label="Widgets Interactivos">
               {showDiario && (
-                <div className={`${showContacto ? 'lg:col-span-6' : 'lg:col-span-12 max-w-2xl mx-auto w-full'} transition-transform`}>
+                <div className={`${showContacto ? 'lg:col-span-6' : 'lg:col-span-12 max-w-2xl mx-auto w-full'}`}>
                   <DiarioWidget onClose={() => setShowDiario(false)} className="w-full" />
                 </div>
               )}
 
-              {/* Widget 2: Contacto Directo & Conserjería */}
               {showContacto && (
-                <div className={`${showDiario ? 'lg:col-span-6' : 'lg:col-span-12 max-w-2xl mx-auto w-full'} animate-in fade-in duration-200`}>
+                <div className={`${showDiario ? 'lg:col-span-6' : 'lg:col-span-12 max-w-2xl mx-auto w-full'}`}>
                   <ContactoWidget onClose={() => setShowContacto(false)} className="w-full" />
                 </div>
               )}
-            </div>
+            </section>
           )}
 
-          {/* =========================================================================
-              MULTI-BRANCH TELEMETRY CLUSTER PANEL:
-              Sincronización descentralizada Viña, Valparaíso & Quilpué
-              ========================================================================= */}
-          <div className="relative z-10">
-            <WindowFrame
-              title="CLUSTER_TELEMETRY.SYS - [Red de Inventario Físico]"
-              variant="chrome"
-              statusBarText="SOCKET: ACTIVE // SYNC LATENCY: 14MS // INTEGRIDAD: 100%"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 font-['Chakra_Petch'] text-xs">
-                {branches.map((b) => (
-                  <div
-                    key={b.id}
-                    className="bevel-chrome p-3.5 bg-[#0e0a1a] space-y-2 border-t-2"
-                    style={{ borderTopColor: b.colorTag }}
-                  >
-                    <div className="flex items-center justify-between border-b border-[#281a3d] pb-1 font-['Silkscreen']">
-                      <span className="text-white text-xs">{b.city}</span>
-                      <span className="text-[#00ff66] text-[10px] flex items-center gap-1 font-mono">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66] animate-pulse"></span>
-                        ONLINE
-                      </span>
-                    </div>
+          {/* Telemetría en vivo del clúster de sucursales físicas */}
+          <TelemetryCluster branches={branches} />
 
-                    <div className="text-slate-300 font-bold text-xs truncate">
-                      {b.name}
-                    </div>
+          {/* Catálogo de prendas destacadas con stock reactivo */}
+          <FeaturedCatalog
+            products={featuredProducts}
+            activeBranchId={activeBranchId}
+            addedProductId={addedProductId}
+            onQuickAdd={handleQuickAdd}
+          />
 
-                    <div className="text-slate-400 text-[11px] truncate">
-                      {b.address}
-                    </div>
-
-                    <div className="bevel-sunken p-1.5 bg-black/60 flex items-center justify-between font-mono text-[10px] text-slate-300">
-                      <span>Jefe: {b.managerName}</span>
-                      <span className="text-[#00d4ff]">RETIRO INMEDIATO</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </WindowFrame>
-          </div>
-
-          {/* =========================================================================
-              FEATURED PRODUCTS WINDOW:
-              Prendas Destacadas en Tiempo Real
-              ========================================================================= */}
-          <div className="relative z-10">
-            <WindowFrame
-              title="FEATURED_CATALOG.BIN - [Prendas Destacadas & Live Drops]"
-              variant="lavender"
-              statusBarText="FILTRADO POR STOCK DISPONIBLE EN SUCURSAL SELECCIONADA // CHECKOUT SEGURO WEBPAY"
-            >
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#30214a]">
-                  <div>
-                    <h2 className="font-['Silkscreen'] text-sm sm:text-base text-white">
-                      PRENDAS EXCLUSIVAS DEL DROP
-                    </h2>
-                    <span className="font-['VT323'] text-sm text-[#ff77b8]">
-                      // PIEZAS ÚNICAS LISTAS PARA DESPACHO O RETIRO EN LOCAL
-                    </span>
-                  </div>
-
-                  <Link
-                    to="/catalog"
-                    className="font-['Silkscreen'] text-xs text-[#00d4ff] hover:text-[#ff007f] flex items-center gap-1.5 bevel-sunken px-3 py-1 bg-black/40"
-                  >
-                    <span>ABRIR CATÁLOGO ENTERO</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-
-                {/* Product Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {featuredProducts.map((product) => {
-                    const currentStock =
-                      activeBranchId === 'all'
-                        ? product.totalStock
-                        : product.stockPerBranch[activeBranchId] ?? 0;
-
-                    const isRecentlyAdded = addedProductId === product.id;
-
-                    return (
-                      <div
-                        key={product.id}
-                        className="bevel-chrome bg-[#090710] flex flex-col group overflow-hidden transition-all hover:border-[#ff007f]"
-                      >
-                        {/* Image Preview with Badges */}
-                        <div className="relative aspect-square overflow-hidden bg-black">
-                          <img
-                            src={product.images[0]}
-                            alt={product.title}
-                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                          />
-
-                          {product.discountPercent && (
-                            <span className="absolute top-2 left-2 bg-[#ff007f] text-white font-['Silkscreen'] text-[10px] px-2 py-0.5 bevel-raised">
-                              -{product.discountPercent}% OFF
-                            </span>
-                          )}
-
-                          <span className="absolute bottom-2 right-2 bg-black/85 text-[#00d4ff] font-['VT323'] text-xs px-2 py-0.5 border border-[#00d4ff]/40">
-                            STOCK: {currentStock} un.
-                          </span>
-                        </div>
-
-                        {/* Product Meta & Price */}
-                        <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
-                          <div>
-                            <div className="font-['VT323'] text-xs text-[#a855f7] tracking-wider">
-                              {product.category}
-                            </div>
-                            <h3 className="font-['Chakra_Petch'] font-bold text-sm text-white line-clamp-1 group-hover:text-[#ff007f] transition-colors">
-                              {product.title}
-                            </h3>
-                          </div>
-
-                          <div className="flex items-baseline gap-2">
-                            <span className="font-['Silkscreen'] text-base text-white">
-                              ${(product.salePrice ?? product.price).toLocaleString('es-CL')}
-                            </span>
-                            {product.salePrice && (
-                              <span className="font-['Chakra_Petch'] text-xs line-through text-slate-500 font-mono">
-                                ${product.price.toLocaleString('es-CL')}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Quick Action Buttons */}
-                          <div className="pt-1 flex gap-2">
-                            <Link to={`/product/${product.id}`} className="flex-1">
-                              <PixelButton variant="retro" size="sm" className="w-full text-xs">
-                                Ver Ficha
-                              </PixelButton>
-                            </Link>
-
-                            <PixelButton
-                              variant={isRecentlyAdded ? 'accent' : 'primary'}
-                              size="sm"
-                              onClick={() => handleQuickAdd(product)}
-                              disabled={currentStock <= 0}
-                              title={currentStock <= 0 ? 'Sin stock' : 'Añadir al Carrito'}
-                              icon={isRecentlyAdded ? <CheckCircle2 className="w-3.5 h-3.5 text-green-300" /> : <ShoppingBag className="w-3.5 h-3.5" />}
-                            >
-                              {isRecentlyAdded ? '¡Listo!' : '+ Carro'}
-                            </PixelButton>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </WindowFrame>
-          </div>
-
-          {/* =========================================================================
-              FOOTER STATUS BAR OF THE MASTER WINDOW
-              ========================================================================= */}
-          <div className="bevel-sunken px-3 py-1.5 text-xs font-['VT323'] text-slate-300 flex flex-wrap items-center justify-between gap-2 border-t border-[#2e2044] select-none">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-ping" />
-              <span>NOLIMITS APPAREL CORE // PROTOCOLO TCP/IP DESCENTRALIZADO // CHILE</span>
-            </div>
-            <div className="flex items-center gap-4 text-[#a855f7]">
-              <span>TIEMPO DE RESPUESTA: 14ms</span>
-              <span>WEBPAY / REDCOMPRA / TRANSBANK OK</span>
-            </div>
-          </div>
-        </div>
+          {/* Barra de estado inferior con métricas del sistema */}
+          <MasterStatusBar />
+        </main>
       </div>
     </div>
   );

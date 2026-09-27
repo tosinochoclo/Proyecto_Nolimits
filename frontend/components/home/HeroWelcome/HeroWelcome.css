@@ -1,0 +1,131 @@
+/* ==========================================================================
+   HeroWelcome.css
+   Estilos específicos para el encabezado principal (Hero Welcome)
+   ========================================================================== */
+
+.hero-welcome-card {
+  position: relative;
+  z-index: 10;
+}
+
+.hero-welcome-box {
+  background-color: rgba(10, 7, 20, 0.9);
+  padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: 0 0 35px rgba(255, 0, 127, 0.2);
+}
+
+@media (min-width: 640px) {
+  .hero-welcome-box {
+    padding: 2.5rem;
+  }
+}
+
+/* Indicador de estado de la red */
+.hero-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.75rem;
+  color: #00d4ff;
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
+  margin-bottom: 1rem;
+}
+
+.hero-status-pulse {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  background-color: #00ff66;
+  box-shadow: 0 0 8px #00ff66;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Título principal con degradado y tipografía estilizada */
+.hero-title-main {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 3rem;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  user-select: none;
+  line-height: 1;
+  filter: drop-shadow(0 4px 16px rgba(255, 0, 127, 0.5));
+}
+
+@media (min-width: 640px) {
+  .hero-title-main {
+    font-size: 4.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-title-main {
+    font-size: 6rem;
+  }
+}
+
+/* Subtítulo pixelado */
+.hero-title-sub {
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem;
+  color: #e9d5ff;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  user-select: none;
+  filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.7));
+}
+
+@media (min-width: 640px) {
+  .hero-title-sub {
+    font-size: 1.875rem;
+  }
+}
+
+/* Párrafo explicativo del e-commerce */
+.hero-description {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 0.875rem;
+  color: #cbd5e1;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.625;
+  padding-top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .hero-description {
+    font-size: 1rem;
+  }
+}
+
+/* Botón auxiliar retro */
+.hero-toggle-btn {
+  background-color: #1b122e;
+  padding: 0.5rem 1rem;
+  color: #ffffff;
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-top: 2px solid #e2e8f0;
+  border-left: 2px solid #cbd5e1;
+  border-right: 2px solid #33204a;
+  border-bottom: 2px solid #1a0f2b;
+}
+
+.hero-toggle-btn:hover {
+  background-color: #2a1b47;
+  color: #00d4ff;
+  border-color: #ff007f;
+}

@@ -1,292 +1,104 @@
 @import "tailwindcss";
 
-@theme {
-  --color-void: #030206;
-  --color-void-deep: #000000;
-  --color-panel-dark: rgba(11, 9, 18, 0.88);
-  --color-panel-opaque: #0e0c16;
-  --color-panel-header: #967bb6;
-  
-  --color-neon-magenta: #ff007f;
-  --color-neon-purple: #9d00ff;
-  --color-electric-blue: #00d4ff;
-  --color-electric-indigo: #4f46e5;
-  --color-cyber-green: #00ff66;
-  --color-acid-yellow: #f5ee38;
-
-  --color-lavender-plastic: #b8a2e8;
-  --color-lavender-title: #7c5fb0;
-  --color-lavender-border: #4d3674;
-
-  --color-chrome-highlight: #ffffff;
-  --color-chrome-surface: #d8dde6;
-  --color-chrome-shadow: #2f3440;
-  --color-chrome-dark: #12151c;
-
-  --font-pixel: 'Silkscreen', 'VT323', monospace;
-  --font-terminal: 'VT323', monospace;
-  --font-cyber: 'Chakra Petch', sans-serif;
-  --font-display: 'Syne', sans-serif;
+@layer base {
+  * {
+    border-color: #3b2b52;
+  }
+  body {
+    background-color: #05030a;
+    color: #f1f5f9;
+    font-family: 'Chakra Petch', sans-serif;
+  }
 }
 
-/* ==========================================================================
-   NO LIMITS: Cyber-Gothic Y2K / Windows XP-98 OS Design System Tokens
-   ========================================================================== */
-
-:root {
-  --bg-void: #020106;
-  --primary-magenta: #ff007f;
-  --primary-purple: #9d00ff;
-  --primary-blue: #00d4ff;
-  --lavender-os: #8f6ec6;
-  --lavender-light: #c5b2e8;
-  --chrome-bevel-light: #e8ebf0;
-  --chrome-bevel-dark: #1e222b;
-}
-
-/* Cosmic Space Void Background with Electric-to-Neon Gradient */
-.y2k-cosmic-bg {
-  background-color: #020106;
-  background-image: 
-    radial-gradient(circle at 50% 30%, rgba(157, 0, 255, 0.22) 0%, rgba(0, 212, 255, 0.12) 32%, rgba(2, 1, 6, 0.95) 75%),
-    radial-gradient(circle at 80% 85%, rgba(255, 0, 127, 0.15) 0%, transparent 45%),
-    radial-gradient(circle at 15% 75%, rgba(0, 212, 255, 0.14) 0%, transparent 40%);
-  background-attachment: fixed;
-}
-
-/* Cyber Starfield and Dust Overlay */
-.y2k-stars-grid {
-  background-image: 
-    linear-gradient(rgba(157, 0, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(157, 0, 255, 0.05) 1px, transparent 1px);
-  background-size: 32px 32px;
-}
-
-/* Window Chrome & Bevels (Windows 98/XP & Cyber Metallic Bevel) */
-.bevel-chrome {
-  border-top: 2px solid #ffffff;
-  border-left: 2px solid #e1e7f0;
-  border-right: 2px solid #232731;
-  border-bottom: 2px solid #14161c;
-  box-shadow: 
-    inset 1px 1px 0px rgba(255, 255, 255, 0.4),
-    inset -1px -1px 0px rgba(0, 0, 0, 0.7),
-    0 8px 32px rgba(0, 0, 0, 0.8),
-    0 0 15px rgba(157, 0, 255, 0.15);
+/* Y2K & Windows 98 / Cyber Bevel System */
+.bevel-raised {
+  box-shadow: inset 1.5px 1.5px 0px #ffffff,
+              inset -1.5px -1.5px 0px #1e152d,
+              inset 2.5px 2.5px 0px #cbd5e1,
+              inset -2.5px -2.5px 0px #090510;
 }
 
 .bevel-sunken {
-  border-top: 2px solid #101217;
-  border-left: 2px solid #1b1e26;
-  border-right: 2px solid #9ea5b3;
-  border-bottom: 2px solid #e1e7f0;
-  background-color: rgba(5, 4, 10, 0.85);
+  box-shadow: inset 1.5px 1.5px 0px #0a0614,
+              inset -1.5px -1.5px 0px #4d366b,
+              inset 2.5px 2.5px 0px #140d24,
+              inset -2.5px -2.5px 0px #2a1b42;
 }
 
-.bevel-raised {
+.bevel-chrome {
   border-top: 2px solid #e2e8f0;
   border-left: 2px solid #cbd5e1;
-  border-right: 2px solid #1e293b;
-  border-bottom: 2px solid #0f172a;
+  border-right: 2px solid #33204a;
+  border-bottom: 2px solid #1a0f2b;
 }
 
-.bevel-lavender {
-  border-top: 2px solid #e9d5ff;
-  border-left: 2px solid #d8b4fe;
-  border-right: 2px solid #581c87;
-  border-bottom: 2px solid #3b0764;
-}
-
-/* Lavender Titlebar with XP-Style Plastic Sheen */
+/* Retro OS Titlebars */
 .os-titlebar-lavender {
-  background: linear-gradient(180deg, #9b72cf 0%, #764ba2 45%, #583383 50%, #683d99 100%);
-  border-bottom: 1px solid #3c1e5e;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.85);
-}
-
-.os-titlebar-chrome {
-  background: linear-gradient(180deg, #525866 0%, #3a3f4d 45%, #262a33 50%, #323742 100%);
-  border-bottom: 1px solid #181a20;
+  background: linear-gradient(90deg, #9d4edd 0%, #7b2cbf 40%, #c77dff 100%);
+  text-shadow: 1px 1px 0px #240046;
 }
 
 .os-titlebar-active {
-  background: linear-gradient(180deg, #c084fc 0%, #9333ea 48%, #6b21a8 52%, #7e22ce 100%);
+  background: linear-gradient(90deg, #ff007f 0%, #7928ca 50%, #00d4ff 100%);
+  text-shadow: 1px 1px 0px #1a0033;
 }
 
-/* Retro Window Control Buttons */
+.os-titlebar-chrome {
+  background: linear-gradient(90deg, #334155 0%, #475569 50%, #1e293b 100%);
+}
+
+/* Windows 95/XP style Control Buttons */
 .win-btn {
   width: 18px;
   height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: bold;
-  background: linear-gradient(180deg, #ede9fe 0%, #c4b5fd 60%, #8b5cf6 100%);
-  border-top: 1px solid #ffffff;
-  border-left: 1px solid #ffffff;
-  border-right: 1px solid #4c1d95;
-  border-bottom: 1px solid #2e1065;
-  color: #1e1b4b;
+  background: #cbd5e1;
+  color: #0f172a;
+  border-top: 1.5px solid #ffffff;
+  border-left: 1.5px solid #ffffff;
+  border-right: 1.5px solid #475569;
+  border-bottom: 1.5px solid #334155;
   cursor: pointer;
-  user-select: none;
-  transition: transform 0.05s;
+  padding: 0;
+  font-family: monospace;
 }
 
 .win-btn:active {
-  border-top: 1px solid #2e1065;
-  border-left: 1px solid #4c1d95;
-  border-right: 1px solid #ffffff;
-  border-bottom: 1px solid #ffffff;
-  transform: translate(1px, 1px);
+  border-top: 1.5px solid #334155;
+  border-left: 1.5px solid #475569;
+  border-right: 1.5px solid #ffffff;
+  border-bottom: 1.5px solid #ffffff;
 }
 
-.win-btn-close {
-  background: linear-gradient(180deg, #fecdd3 0%, #f43f5e 55%, #be123c 100%);
+.win-btn-close:hover {
+  background: #ef4444;
   color: #ffffff;
-  border-right: 1px solid #881337;
-  border-bottom: 1px solid #4c0519;
 }
 
-/* Chrome metallic gradient text */
-.text-chrome-gradient {
-  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 30%, #94a3b8 50%, #ffffff 85%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
-}
-
-/* Magenta to White Beveled Header Gradient (As requested: "Welcome Nolimits") */
+/* Pixel & Gradient Aesthetics */
 .text-y2k-gradient {
-  background: linear-gradient(180deg, #ffffff 0%, #ffd1eb 25%, #ff007f 60%, #a20050 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #ffd1eb 40%, #ff007f 75%, #a20050 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 12px rgba(255, 0, 127, 0.45));
+  filter: drop-shadow(0 2px 8px rgba(255, 0, 127, 0.45));
 }
 
-.text-purple-glow {
-  text-shadow: 0 0 8px rgba(157, 0, 255, 0.8), 0 0 20px rgba(157, 0, 255, 0.4);
+.y2k-cosmic-bg {
+  background-color: #06040c;
+  background-image: 
+    radial-gradient(ellipse 80% 80% at 50% -20%, rgba(120, 40, 200, 0.35), transparent),
+    radial-gradient(ellipse 60% 60% at 80% 90%, rgba(255, 0, 127, 0.18), transparent);
 }
 
-.text-magenta-glow {
-  text-shadow: 0 0 8px rgba(255, 0, 127, 0.85), 0 0 20px rgba(255, 0, 127, 0.45);
+.y2k-stars-grid {
+  background-size: 32px 32px;
+  background-image: 
+    radial-gradient(circle, rgba(168, 85, 247, 0.25) 1px, transparent 1px);
 }
 
-.text-cyan-glow {
-  text-shadow: 0 0 8px rgba(0, 212, 255, 0.8), 0 0 16px rgba(0, 212, 255, 0.4);
-}
-
-/* Scanlines overlay effect */
-.crt-scanlines {
-  position: relative;
-}
-.crt-scanlines::after {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-  background-size: 100% 4px;
-  z-index: 40;
-  pointer-events: none;
-  opacity: 0.6;
-}
-
-/* Y2K Light Beams & Flares */
-@keyframes pulseGlow {
-  0%, 100% {
-    opacity: 0.45;
-    filter: drop-shadow(0 0 15px rgba(255, 0, 127, 0.6)) drop-shadow(0 0 35px rgba(157, 0, 255, 0.4));
-  }
-  50% {
-    opacity: 0.85;
-    filter: drop-shadow(0 0 25px rgba(255, 0, 127, 0.9)) drop-shadow(0 0 50px rgba(0, 212, 255, 0.6));
-  }
-}
-
-@keyframes flareRotate {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.15); }
-  100% { transform: rotate(360deg) scale(1); }
-}
-
-@keyframes sparkleTwinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.3); filter: drop-shadow(0 0 6px #fff); }
-}
-
-@keyframes eqBarBounce {
-  0%, 100% { height: 18%; }
-  25% { height: 75%; }
-  50% { height: 40%; }
-  75% { height: 95%; }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 4s ease-in-out infinite;
-}
-
-.animate-flare {
-  animation: flareRotate 24s linear infinite;
-}
-
-.animate-twinkle {
-  animation: sparkleTwinkle 2.5s ease-in-out infinite;
-}
-
-/* Spiderweb vector overlay */
-.spiderweb-corner {
-  position: absolute;
-  width: 90px;
-  height: 90px;
-  pointer-events: none;
-  opacity: 0.35;
-  filter: drop-shadow(0 0 4px rgba(157, 0, 255, 0.5));
-  transition: opacity 0.3s;
-}
-
-.spiderweb-corner:hover {
-  opacity: 0.6;
-}
-
-/* Equalizer Bars */
-.eq-bar {
-  animation: eqBarBounce 0.8s ease-in-out infinite alternate;
-}
-
-/* Y2K Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
-}
-::-webkit-scrollbar-track {
-  background: #110e1a;
-  border-left: 1px solid #231c34;
-}
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #c4b5fd 0%, #7c3aed 50%, #4c1d95 100%);
-  border-top: 2px solid #ede9fe;
-  border-left: 2px solid #ede9fe;
-  border-right: 2px solid #2e1065;
-  border-bottom: 2px solid #2e1065;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #e9d5ff 0%, #9333ea 50%, #581c87 100%);
-}
-
-/* Pixel Icon Box */
-.pixel-icon-frame {
+.image-pixelated {
   image-rendering: pixelated;
-  border: 1px solid #7c3aed;
-  background: rgba(124, 58, 237, 0.15);
-  box-shadow: inset 0 0 8px rgba(157, 0, 255, 0.3);
-}
-
-/* Metallic Badge */
-.metal-badge {
-  background: linear-gradient(180deg, #333a46 0%, #1e222a 100%);
-  border-top: 1px solid #64748b;
-  border-left: 1px solid #64748b;
-  border-right: 1px solid #0f172a;
-  border-bottom: 1px solid #0f172a;
 }

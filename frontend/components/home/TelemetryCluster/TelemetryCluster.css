@@ -1,0 +1,97 @@
+/* ==========================================================================
+   TelemetryCluster.css
+   Estilos dedicados para el panel de telemetría de sucursales físicas
+   ========================================================================== */
+
+.telemetry-cluster-container {
+  position: relative;
+  z-index: 10;
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .telemetry-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.telemetry-branch-card {
+  padding: 0.875rem;
+  background-color: #0e0a1a;
+  border-top-width: 2px;
+  border-top-style: solid;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.telemetry-branch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #281a3d;
+  padding-bottom: 0.25rem;
+  font-family: 'Silkscreen', monospace;
+}
+
+.telemetry-city-title {
+  color: #ffffff;
+  font-size: 0.75rem;
+}
+
+.telemetry-status-indicator {
+  color: #00ff66;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: monospace;
+}
+
+.telemetry-status-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: #00ff66;
+  animation: pulse 1.5s infinite;
+}
+
+.telemetry-branch-name {
+  color: #cbd5e1;
+  font-weight: 700;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.telemetry-branch-address {
+  color: #94a3b8;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.telemetry-manager-bar {
+  padding: 0.375rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: monospace;
+  font-size: 10px;
+  color: #cbd5e1;
+}
+
+.telemetry-pickup-tag {
+  color: #00d4ff;
+  font-weight: bold;
+}
