@@ -1,102 +1,77 @@
 @import "tailwindcss";
+@import "./styles/windows-xp.css";
 
 @layer base {
   * {
-    border-color: #3b2b52;
+    border-color: #d0ccc0;
   }
   body {
-    background-color: #05030a;
-    color: #f1f5f9;
-    font-family: 'Chakra Petch', sans-serif;
+    background-color: #4b8cf5;
+    color: #000000;
+    font-family: 'Tahoma', 'Segoe UI', Arial, sans-serif;
   }
 }
 
-/* Y2K & Windows 98 / Cyber Bevel System */
+/* ==========================================================================
+   Compatibilidad Retro con Clases de Utilidad
+   ========================================================================== */
 .bevel-raised {
   box-shadow: inset 1.5px 1.5px 0px #ffffff,
-              inset -1.5px -1.5px 0px #1e152d,
-              inset 2.5px 2.5px 0px #cbd5e1,
-              inset -2.5px -2.5px 0px #090510;
+              inset -1.5px -1.5px 0px #707070,
+              inset 2.5px 2.5px 0px #ffffff,
+              inset -2.5px -2.5px 0px #000000;
 }
 
 .bevel-sunken {
-  box-shadow: inset 1.5px 1.5px 0px #0a0614,
-              inset -1.5px -1.5px 0px #4d366b,
-              inset 2.5px 2.5px 0px #140d24,
-              inset -2.5px -2.5px 0px #2a1b42;
+  box-shadow: inset 1.5px 1.5px 0px #707070,
+              inset -1.5px -1.5px 0px #ffffff,
+              inset 2.5px 2.5px 0px #000000,
+              inset -2.5px -2.5px 0px #ffffff;
+  background-color: #ffffff;
 }
 
 .bevel-chrome {
-  border-top: 2px solid #e2e8f0;
-  border-left: 2px solid #cbd5e1;
-  border-right: 2px solid #33204a;
-  border-bottom: 2px solid #1a0f2b;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #707070;
+  border-bottom: 2px solid #707070;
 }
 
-/* Retro OS Titlebars */
-.os-titlebar-lavender {
-  background: linear-gradient(90deg, #9d4edd 0%, #7b2cbf 40%, #c77dff 100%);
-  text-shadow: 1px 1px 0px #240046;
-}
-
+.os-titlebar-lavender,
 .os-titlebar-active {
-  background: linear-gradient(90deg, #ff007f 0%, #7928ca 50%, #00d4ff 100%);
-  text-shadow: 1px 1px 0px #1a0033;
+  background: linear-gradient(180deg, #0058ee 0%, #3593ff 8%, #288eff 38%, #0055ea 85%, #0045d6 92%, #0030a6 100%);
+  color: #ffffff;
+  text-shadow: 1px 1px 1px #001f66;
 }
 
 .os-titlebar-chrome {
-  background: linear-gradient(90deg, #334155 0%, #475569 50%, #1e293b 100%);
-}
-
-/* Windows 95/XP style Control Buttons */
-.win-btn {
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #cbd5e1;
-  color: #0f172a;
-  border-top: 1.5px solid #ffffff;
-  border-left: 1.5px solid #ffffff;
-  border-right: 1.5px solid #475569;
-  border-bottom: 1.5px solid #334155;
-  cursor: pointer;
-  padding: 0;
-  font-family: monospace;
-}
-
-.win-btn:active {
-  border-top: 1.5px solid #334155;
-  border-left: 1.5px solid #475569;
-  border-right: 1.5px solid #ffffff;
-  border-bottom: 1.5px solid #ffffff;
-}
-
-.win-btn-close:hover {
-  background: #ef4444;
+  background: linear-gradient(90deg, #000080 0%, #1084d0 100%);
   color: #ffffff;
 }
 
-/* Pixel & Gradient Aesthetics */
+.win-btn {
+  width: 21px;
+  height: 21px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #448aff 0%, #2979ff 45%, #0050d0 50%, #003db3 100%);
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+}
+
+.win-btn-close {
+  background: linear-gradient(180deg, #ff7043 0%, #f4511e 45%, #d84315 50%, #bf360c 100%);
+  color: #ffffff;
+}
+
 .text-y2k-gradient {
-  background: linear-gradient(180deg, #ffffff 0%, #ffd1eb 40%, #ff007f 75%, #a20050 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 8px rgba(255, 0, 127, 0.45));
-}
-
-.y2k-cosmic-bg {
-  background-color: #06040c;
-  background-image: 
-    radial-gradient(ellipse 80% 80% at 50% -20%, rgba(120, 40, 200, 0.35), transparent),
-    radial-gradient(ellipse 60% 60% at 80% 90%, rgba(255, 0, 127, 0.18), transparent);
-}
-
-.y2k-stars-grid {
-  background-size: 32px 32px;
-  background-image: 
-    radial-gradient(circle, rgba(168, 85, 247, 0.25) 1px, transparent 1px);
+  color: #003c74;
 }
 
 .image-pixelated {

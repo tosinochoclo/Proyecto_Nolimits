@@ -1,22 +1,23 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  ShoppingBag,
-  User as UserIcon,
-  Radio,
-  MapPin,
-  Flame,
+  ArrowLeft,
+  ArrowRight,
+  RotateCw,
+  Home,
   Shield,
   Layers,
-  Terminal,
-  Search,
-  Bell
+  ShoppingBag,
+  User as UserIcon,
+  HelpCircle,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useBranch } from '../../context/BranchContext';
 import { useAdminNotifications } from '../../context/AdminNotificationContext';
 import { UserRole } from '../../types';
+import { PixelIcon } from '../common/PixelIcon';
 
 export const TopNavBar: React.FC = () => {
   const { currentRole, setRole, currentUser } = useAuth();
@@ -24,132 +25,164 @@ export const TopNavBar: React.FC = () => {
   const { branches, activeBranchId, setActiveBranchId } = useBranch();
   const { unreadCount } = useAdminNotifications();
   const location = useLocation();
-
-  const navLinks = [
-    { path: '/', label: 'HOME', icon: <Radio className="w-3.5 h-3.5 text-[#ff007f]" /> },
-    { path: '/catalog', label: 'CATÁLOGO', icon: <Layers className="w-3.5 h-3.5 text-[#00d4ff]" /> },
-    { path: '/cart', label: 'CARRITO', icon: <ShoppingBag className="w-3.5 h-3.5 text-[#a855f7]" />, badge: totalItems },
-    { path: '/auth', label: currentUser.role === 'guest' ? 'LOGIN' : 'MI CUENTA', icon: <UserIcon className="w-3.5 h-3.5 text-[#e2e8f0]" /> },
-  ];
+  const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 bg-[#07050d]/95 backdrop-blur-md border-b-2 border-[#3c2a5c] shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
-      {/* Top Banner: Role Simulator & Live Stream Alert */}
-      <div className="bg-gradient-to-r from-[#200d3d] via-[#100720] to-[#2b0833] border-b border-[#4d326f] px-2 sm:px-4 py-1 flex items-center justify-between text-[11px] font-['VT323'] tracking-wider text-slate-300">
-        <div className="flex items-center gap-2">
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ff007f] opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#ff007f]"></span>
-          </span>
-          <span className="text-[#ff007f] font-bold">LIVE STREAM ON AIR</span>
-          <span className="hidden md:inline text-slate-400">| Stock sincronizado en tiempo real con Viña, Valpo & Quilpué</span>
+    <header className="sticky top-0 z-50 bg-[#ece9d8] border-b-2 border-[#707070] shadow-md select-none font-sans">
+      {/* 1. Barra de Título Superior de Internet Explorer 6 */}
+      <div className="winxp-titlebar py-1 px-3 flex items-center justify-between">
+        <div className="winxp-titlebar-title text-xs">
+          <PixelIcon name="internet" size={16} />
+          <span>NoLimits Apparel OS - Microsoft Internet Explorer 6.0</span>
+        </div>
+        <div className="winxp-controls">
+          <button type="button" className="winxp-btn-ctrl winxp-btn-min" title="Minimizar">_</button>
+          <button type="button" className="winxp-btn-ctrl winxp-btn-max" title="Maximizar">□</button>
+          <button type="button" className="winxp-btn-ctrl winxp-btn-close" title="Cerrar">×</button>
+        </div>
+      </div>
+
+      {/* 2. Barra de Menú Estándar (Archivo, Edición, etc.) */}
+      <div className="winxp-menubar text-[11px] px-3 py-1 flex items-center justify-between border-b border-[#d0ccc0]">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <span className="winxp-menu-item">Archivo</span>
+          <span className="winxp-menu-item">Edición</span>
+          <span className="winxp-menu-item">Ver</span>
+          <span className="winxp-menu-item">Favoritos</span>
+          <span className="winxp-menu-item">Herramientas</span>
+          <span className="winxp-menu-item">Ayuda</span>
         </div>
 
-        {/* Developer/User Role Switcher Bar */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          <span className="hidden sm:inline text-slate-400">MODO ROL:</span>
+        {/* Simulador de Rol Windows */}
+        <div className="flex items-center gap-1.5 text-[11px]">
+          <span className="hidden md:inline text-gray-700 font-semibold">Usuario Actual:</span>
           <select
             value={currentRole}
             onChange={(e) => setRole(e.target.value as UserRole)}
-            className="bg-[#171226] text-[#b8a2e8] border border-[#6b469b] rounded-xs px-1.5 py-0.5 font-['Silkscreen'] text-[10px] focus:outline-none cursor-pointer hover:border-[#ff007f]"
-            aria-label="Simular Rol de Usuario"
+            className="winxp-input text-[11px] py-0 px-1 border border-gray-500 bg-white"
+            aria-label="Cambiar Rol de Usuario"
           >
-            <option value="guest">1. Invitado (Público)</option>
-            <option value="registered">2. Registrado (Cliente)</option>
-            <option value="branch_admin">3. Admin Sucursal (Viña)</option>
-            <option value="super_admin">4. Súper Administrador</option>
+            <option value="guest">Invitado (Público)</option>
+            <option value="registered">Cliente Registrado</option>
+            <option value="branch_admin">Admin Sucursal (Viña)</option>
+            <option value="super_admin">Súper Administrador</option>
           </select>
 
           {(currentRole === 'branch_admin' || currentRole === 'super_admin') && (
             <Link
               to="/admin/logistics"
-              className="bg-[#ff007f]/20 hover:bg-[#ff007f]/40 text-[#ff77b8] border border-[#ff007f] px-2 py-0.5 rounded-xs flex items-center gap-1 font-['Silkscreen'] text-[10px]"
+              className="winxp-button text-[10px] py-0.5 px-2 bg-yellow-100 hover:bg-yellow-200 text-blue-900 border border-yellow-600 font-bold"
             >
-              <Shield className="w-3 h-3 text-[#ff007f]" />
-              <span className="hidden lg:inline">PANEL ADMIN</span>
-              {unreadCount > 0 && (
-                <span className="bg-[#ff007f] text-white text-[9px] px-1 rounded-full font-mono">
-                  {unreadCount}
-                </span>
-              )}
+              <Shield className="w-3 h-3 text-red-600" />
+              <span>PANEL ADMIN {unreadCount > 0 && `(${unreadCount})`}</span>
             </Link>
           )}
         </div>
       </div>
 
-      {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-4">
-        {/* Logo / Y2K Header */}
-        <Link to="/" className="flex items-center gap-3 group shrink-0">
-          <div className="w-9 h-9 bevel-raised bg-gradient-to-br from-[#ff007f] via-[#7c3aed] to-[#00d4ff] flex items-center justify-center p-1 shadow-lg group-hover:scale-105 transition-transform">
-            <span className="font-['Silkscreen'] text-white font-black text-sm tracking-tighter">NL</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-['Syne'] font-extrabold text-2xl tracking-tighter text-y2k-gradient leading-none">
-              Nolimits
-            </span>
-            <span className="font-['VT323'] text-xs text-[#a78bfa] tracking-widest leading-none mt-0.5">
-              CYBER-GOTHIC OS v2.0
-            </span>
-          </div>
-        </Link>
+      {/* 3. Barra de Herramientas Estándar con Botones Retro */}
+      <div className="px-2 sm:px-3 py-1.5 bg-[#ece9d8] flex flex-wrap items-center justify-between gap-2 border-b border-[#b0aca0]">
+        <div className="flex items-center gap-1">
+          {/* Botón Atrás */}
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="winxp-button text-xs py-1 px-2 text-gray-800"
+            title="Atrás"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-green-700" />
+            <span className="hidden sm:inline">Atrás</span>
+          </button>
 
-        {/* Sucursales Quick Selector */}
-        <div className="hidden lg:flex items-center gap-1.5 bevel-sunken px-2.5 py-1">
-          <MapPin className="w-3.5 h-3.5 text-[#00d4ff] shrink-0" />
-          <span className="font-['Silkscreen'] text-[10px] text-slate-400">SUCURSAL:</span>
+          {/* Botón Adelante */}
+          <button
+            type="button"
+            onClick={() => navigate(1)}
+            className="winxp-button text-xs py-1 px-2 text-gray-800"
+            title="Adelante"
+          >
+            <ArrowRight className="w-3.5 h-3.5 text-green-700" />
+          </button>
+
+          {/* Botón Actualizar */}
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="winxp-button text-xs py-1 px-2 text-gray-800"
+            title="Actualizar"
+          >
+            <RotateCw className="w-3.5 h-3.5 text-blue-600" />
+          </button>
+
+          {/* Separador */}
+          <div className="h-5 w-px bg-gray-400 mx-1" />
+
+          {/* Botón Inicio */}
+          <Link to="/" className="winxp-button text-xs py-1 px-2.5">
+            <Home className="w-3.5 h-3.5 text-blue-700" />
+            <span className="hidden sm:inline">Inicio</span>
+          </Link>
+
+          {/* Botón Catálogo con Lupa Pixelada */}
+          <Link to="/catalog" className="winxp-button text-xs py-1 px-2.5">
+            <PixelIcon name="search" size={14} />
+            <span>Catálogo</span>
+          </Link>
+
+          {/* Botón Carrito con Carrito Pixelado */}
+          <Link
+            to="/cart"
+            className="winxp-button text-xs py-1 px-2.5 bg-[#f5f8ff] border-blue-700 relative font-semibold"
+          >
+            <PixelIcon name="cart" size={15} />
+            <span>Carro ({totalItems})</span>
+            {totalItems > 0 && (
+              <span className="w-2 h-2 rounded-full bg-red-600 absolute top-1 right-1 animate-ping" />
+            )}
+          </Link>
+
+          {/* Botón Mi Cuenta */}
+          <Link to="/auth" className="winxp-button text-xs py-1 px-2 text-gray-800">
+            <UserIcon className="w-3.5 h-3.5 text-gray-700" />
+            <span className="hidden md:inline">{currentUser.role === 'guest' ? 'Iniciar Sesión' : 'Mi Perfil'}</span>
+          </Link>
+        </div>
+
+        {/* Selector Rápido de Sucursal Física */}
+        <div className="flex items-center gap-1 bg-white px-2 py-0.5 border border-gray-400 text-xs">
+          <span className="text-[11px] font-bold text-gray-700">Nodo:</span>
           <select
             value={activeBranchId}
             onChange={(e) => setActiveBranchId(e.target.value)}
-            className="bg-transparent text-[#00d4ff] font-['Silkscreen'] text-[10px] focus:outline-none cursor-pointer"
+            className="text-[11px] font-medium bg-transparent focus:outline-none cursor-pointer text-blue-900"
+            aria-label="Seleccionar Sucursal"
           >
-            <option value="all" className="bg-[#0e0c16] text-slate-200">Todas las Sucursales</option>
-            {branches.map(b => (
-              <option key={b.id} value={b.id} className="bg-[#0e0c16] text-white">
-                {b.name.replace('Sucursal ', '')}
+            <option value="all">Todas las Sucursales (Chile Central)</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.city} ({b.name})
               </option>
             ))}
           </select>
         </div>
+      </div>
 
-        {/* Navigation Items */}
-        <nav className="flex items-center gap-1.5 sm:gap-3">
-          {navLinks.map((link) => {
-            const isActive = location.pathname === link.path;
-            return (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`
-                  relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-xs font-['Silkscreen'] text-xs tracking-wide transition-all select-none
-                  ${isActive
-                    ? 'bevel-raised bg-gradient-to-b from-[#7c3aed] to-[#4c1d95] text-white font-bold shadow-[0_0_12px_rgba(157,0,255,0.4)]'
-                    : 'text-slate-300 hover:text-white hover:bg-[#1a1429]'
-                  }
-                `}
-              >
-                {link.icon}
-                <span className="hidden sm:inline">{link.label}</span>
-                {link.badge !== undefined && link.badge > 0 && (
-                  <span className="bg-[#ff007f] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full border border-white font-mono shadow-[0_0_8px_#ff007f]">
-                    {link.badge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-
-          {/* Admin Direct Hub if authorized */}
-          {(currentRole === 'branch_admin' || currentRole === 'super_admin') && (
-            <Link
-              to="/admin/express-upload"
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 bevel-raised bg-gradient-to-b from-[#ff007f] to-[#be123c] text-white font-['Silkscreen'] text-xs hover:brightness-110 shadow-[0_0_10px_rgba(255,0,127,0.3)]"
-            >
-              <Flame className="w-3.5 h-3.5 text-yellow-300" />
-              <span>CARGA EXPRESS</span>
-            </Link>
-          )}
-        </nav>
+      {/* 4. Barra de Dirección (Address Bar) estilo Internet Explorer */}
+      <div className="px-2 sm:px-3 py-1 bg-[#ece9d8] flex items-center gap-2 text-xs">
+        <span className="text-gray-700 font-bold text-[11px] shrink-0">Dirección</span>
+        <div className="flex-1 flex items-center bg-white winxp-bevel-in px-2 py-0.5">
+          <PixelIcon name="internet" size={14} className="mr-1.5 shrink-0" />
+          <span className="text-gray-900 truncate font-mono text-[11px]">
+            http://www.nolimits.xp{location.pathname === '/' ? '/index.html' : location.pathname}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {}}
+          className="winxp-button text-[11px] py-0.5 px-2 bg-green-50 text-green-900 font-bold shrink-0"
+        >
+          Ir
+        </button>
       </div>
     </header>
   );

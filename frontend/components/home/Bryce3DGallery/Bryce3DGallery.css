@@ -1,0 +1,10 @@
+/* ==========================================================================
+   Bryce3DGallery.css
+   Estilos específicos para la ventana de gráficos primitivos 3D estilo Bryce
+   ========================================================================== */
+
+.bryce-window {
+  box-shadow: 4px 6px 20px rgba(0, 0, 0, 0.35);
+  max-width: 680px;
+  width: 100%;
+}

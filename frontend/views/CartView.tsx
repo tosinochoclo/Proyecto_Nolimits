@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, ArrowRight, ShieldCheck, CreditCard, Sparkles, Store } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
-import { PixelButton } from '../components/common/PixelButton';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useBranch } from '../context/BranchContext';
+import { PixelIcon } from '../components/common/PixelIcon';
 
 export const CartView: React.FC = () => {
   const {
@@ -31,25 +31,39 @@ export const CartView: React.FC = () => {
 
   if (checkoutStep === 'checkout_success') {
     return (
-      <div className="max-w-2xl mx-auto py-8">
+      <div className="max-w-2xl mx-auto py-8 font-sans">
         <WindowFrame
-          title="PAYMENT_CONFIRMED.EXE - [Pedido Registrado]"
-          variant="lavender"
+          title="Asistente_de_Instalacion.exe - [Orden Confirmada]"
+          icon={<PixelIcon name="info" size={16} />}
           statusBarText="STOCK DESCONTADO EN TIEMPO REAL // WEBPAY AUTH OK"
         >
-          <div className="text-center py-8 space-y-4">
-            <div className="inline-flex p-4 rounded-full bg-green-950/80 border-2 border-green-500 text-green-400">
-              <ShieldCheck className="w-12 h-12" />
+          <div className="text-center py-6 space-y-4">
+            <div className="inline-flex p-3 rounded-full bg-green-100 border-2 border-green-600 text-green-700">
+              <ShieldCheck className="w-10 h-10" />
             </div>
-            <h2 className="font-['Silkscreen'] text-xl text-white">¡ORDEN CONFIRMADA CON ÉXITO!</h2>
-            <p className="font-['Chakra_Petch'] text-sm text-slate-300 max-w-md mx-auto">
-              Tu pedido <span className="text-[#00d4ff] font-mono font-bold">#NL-{Math.floor(1000 + Math.random() * 9000)}</span> ha sido validado automáticamente. Recibirás tu tracking en Starken/Blue Express por correo.
+            <h2 className="text-lg font-bold text-blue-900">
+              ¡ORDEN CONFIRMADA CON ÉXITO!
+            </h2>
+            <p className="text-xs text-gray-700 max-w-md mx-auto leading-relaxed">
+              Tu pedido <span className="text-blue-700 font-mono font-bold">#NL-{Math.floor(1000 + Math.random() * 9000)}</span> ha sido validado automáticamente en el sistema. Recibirás tu tracking en Starken/Blue Express por correo electrónico.
             </p>
-            <div className="pt-4 flex justify-center gap-3">
+
+            <div className="bg-gray-100 border border-gray-400 p-3 max-w-sm mx-auto text-left text-xs space-y-1">
+              <div className="font-bold text-gray-800">Resumen de la transacción:</div>
+              <div>Titular: {currentUser.name}</div>
+              <div>Medio: Webpay Plus (Crédito/Débito)</div>
+              <div>Estado: Aprobado (Código: 200_OK)</div>
+            </div>
+
+            <div className="pt-2 flex justify-center gap-3">
               <Link to="/catalog">
-                <PixelButton variant="primary" size="md">
-                  Seguir Comprando
-                </PixelButton>
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1.5 px-4 font-bold text-blue-900"
+                >
+                  <PixelIcon name="search" size={14} />
+                  <span>Seguir Comprando</span>
+                </button>
               </Link>
             </div>
           </div>
@@ -60,24 +74,33 @@ export const CartView: React.FC = () => {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto py-12">
+      <div className="max-w-2xl mx-auto py-8 font-sans">
         <WindowFrame
-          title="CART_EMPTY.SYS - [Carrito de Compras]"
-          variant="chrome"
-          statusBarText="ITEMS: 0 // TOTAL: $0 CLP"
+          title="Carro_Vacio.exe - [No hay prendas seleccionadas]"
+          icon={<PixelIcon name="cart" size={16} />}
+          statusBarText="ELEMENTOS: 0 // TOTAL: $0 CLP"
         >
-          <div className="text-center py-10 space-y-4">
-            <div className="font-['VT323'] text-4xl text-[#a855f7]">
-              [ EL CARRITO ESTÁ VACÍO ]
+          <div className="text-center py-8 space-y-3">
+            <div className="flex justify-center">
+              <PixelIcon name="cart" size={48} />
             </div>
-            <p className="font-['Chakra_Petch'] text-sm text-slate-400 max-w-md mx-auto">
-              Aún no has seleccionado ninguna prenda del drop. Explora el catálogo para asegurar tu talla antes de que se agote en el stream.
+            <h2 className="text-base font-bold text-gray-800">
+              El carro de compras está actualmente vacío
+            </h2>
+            <p className="text-xs text-gray-600 max-w-md mx-auto">
+              Aún no has agregado ninguna prenda del catálogo. Explora la colección para asegurar tu talla antes de que se agote el stock físico.
             </p>
-            <Link to="/catalog">
-              <PixelButton variant="primary" size="lg" icon={<Sparkles className="w-4 h-4" />}>
-                Ir al Catálogo Ahora
-              </PixelButton>
-            </Link>
+            <div className="pt-2">
+              <Link to="/catalog">
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1.5 px-4 font-bold text-blue-900"
+                >
+                  <PixelIcon name="search" size={14} />
+                  <span>Ir al Catálogo de Prendas</span>
+                </button>
+              </Link>
+            </div>
           </div>
         </WindowFrame>
       </div>
@@ -85,156 +108,138 @@ export const CartView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 font-sans">
       <WindowFrame
-        title="CHECKOUT_TERMINAL.EXE - [Carrito de Compras]"
-        variant="lavender"
+        title="Asistente_de_Compra.exe - [Carrito de Compras y Caja]"
+        icon={<PixelIcon name="cart" size={16} />}
         statusBarText="RESERVA DE STOCK TEMPORAL: 15:00 MINUTOS"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Items List (Col 1-8) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          {/* Lista de Prendas (Col 1-8) */}
           <div className="lg:col-span-8 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[#2d2242] text-xs font-['Silkscreen'] text-slate-300">
+            <div className="flex items-center justify-between pb-1.5 border-b border-gray-300 text-xs font-bold text-gray-700">
               <span>PRENDA SELECCIONADA</span>
               <span>SUBTOTAL</span>
             </div>
 
-            {items.map((item) => {
-              const itemTotal = item.unitPrice * item.quantity;
-              return (
+            <div className="space-y-2.5">
+              {items.map((item) => (
                 <div
-                  key={item.id}
-                  className="bevel-sunken p-3 bg-black/50 flex flex-col sm:flex-row items-center gap-4 justify-between"
+                  key={`${item.product.id}-${item.selectedSize}-${item.selectedColor}`}
+                  className="p-2.5 bg-gray-50 border border-gray-300 flex items-center justify-between gap-3 text-xs"
                 >
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <img
-                      src={item.product.images[0]}
-                      alt={item.product.title}
-                      className="w-16 h-16 object-cover bevel-raised shrink-0"
-                    />
-                    <div>
-                      <h4 className="font-['Chakra_Petch'] font-bold text-sm text-white line-clamp-1">
-                        {item.product.title}
-                      </h4>
-                      <div className="font-['VT323'] text-xs text-[#a855f7] flex items-center gap-2 mt-0.5">
-                        <span>TALLA: {item.selectedSize}</span>
-                        <span>•</span>
-                        <span>COLOR: {item.selectedColor.name}</span>
-                      </div>
-                      <div className="font-['Silkscreen'] text-xs text-[#ff007f] mt-1">
-                        ${item.unitPrice.toLocaleString('es-CL')} c/u
-                        {item.discountApplicable > 0 && (
-                          <span className="text-[10px] text-green-400 ml-1">
-                            (Ahorro: ${(item.discountApplicable * item.quantity).toLocaleString('es-CL')})
-                          </span>
-                        )}
-                      </div>
+                  {/* Foto miniatura */}
+                  <img
+                    src={item.product.images[0]}
+                    alt={item.product.title}
+                    className="w-14 h-14 object-cover border border-gray-400 bg-white shrink-0"
+                  />
+
+                  {/* Datos del producto */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-900 truncate">
+                      {item.product.title}
+                    </h3>
+                    <div className="text-[11px] text-gray-600 flex items-center gap-2 mt-0.5">
+                      <span>Talla: <strong>{item.selectedSize}</strong></span>
+                      <span>·</span>
+                      <span>Color: <strong>{item.selectedColor.name}</strong></span>
+                    </div>
+                    <div className="text-[11px] text-blue-900 font-bold mt-1">
+                      ${(item.product.salePrice ?? item.product.price).toLocaleString('es-CL')} c/u
                     </div>
                   </div>
 
-                  {/* Quantity & Delete Controls */}
-                  <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-[#2b223c]">
-                    <div className="flex items-center gap-1 bevel-sunken p-0.5 bg-black">
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="win-btn w-6 h-6"
-                        aria-label="Disminuir cantidad"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="w-8 text-center font-['Silkscreen'] text-xs text-white">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="win-btn w-6 h-6"
-                        aria-label="Aumentar cantidad"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-
-                    <div className="text-right">
-                      <div className="font-['Silkscreen'] text-sm text-white">
-                        ${itemTotal.toLocaleString('es-CL')}
-                      </div>
-                    </div>
-
+                  {/* Controles de Cantidad */}
+                  <div className="flex items-center gap-1">
                     <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-red-400 hover:text-red-300 p-1.5"
-                      title="Eliminar ítem"
+                      type="button"
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      className="winxp-button text-xs w-6 h-6 p-0"
+                      title="Restar unidad"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="w-6 text-center font-bold font-mono text-xs">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className="winxp-button text-xs w-6 h-6 p-0"
+                      title="Sumar unidad"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Total y Eliminar */}
+                  <div className="text-right shrink-0">
+                    <div className="font-bold text-red-700 text-xs">
+                      ${((item.product.salePrice ?? item.product.price) * item.quantity).toLocaleString('es-CL')}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFromCart(item.id)}
+                      className="text-gray-500 hover:text-red-600 text-[10px] mt-1 inline-flex items-center gap-0.5"
+                    >
+                      <Trash2 className="w-3 h-3" /> Quitar
                     </button>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
 
-          {/* Financial Summary & Checkout Action (Col 9-12) */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="bevel-chrome p-4 bg-[#110d1c] space-y-3">
-              <h3 className="font-['Silkscreen'] text-xs text-white border-b border-[#3b2b52] pb-2">
-                RESUMEN DE PAGO
-              </h3>
+          {/* Panel de Resumen de Pago (Col 9-12) */}
+          <div className="lg:col-span-4 bg-[#f8fafc] border border-gray-400 p-3 space-y-3">
+            <h3 className="font-bold text-xs text-blue-900 pb-1.5 border-b border-gray-300">
+              Resumen de la Compra
+            </h3>
 
-              <div className="space-y-1.5 font-['Chakra_Petch'] text-xs">
-                <div className="flex justify-between text-slate-300">
-                  <span>Subtotal prendas:</span>
-                  <span className="font-mono">${subtotal.toLocaleString('es-CL')}</span>
+            <div className="space-y-1.5 text-xs text-gray-700">
+              <div className="flex justify-between">
+                <span>Subtotal prendas:</span>
+                <span>${subtotal.toLocaleString('es-CL')}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-700 font-semibold">
+                  <span>Descuentos aplicados:</span>
+                  <span>-${discount.toLocaleString('es-CL')}</span>
                 </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-green-400">
-                    <span>Descuentos aplicados:</span>
-                    <span className="font-mono">-${discount.toLocaleString('es-CL')}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-slate-300">
-                  <span>Despacho (Chile):</span>
-                  <span className="font-mono">
-                    {shippingCost === 0 ? 'GRATIS (Over $50k)' : `$${shippingCost.toLocaleString('es-CL')}`}
-                  </span>
-                </div>
+              )}
+              <div className="flex justify-between">
+                <span>Despacho nacional:</span>
+                <span>{shippingCost === 0 ? '¡Gratis!' : `$${shippingCost.toLocaleString('es-CL')}`}</span>
+              </div>
+              <div className="border-t border-gray-300 pt-1.5 flex justify-between font-bold text-sm text-gray-900">
+                <span>Total a pagar:</span>
+                <span className="text-red-700">${total.toLocaleString('es-CL')}</span>
+              </div>
+            </div>
 
-                <div className="border-t border-[#3b2b52] pt-2 flex justify-between font-['Silkscreen'] text-base text-white">
-                  <span>TOTAL FINAL:</span>
-                  <span className="text-[#ff007f]">${total.toLocaleString('es-CL')}</span>
-                </div>
+            {/* Pasarela Webpay */}
+            <div className="pt-2 border-t border-gray-300 space-y-2">
+              <div className="text-[11px] font-bold text-gray-800">
+                Medio de Pago Seguro:
+              </div>
+              <div className="bg-white border border-gray-300 p-2 text-xs flex items-center justify-between">
+                <span className="font-semibold text-blue-900">Webpay Plus / Redcompra</span>
+                <CreditCard className="w-4 h-4 text-blue-700" />
               </div>
 
-              {/* Payment selector */}
-              <div className="pt-2 space-y-2">
-                <span className="font-['Silkscreen'] text-[10px] text-slate-400">PASARELA AUTOMATIZADA:</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setSelectedMethod('webpay')}
-                    className={`p-2 text-center text-xs font-['Silkscreen'] cursor-pointer ${
-                      selectedMethod === 'webpay' ? 'bevel-raised bg-[#ff007f] text-white' : 'bevel-sunken text-slate-300'
-                    }`}
-                  >
-                    Webpay Plus
-                  </button>
-                  <button
-                    onClick={() => setSelectedMethod('voucher')}
-                    className={`p-2 text-center text-xs font-['Silkscreen'] cursor-pointer ${
-                      selectedMethod === 'voucher' ? 'bevel-raised bg-[#7c3aed] text-white' : 'bevel-sunken text-slate-300'
-                    }`}
-                  >
-                    Voucher OCR
-                  </button>
-                </div>
+              <button
+                type="button"
+                onClick={handleSimulatePayment}
+                className="winxp-button winxp-button-primary text-xs py-2 w-full font-bold text-blue-900 shadow-sm"
+              >
+                <span>CONFIRMAR Y PAGAR ORDEN</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </button>
 
-                <PixelButton
-                  variant="primary"
-                  size="lg"
-                  className="w-full text-sm py-2.5 mt-2"
-                  onClick={handleSimulatePayment}
-                >
-                  PAGAR AHORA CON WEBPAY
-                </PixelButton>
-              </div>
+              <p className="text-[10px] text-gray-500 text-center leading-tight">
+                🔒 Transacción encriptada SSL de 128-bits. Conforme a las normas de seguridad de Windows XP y Transbank.
+              </p>
             </div>
           </div>
         </div>

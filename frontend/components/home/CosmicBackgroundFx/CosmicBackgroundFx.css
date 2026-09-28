@@ -1,161 +1,73 @@
 /* ==========================================================================
-   CosmicBackgroundFx.css
-   Estilos dedicados para los efectos de fondo cósmicos, destellos y estrellas
-   cyber-góticas de la interfaz de Nolimits.
+   CosmicBackgroundFx.css -> Old Tech Nostalgia Desktop Styling
+   Estilos para el escritorio interactivo estilo Windows XP / Old PC Nostalgia
    ========================================================================== */
 
-/* Contenedor principal de efectos de fondo */
-.cosmic-bg-container {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
+.old-tech-desk-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Fila de íconos de acceso directo de escritorio clásico */
+.xp-desktop-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.5rem 1rem;
   user-select: none;
-  z-index: 0;
 }
 
-/* Destello radial central (azul eléctrico a violeta neón) */
-.cosmic-radial-flare {
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(
-    circle at center,
-    rgba(157, 0, 255, 0.28) 0%,
-    rgba(0, 212, 255, 0.18) 35%,
-    rgba(255, 0, 127, 0.12) 60%,
-    transparent 80%
-  );
-  filter: blur(48px);
-  animation: cosmic-pulse 4s ease-in-out infinite alternate;
+.xp-desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  padding: 4px;
+  border-radius: 2px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s ease;
 }
 
-/* Haces de luz cónicos giratorios */
-.cosmic-starburst-beams {
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 700px;
-  height: 700px;
-  opacity: 0.2;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    #ff007f 30deg,
-    transparent 60deg,
-    #00d4ff 120deg,
-    transparent 180deg,
-    #9d00ff 240deg,
-    transparent 300deg
-  );
-  pointer-events: none;
-  animation: cosmic-rotate 30s linear infinite;
+.xp-desktop-icon:hover {
+  background-color: rgba(49, 106, 197, 0.4);
 }
 
-/* Estrellas y glifos titilantes */
-.cosmic-star {
-  position: absolute;
-  font-family: monospace;
-  animation: cosmic-twinkle 3s ease-in-out infinite;
+.xp-desktop-icon:active,
+.xp-desktop-icon.selected {
+  background-color: #316ac5;
 }
 
-.cosmic-star-1 {
-  top: 3rem;
-  left: 2.5rem;
-  color: #00d4ff;
-  font-size: 1.25rem;
-  animation-delay: 0s;
+.xp-desktop-icon-label {
+  font-family: 'Tahoma', sans-serif;
+  font-size: 11px;
+  color: #000000;
+  margin-top: 4px;
+  line-height: 1.1;
+  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.9);
+  padding: 1px 3px;
 }
 
-.cosmic-star-2 {
-  top: 6rem;
-  left: 25%;
-  color: #ff007f;
-  font-size: 0.875rem;
-  animation-delay: 0.7s;
-}
-
-.cosmic-star-3 {
-  top: 2.5rem;
-  right: 4rem;
-  color: #e9d5ff;
-  font-size: 1.5rem;
-  animation-delay: 1.2s;
-}
-
-.cosmic-star-4 {
-  top: 9rem;
-  right: 25%;
-  color: #00ff66;
-  font-size: 0.875rem;
-  animation-delay: 1.8s;
-}
-
-.cosmic-star-5 {
-  bottom: 5rem;
-  left: 3rem;
-  color: #ff77b8;
-  font-size: 1.125rem;
-  animation-delay: 0.4s;
-}
-
-.cosmic-star-6 {
-  bottom: 6rem;
-  right: 4rem;
-  color: #00d4ff;
-  font-size: 1.25rem;
-  animation-delay: 1.5s;
-}
-
-.cosmic-star-7 {
-  top: 50%;
-  left: 1.5rem;
+.xp-desktop-icon:active .xp-desktop-icon-label,
+.xp-desktop-icon.selected .xp-desktop-icon-label {
   color: #ffffff;
-  font-size: 0.75rem;
-  animation-delay: 2.1s;
+  text-shadow: none;
 }
 
-.cosmic-star-8 {
-  top: 50%;
-  right: 1.5rem;
-  color: #a855f7;
-  font-size: 0.75rem;
-  animation-delay: 1.1s;
+/* Área de widgets flotantes (Winamp, Paint, Bryce 3D) */
+.xp-floating-widgets-area {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
 }
 
-/* Animaciones del efecto cósmico */
-@keyframes cosmic-pulse {
-  0% {
-    transform: translate(-50%, -50%) scale(0.92);
-    opacity: 0.75;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.08);
-    opacity: 1;
-  }
-}
-
-@keyframes cosmic-rotate {
-  from {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
-@keyframes cosmic-twinkle {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(0.85);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-    filter: drop-shadow(0 0 6px currentColor);
+@media (min-width: 1024px) {
+  .xp-floating-widgets-area {
+    grid-template-columns: 380px 1fr;
   }
 }

@@ -1,20 +1,23 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, Filter, SlidersHorizontal, ArrowUpDown, Sparkles, MapPin } from 'lucide-react';
+import { MapPin, Info, Check } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
-import { PixelButton } from '../components/common/PixelButton';
 import { INITIAL_PRODUCTS } from '../services/mockData';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
+import { PixelIcon } from '../components/common/PixelIcon';
+import { Product } from '../types';
 
 export const CatalogView: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [selectedSize, setSelectedSize] = useState('all');
   const [sortBy, setSortBy] = useState<'featured' | 'price_asc' | 'price_desc' | 'rating'>('featured');
+  const [addedProductId, setAddedProductId] = useState<string | null>(null);
+
   const { addToCart } = useCart();
   const { branches, activeBranchId, setActiveBranchId } = useBranch();
 
@@ -25,23 +28,23 @@ export const CatalogView: React.FC = () => {
     return INITIAL_PRODUCTS.filter((product) => {
       if (product.isHidden) return false;
 
-      // Category filter
+      // Filtro por categoría
       if (selectedCategory !== 'all' && !product.category.toLowerCase().includes(selectedCategory.toLowerCase())) {
         return false;
       }
 
-      // Branch stock filter
+      // Filtro por sucursal física
       if (activeBranchId !== 'all') {
         const stockInBranch = product.stockPerBranch[activeBranchId] ?? 0;
         if (stockInBranch <= 0) return false;
       }
 
-      // Size filter
+      // Filtro por talla
       if (selectedSize !== 'all' && !product.sizes.includes(selectedSize)) {
         return false;
       }
 
-      // Search term filter
+      // Filtro por texto de búsqueda
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase();
         const matchesTitle = product.title.toLowerCase().includes(q);
@@ -61,100 +64,106 @@ export const CatalogView: React.FC = () => {
     });
   }, [selectedCategory, activeBranchId, selectedSize, searchTerm, sortBy]);
 
+  const handleQuickAdd = (product: Product) => {
+    addToCart(product, product.sizes[0], product.colors[0]);
+    setAddedProductId(product.id);
+    setTimeout(() => setAddedProductId(null), 2000);
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Search & Filter Bar Window */}
+    <div className="space-y-4 font-sans">
+      {/* Ventana de Búsqueda y Filtros estilo Windows XP Explorer */}
       <WindowFrame
-        title="Catalog_Query.exe - [Buscador Avanzado & Filtros]"
-        variant="lavender"
-        statusBarText={`PRODUCTOS ENCONTRADOS: ${filteredProducts.length} // STOCK CENTRAL SINCRONIZADO`}
+        title="Explorador_Catalogo.exe - [Buscador Avanzado & Filtros de Stock]"
+        icon={<PixelIcon name="search" size={16} />}
+        statusBarText={`ELEMENTOS ENCONTRADOS: ${filteredProducts.length} // SERVIDOR DE INVENTARIO CENTRAL: ACTIVO`}
       >
-        <div className="space-y-4">
-          {/* Main Search Input */}
+        <div className="space-y-3">
+          {/* Fila Principal de Búsqueda */}
           <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
+            <div className="relative flex-1 flex items-center">
+              <span className="absolute left-2.5 top-2.5 pointer-events-none">
+                <PixelIcon name="search" size={15} />
+              </span>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por prenda, serigrafía, tela o tag Y2K..."
-                className="w-full bevel-sunken px-9 py-2 text-sm text-white placeholder-slate-400 font-['Chakra_Petch'] focus:outline-none focus:border-[#ff007f]"
+                placeholder="Buscar prenda, tela, color o código de catálogo..."
+                className="w-full winxp-input pl-8 pr-8 py-1.5 text-xs text-black placeholder-gray-500"
               />
-              <Search className="w-4 h-4 text-[#ff007f] absolute left-3 top-3" />
               {searchTerm && (
                 <button
+                  type="button"
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-2.5 font-['Silkscreen'] text-xs text-slate-400 hover:text-white"
+                  className="absolute right-2.5 top-2 text-xs font-bold text-gray-500 hover:text-black"
                 >
-                  X
+                  ×
                 </button>
               )}
             </div>
 
-            {/* Quick Branch Selector */}
-            <div className="flex items-center gap-1 bevel-sunken px-3 py-1 bg-black/60 shrink-0">
-              <MapPin className="w-3.5 h-3.5 text-[#00d4ff]" />
-              <span className="font-['Silkscreen'] text-[10px] text-slate-400">FILTRAR TIENDA:</span>
+            {/* Selector de Sucursal */}
+            <div className="flex items-center gap-1.5 bg-[#f0f4f8] border border-gray-400 px-2 py-1 shrink-0 text-xs">
+              <MapPin className="w-3.5 h-3.5 text-blue-700" />
+              <span className="font-bold text-gray-700">Sucursal:</span>
               <select
                 value={activeBranchId}
                 onChange={(e) => setActiveBranchId(e.target.value)}
-                className="bg-transparent text-[#00d4ff] font-['Silkscreen'] text-xs focus:outline-none cursor-pointer"
+                className="text-xs bg-transparent focus:outline-none cursor-pointer text-blue-900 font-semibold"
               >
-                <option value="all" className="bg-[#0e0c16]">Todas (Viña, Valpo, Quilpué)</option>
-                {branches.map(b => (
-                  <option key={b.id} value={b.id} className="bg-[#0e0c16]">
-                    {b.name.replace('Sucursal ', '')}
+                <option value="all">Todas (Viña, Valpo, Quilpué)</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.city} - {b.name}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Secondary Controls: Categories, Sizes & Order */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#2d2242] text-xs">
-            {/* Category selection */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-['Silkscreen'] text-[10px] text-slate-400 mr-1">CATEGORÍAS:</span>
+          {/* Categorías como carpetas o botones biselados */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-300 text-xs">
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="font-bold text-gray-700 mr-1 text-[11px]">Categorías:</span>
               {categories.map((cat) => (
                 <button
                   key={cat}
+                  type="button"
                   onClick={() => setSelectedCategory(cat)}
-                  className={`
-                    px-2.5 py-1 text-[11px] font-['Silkscreen'] select-none cursor-pointer transition-all
-                    ${selectedCategory === cat
-                      ? 'bevel-raised bg-gradient-to-r from-[#ff007f] to-[#7c3aed] text-white font-bold'
-                      : 'bevel-sunken text-slate-300 hover:text-white hover:bg-[#1a1426]'
-                    }
-                  `}
+                  className={`winxp-button text-[11px] py-0.5 px-2 ${
+                    selectedCategory === cat ? 'winxp-button-primary bg-blue-100 font-bold' : ''
+                  }`}
                 >
-                  {cat === 'all' ? 'TODAS' : cat.split('&')[0].trim()}
+                  <PixelIcon name="folder" size={13} className="mr-1" />
+                  <span>{cat === 'all' ? 'Todas' : cat.split('&')[0].trim()}</span>
                 </button>
               ))}
             </div>
 
-            {/* Sorting & Size filter */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <span className="font-['Silkscreen'] text-[10px] text-slate-400">TALLA:</span>
+            {/* Filtros de Talla y Orden */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 text-[11px]">
+                <span className="font-bold text-gray-700">Talla:</span>
                 <select
                   value={selectedSize}
                   onChange={(e) => setSelectedSize(e.target.value)}
-                  className="bevel-sunken px-2 py-1 bg-black text-white font-['Silkscreen'] text-[10px] focus:outline-none"
+                  className="winxp-input py-0.5 px-1 text-xs"
                 >
                   {sizes.map((s) => (
                     <option key={s} value={s}>
-                      {s.toUpperCase()}
+                      {s}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="flex items-center gap-1">
-                <span className="font-['Silkscreen'] text-[10px] text-slate-400">ORDEN:</span>
+              <div className="flex items-center gap-1 text-[11px]">
+                <span className="font-bold text-gray-700">Orden:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bevel-sunken px-2 py-1 bg-black text-white font-['Silkscreen'] text-[10px] focus:outline-none"
+                  className="winxp-input py-0.5 px-1 text-xs"
                 >
                   <option value="featured">Destacados</option>
                   <option value="price_asc">Menor Precio</option>
@@ -167,7 +176,7 @@ export const CatalogView: React.FC = () => {
         </div>
       </WindowFrame>
 
-      {/* Product Results Grid */}
+      {/* Grilla de Resultados */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredProducts.map((product) => {
           const stock =
@@ -175,94 +184,94 @@ export const CatalogView: React.FC = () => {
               ? product.totalStock
               : product.stockPerBranch[activeBranchId] ?? 0;
 
+          const isRecentlyAdded = addedProductId === product.id;
+
           return (
-            <div
-              key={product.id}
-              className="bevel-chrome bg-[#0a0813] flex flex-col group overflow-hidden"
-            >
-              <div className="relative aspect-square overflow-hidden bg-black">
+            <div key={product.id} className="product-card-xp">
+              {/* Vista previa de imagen con badges */}
+              <div className="product-card-xp-media">
                 <img
                   src={product.images[0]}
                   alt={product.title}
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                  className="product-card-xp-img"
+                  loading="lazy"
                 />
+
                 {product.discountPercent && (
-                  <span className="absolute top-2 left-2 bg-[#ff007f] text-white font-['Silkscreen'] text-[10px] px-2 py-0.5 bevel-raised">
+                  <span className="product-card-xp-discount">
                     -{product.discountPercent}% OFF
                   </span>
                 )}
-                <span className="absolute bottom-2 right-2 bg-black/80 text-[#00d4ff] font-['VT323'] text-xs px-2 py-0.5 border border-[#00d4ff]/40">
-                  DISP: {stock} un.
+
+                <span className="product-card-xp-stock">
+                  Stock: {stock} un.
                 </span>
               </div>
 
-              <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+              {/* Información de la prenda */}
+              <div className="product-card-xp-info">
                 <div>
-                  <div className="font-['VT323'] text-xs text-[#a855f7] tracking-wider">
+                  <div className="product-card-xp-category">
                     {product.category}
                   </div>
-                  <h3 className="font-['Chakra_Petch'] font-bold text-sm text-white line-clamp-1 group-hover:text-[#ff007f] transition-colors">
+                  <h3 className="product-card-xp-title" title={product.title}>
                     {product.title}
                   </h3>
-                  <div className="flex items-center gap-1 text-[11px] text-yellow-400 font-mono mt-0.5">
-                    <span>★ {product.rating.toFixed(1)}</span>
-                    <span className="text-slate-500">({product.reviewCount} reviews)</span>
-                  </div>
                 </div>
 
-                <div className="flex items-baseline gap-2">
-                  <span className="font-['Silkscreen'] text-base text-white">
+                {/* Precios */}
+                <div>
+                  <span className="product-card-xp-price">
                     ${(product.salePrice ?? product.price).toLocaleString('es-CL')}
                   </span>
                   {product.salePrice && (
-                    <span className="font-['Chakra_Petch'] text-xs line-through text-slate-500">
+                    <span className="product-card-xp-oldprice">
                       ${product.price.toLocaleString('es-CL')}
                     </span>
                   )}
                 </div>
 
-                <div className="pt-2 flex gap-2">
+                {/* Acciones */}
+                <div className="flex items-center gap-1.5 pt-1">
                   <Link to={`/product/${product.id}`} className="flex-1">
-                    <PixelButton variant="retro" size="sm" className="w-full">
-                      Detalle
-                    </PixelButton>
+                    <button
+                      type="button"
+                      className="winxp-button text-xs py-1 w-full text-gray-800"
+                    >
+                      <Info className="w-3 h-3 text-blue-700" />
+                      <span>Ver Ficha</span>
+                    </button>
                   </Link>
 
-                  <PixelButton
-                    variant="primary"
-                    size="sm"
-                    onClick={() => addToCart(product, product.sizes[0], product.colors[0])}
+                  <button
+                    type="button"
+                    onClick={() => handleQuickAdd(product)}
                     disabled={stock <= 0}
+                    className={`winxp-button text-xs py-1 px-2.5 font-bold ${
+                      isRecentlyAdded
+                        ? 'bg-green-100 text-green-900 border-green-600'
+                        : 'winxp-button-primary text-blue-900'
+                    }`}
+                    title={stock <= 0 ? 'Sin stock disponible' : 'Añadir al Carrito'}
                   >
-                    + Carrito
-                  </PixelButton>
+                    {isRecentlyAdded ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-green-700" />
+                        <span>¡Listo!</span>
+                      </>
+                    ) : (
+                      <>
+                        <PixelIcon name="cart" size={14} />
+                        <span>+ Carro</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
           );
         })}
       </div>
-
-      {filteredProducts.length === 0 && (
-        <div className="bevel-sunken p-8 text-center space-y-2">
-          <p className="font-['Silkscreen'] text-white text-sm">NO SE ENCONTRARON PRENDAS</p>
-          <p className="font-['Chakra_Petch'] text-xs text-slate-400">
-            Prueba ajustando los filtros o seleccionando "Todas las Sucursales" para ver el inventario total.
-          </p>
-          <PixelButton
-            variant="retro"
-            size="sm"
-            onClick={() => {
-              setSearchTerm('');
-              setSelectedCategory('all');
-              setSelectedSize('all');
-              setActiveBranchId('all');
-            }}
-          >
-            Restablecer Filtros
-          </PixelButton>
-        </div>
-      )}
     </div>
   );
 };

@@ -4,29 +4,19 @@ import { ArrowRight } from 'lucide-react';
 import { WindowFrame } from '../../layout/WindowFrame';
 import { Product } from '../../../types';
 import { ProductCard } from '../ProductCard/ProductCard';
+import { PixelIcon } from '../../common/PixelIcon';
 import './FeaturedCatalog.css';
 
 interface FeaturedCatalogProps {
-  /** Colección de productos a presentar en el catálogo principal */
   products: Product[];
-  /** ID de la sucursal seleccionada o 'all' para stock global */
   activeBranchId: string;
-  /** ID del producto recién agregado para disparar animación de feedback */
   addedProductId: string | null;
-  /** Función para añadir directamente un producto al carrito */
   onQuickAdd: (product: Product) => void;
 }
 
 /**
- * Componente: FeaturedCatalog
- * 
- * Propósito:
- * Muestra el escaparate de prendas exclusivas dentro de una ventana retro-futurista,
- * gestionando el cálculo de stock reactivo por sucursal y la delegación de eventos al ProductCard.
- * 
- * Buenas prácticas:
- * - Estilos segregados en FeaturedCatalog.css
- * - Modularización: delega el renderizado individual en ProductCard
+ * FeaturedCatalog: Escaparate de prendas destacadas dentro de una ventana Windows XP.
+ * Fondo blanco limpio, tipografía nítida y delegación de eventos al ProductCard.
  */
 export const FeaturedCatalog: React.FC<FeaturedCatalogProps> = ({
   products,
@@ -35,54 +25,56 @@ export const FeaturedCatalog: React.FC<FeaturedCatalogProps> = ({
   onQuickAdd,
 }) => {
   return (
-    <div className="featured-catalog-section">
-      <WindowFrame
-        title="FEATURED_CATALOG.BIN - [Prendas Destacadas & Live Drops]"
-        variant="lavender"
-        statusBarText="FILTRADO POR STOCK DISPONIBLE EN SUCURSAL SELECCIONADA // CHECKOUT SEGURO WEBPAY"
-      >
-        <div>
-          {/* Cabecera de la sección con enlace al catálogo completo */}
-          <div className="featured-catalog-header">
-            <div>
-              <h2 className="featured-catalog-title">
-                PRENDAS EXCLUSIVAS DEL DROP
-              </h2>
-              <span className="featured-catalog-subtitle">
-                // PIEZAS ÚNICAS LISTAS PARA DESPACHO O RETIRO EN LOCAL
-              </span>
-            </div>
+    <WindowFrame
+      title="CATALOGO_DESTACADOS.EXE - [Colección Drop Actual]"
+      subtitle="Filtrado por inventario físico en tiempo real"
+      icon={<PixelIcon name="folder-open" size={16} />}
+      statusBarText={`TOTAL PRENDAS DISPONIBLES: ${products.length} // RETIRO INMEDIATO EN SUCURSALES`}
+    >
+      <div>
+        {/* Cabecera del Catálogo */}
+        <div className="featured-catalog-xp-header">
+          <div>
+            <h2 className="featured-catalog-xp-title">
+              Prendas Exclusivas del Drop de Temporada
+            </h2>
+            <p className="text-xs text-gray-600 mt-0.5 font-sans">
+              Piezas limitadas y serigrafía artesanal listas para despacho nacional o retiro en tienda.
+            </p>
+          </div>
 
-            <Link
-              to="/catalog"
-              className="featured-catalog-link bevel-sunken"
+          <Link to="/catalog">
+            <button
+              type="button"
+              className="winxp-button text-xs py-1 px-3 text-blue-900 font-bold"
             >
-              <span>ABRIR CATÁLOGO ENTERO</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          {/* Grilla responsiva de tarjetas de productos */}
-          <div className="featured-catalog-grid">
-            {products.map((product) => {
-              const currentStock =
-                activeBranchId === 'all'
-                  ? product.totalStock
-                  : product.stockPerBranch[activeBranchId] ?? 0;
-
-              return (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  currentStock={currentStock}
-                  isRecentlyAdded={addedProductId === product.id}
-                  onQuickAdd={onQuickAdd}
-                />
-              );
-            })}
-          </div>
+              <PixelIcon name="search" size={14} />
+              <span>Abrir Catálogo Completo</span>
+              <ArrowRight className="w-3 h-3 text-blue-700 ml-1" />
+            </button>
+          </Link>
         </div>
-      </WindowFrame>
-    </div>
+
+        {/* Grilla de Productos */}
+        <div className="featured-catalog-xp-grid">
+          {products.map((product) => {
+            const currentStock =
+              activeBranchId === 'all'
+                ? product.totalStock
+                : product.stockPerBranch[activeBranchId] ?? 0;
+
+            return (
+              <ProductCard
+                key={product.id}
+                product={product}
+                currentStock={currentStock}
+                isRecentlyAdded={addedProductId === product.id}
+                onQuickAdd={onQuickAdd}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </WindowFrame>
   );
 };

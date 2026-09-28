@@ -20,20 +20,17 @@ export default function App() {
         <BranchProvider>
           <CartProvider>
             <AdminNotificationProvider>
-              {/* Cosmic Y2K Desktop Workspace */}
-              <div className="min-h-screen y2k-cosmic-bg y2k-stars-grid text-slate-100 flex flex-col selection:bg-[#ff007f] selection:text-white pb-14">
-                {/* Vintage CRT Scanline Subtle Ambient Atmosphere */}
-                <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.6)_100%)] z-30 opacity-70"></div>
-
-                {/* Top OS App Navigation */}
+              {/* Escritorio Windows XP con Tapiz Clásico "Bliss" (Colina verde, cielo azul y nubes) */}
+              <div className="min-h-screen winxp-bliss-background text-gray-900 flex flex-col selection:bg-[#316ac5] selection:text-white pb-12 font-sans">
+                {/* Barra de Navegación Estilo Internet Explorer 6 / Windows Explorer */}
                 <TopNavBar />
 
-                {/* Main Dynamic View Area */}
-                <main className="flex-1 max-w-7xl w-full mx-auto px-2 sm:px-6 py-4 sm:py-6 relative z-10">
+                {/* Área de Visualización Principal (Ventanas y Contenido Blanco Limpio) */}
+                <main className="flex-1 max-w-7xl w-full mx-auto px-2 sm:px-4 py-4 relative z-10">
                   <AppRoutes />
                 </main>
 
-                {/* Windows XP / 98 Retro Taskbar */}
+                {/* Barra de Tareas Oficial de Windows XP Luna Blue con Botón Inicio Verde */}
                 <OSDesktopTaskbar />
               </div>
             </AdminNotificationProvider>

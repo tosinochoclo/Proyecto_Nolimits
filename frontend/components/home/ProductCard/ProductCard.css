@@ -1,117 +1,111 @@
 /* ==========================================================================
    ProductCard.css
-   Estilos específicos para la tarjeta de producto retro-futurista
+   Tarjeta de producto estilo Windows XP con fondo blanco puro y biselado
    ========================================================================== */
 
-.product-card-root {
-  background-color: #090710;
+.product-card-xp {
+  background-color: #ffffff;
+  border: 1px solid #7f9db9;
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
+  transition: all 0.15s ease;
   overflow: hidden;
-  transition: all 0.2s ease;
 }
 
-.product-card-root:hover {
-  border-color: #ff007f;
+.product-card-xp:hover {
+  border-color: #0055ea;
+  box-shadow: 0 0 6px rgba(0, 85, 234, 0.35);
+  transform: translateY(-1px);
 }
 
-/* Contenedor de la imagen con badges */
-.product-card-media {
+.product-card-xp-media {
   position: relative;
   aspect-ratio: 1 / 1;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
   overflow: hidden;
-  background-color: #000000;
 }
 
-.product-card-image {
+.product-card-xp-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  transition: transform 0.3s ease;
+  transition: transform 0.25s ease;
 }
 
-.product-card-root:hover .product-card-image {
-  transform: scale(1.05);
+.product-card-xp:hover .product-card-xp-img {
+  transform: scale(1.03);
 }
 
-.product-card-discount {
+.product-card-xp-discount {
   position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  background-color: #ff007f;
+  top: 6px;
+  left: 6px;
+  background: #d32f2f;
   color: #ffffff;
-  font-family: 'Silkscreen', monospace;
+  font-family: 'Tahoma', sans-serif;
   font-size: 10px;
-  padding: 0.125rem 0.5rem;
+  font-weight: bold;
+  padding: 1px 6px;
+  border-radius: 2px;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.product-card-stock {
+.product-card-xp-stock {
   position: absolute;
-  bottom: 0.5rem;
-  right: 0.5rem;
-  background-color: rgba(0, 0, 0, 0.85);
-  color: #00d4ff;
-  font-family: 'VT323', monospace;
-  font-size: 0.75rem;
-  padding: 0.125rem 0.5rem;
-  border: 1px solid rgba(0, 212, 255, 0.4);
+  bottom: 6px;
+  right: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0c3866;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border: 1px solid #7f9db9;
+  border-radius: 2px;
 }
 
-/* Área de contenido y metadatos */
-.product-card-details {
-  padding: 0.75rem;
+.product-card-xp-info {
+  padding: 10px;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
-.product-card-category {
-  font-family: 'VT323', monospace;
-  font-size: 0.75rem;
-  color: #a855f7;
-  letter-spacing: 0.05em;
-}
-
-.product-card-title {
-  font-family: 'Chakra Petch', sans-serif;
+.product-card-xp-category {
+  font-size: 10px;
   font-weight: 700;
-  font-size: 0.875rem;
-  color: #ffffff;
+  color: #0055ea;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.product-card-xp-title {
+  font-family: 'Tahoma', 'Segoe UI', Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.25;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  transition: color 0.2s ease;
 }
 
-.product-card-root:hover .product-card-title {
-  color: #ff007f;
+.product-card-xp-price {
+  font-family: 'Tahoma', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: #b71c1c;
 }
 
-.product-card-price-group {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.product-card-price-main {
-  font-family: 'Silkscreen', monospace;
-  font-size: 1rem;
-  color: #ffffff;
-}
-
-.product-card-price-old {
-  font-family: 'Chakra Petch', monospace;
-  font-size: 0.75rem;
+.product-card-xp-oldprice {
+  font-size: 11px;
+  color: #888888;
   text-decoration: line-through;
-  color: #64748b;
-}
-
-.product-card-actions {
-  padding-top: 0.25rem;
-  display: flex;
-  gap: 0.5rem;
+  margin-left: 6px;
+  font-weight: normal;
 }

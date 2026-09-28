@@ -1,0 +1,25 @@
+/* ==========================================================================
+   MSPaintPalette.css
+   Caja de herramientas de MS Paint estilo Windows 95/XP
+   ========================================================================== */
+
+.mspaint-box {
+  background-color: #ece9d8;
+  border: 2px solid #ffffff;
+  border-right-color: #707070;
+  border-bottom-color: #707070;
+  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.35);
+  user-select: none;
+  font-family: 'Tahoma', sans-serif;
+  width: 140px;
+}
+
+.mspaint-titlebar {
+  background: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+  color: #ffffff;
+  padding: 3px 5px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

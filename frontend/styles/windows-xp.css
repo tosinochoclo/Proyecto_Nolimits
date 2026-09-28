@@ -1,0 +1,418 @@
+/* ==========================================================================
+   WINDOWS XP DESIGN SYSTEM (Luna Blue Edition - 2000s Nostalgia)
+   Design System estricto y reutilizable para NoLimits Apparel OS.
+   ========================================================================== */
+
+:root {
+  /* Paleta Oficial Windows XP Luna */
+  --winxp-blue-dark: #0045d6;
+  --winxp-blue-primary: #0055ea;
+  --winxp-blue-light: #288eff;
+  --winxp-blue-border: #0055ea;
+  --winxp-taskbar-blue: #245edb;
+  --winxp-tray-blue: #0b3bb5;
+  
+  --winxp-green-start: #388e3c;
+  --winxp-green-start-hover: #43a047;
+  
+  --winxp-window-bg: #ece9d8;
+  --winxp-content-bg: #ffffff;
+  --winxp-dialog-gray: #ece9d8;
+  --winxp-dark-gray: #707070;
+  --winxp-light-gray: #ffffff;
+  --winxp-text-primary: #000000;
+  --winxp-text-muted: #555555;
+  --winxp-selection-blue: #316ac5;
+
+  /* Tipografía Oficial: Tahoma, Segoe UI, sans-serif (no pixelada, nítida y pequeña) */
+  --winxp-font: 'Tahoma', 'Segoe UI', Arial, sans-serif;
+  --winxp-font-size-base: 12px;
+  --winxp-font-size-sm: 11px;
+  --winxp-font-size-xs: 10px;
+}
+
+/* ==========================================================================
+   Cursores Pixelados Retro (Windows 95 / XP)
+   ========================================================================== */
+html, body, div, p, span, h1, h2, h3, h4, h5, h6 {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath fill='%23000' d='M0,0 L0,17 L4,13 L7,20 L10,18.5 L7,12 L12,12 Z'/%3E%3Cpath fill='%23fff' d='M1,2 L1,15 L4,12 L7,18.5 L8.5,17.5 L5.5,11.5 L10,11.5 Z'/%3E%3C/svg%3E"), default;
+  font-family: var(--winxp-font);
+}
+
+/* Cursor de mano pixelada para elementos interactivos */
+a, button, select, [role="button"], input[type="submit"], input[type="button"], input[type="checkbox"], input[type="radio"] {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='22' viewBox='0 0 20 22'%3E%3Cpath fill='%23000' d='M6,1 L9,1 L9,7 L11,7 L11,9 L13,9 L13,11 L15,11 L15,18 L13,18 L13,20 L5,20 L5,18 L3,18 L3,12 L5,12 L5,7 L6,7 Z'/%3E%3Cpath fill='%23fff' d='M7,2 L8,2 L8,8 L10,8 L10,10 L12,10 L12,12 L14,12 L14,17 L12,17 L12,19 L6,19 L6,17 L4,17 L4,13 L6,13 L6,8 L7,8 Z'/%3E%3C/svg%3E"), pointer !important;
+}
+
+/* Cursor de texto para inputs */
+input[type="text"], input[type="search"], input[type="email"], input[type="password"], textarea {
+  cursor: text !important;
+  font-family: var(--winxp-font);
+}
+
+/* ==========================================================================
+   Fondo de Pantalla "Bliss" (Colina Verde, Cielo Azul y Nubes)
+   ========================================================================== */
+.winxp-bliss-background {
+  background-color: #4b8cf5;
+  background-image: 
+    /* Colina verde inferior ondulada */
+    radial-gradient(ellipse 140% 65% at 50% 105%, #439618 0%, #4da71a 45%, #60bd24 70%, transparent 72%),
+    radial-gradient(ellipse 110% 50% at 85% 102%, #328010 0%, #469c17 40%, transparent 65%),
+    radial-gradient(ellipse 120% 55% at 15% 103%, #3c8f13 0%, #52ab1c 45%, transparent 68%),
+    /* Nubes blancas suaves */
+    radial-gradient(ellipse 45% 18% at 30% 28%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.4) 50%, transparent 80%),
+    radial-gradient(ellipse 35% 14% at 75% 22%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 45%, transparent 75%),
+    radial-gradient(ellipse 25% 10% at 55% 35%, rgba(255, 255, 255, 0.6) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 12% at 15% 42%, rgba(255, 255, 255, 0.5) 0%, transparent 75%),
+    /* Cielo azul degradado */
+    linear-gradient(180deg, #1b6ef3 0%, #3e8ff7 35%, #76b5fc 60%, #b8dcfe 85%, #d8ecff 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center bottom;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   Biselados 3D (Windows 95 / XP Bevels)
+   ========================================================================== */
+.winxp-bevel-out {
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #707070;
+  border-bottom: 2px solid #707070;
+  box-shadow: inset 1px 1px 0px #dfdfdf, inset -1px -1px 0px #000000;
+}
+
+.winxp-bevel-in {
+  border-top: 2px solid #707070;
+  border-left: 2px solid #707070;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  box-shadow: inset 1px 1px 0px #000000, inset -1px -1px 0px #dfdfdf;
+  background-color: #ffffff;
+}
+
+/* ==========================================================================
+   Ventana Estilo Windows XP Luna Blue
+   ========================================================================== */
+.winxp-window {
+  background-color: var(--winxp-window-bg);
+  border: 3px solid #0055ea;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  box-shadow: 2px 4px 16px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 30, 120, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Barra de Título Luna Azul */
+.winxp-titlebar {
+  background: linear-gradient(180deg, 
+    #0058ee 0%, 
+    #3593ff 8%, 
+    #288eff 38%, 
+    #0055ea 85%, 
+    #0045d6 92%, 
+    #0030a6 100%
+  );
+  padding: 4px 6px 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  min-height: 28px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.winxp-titlebar-title {
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 12px;
+  text-shadow: 1px 1px 1px #001f66;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.2px;
+}
+
+/* Botones de Control de Ventana (Min, Max, Cerrar Rojo) */
+.winxp-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.winxp-btn-ctrl {
+  width: 21px;
+  height: 21px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 1;
+  padding: 0;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.6), inset -1px -1px 0px rgba(0, 0, 0, 0.3);
+  border: 1px solid #ffffff;
+  transition: filter 0.1s ease;
+}
+
+.winxp-btn-min, .winxp-btn-max {
+  background: linear-gradient(180deg, #448aff 0%, #2979ff 45%, #0050d0 50%, #003db3 100%);
+  color: #ffffff;
+}
+
+.winxp-btn-min:hover, .winxp-btn-max:hover {
+  filter: brightness(1.15);
+}
+
+.winxp-btn-close {
+  background: linear-gradient(180deg, #ff7043 0%, #f4511e 45%, #d84315 50%, #bf360c 100%);
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.winxp-btn-close:hover {
+  background: linear-gradient(180deg, #ff8a65 0%, #ff5722 45%, #e64a19 50%, #d84315 100%);
+}
+
+.winxp-btn-ctrl:active {
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.6);
+  transform: translate(0.5px, 0.5px);
+}
+
+/* Área de Contenido de Ventana (Blanco Limpio) */
+.winxp-content-pane {
+  background-color: #ffffff;
+  color: #000000;
+  padding: 12px;
+  border: 2px solid #707070;
+  border-top-color: #707070;
+  border-left-color: #707070;
+  border-right-color: #ffffff;
+  border-bottom-color: #ffffff;
+  box-shadow: inset 1px 1px 0px #000000;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Menú Superior de la Ventana (Archivo, Edición, Ver, etc.) */
+.winxp-menubar {
+  background-color: var(--winxp-window-bg);
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  border-bottom: 1px solid #d0ccc0;
+}
+
+.winxp-menu-item {
+  color: #000000;
+  padding: 2px 5px;
+  border-radius: 2px;
+}
+
+.winxp-menu-item:hover {
+  background-color: #316ac5;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Botones Estilo Windows XP (Pulsables y Biselados)
+   ========================================================================== */
+.winxp-button {
+  background: linear-gradient(180deg, #ffffff 0%, #ece9d8 15%, #d8d4c0 85%, #b5b09b 100%);
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  padding: 4px 12px;
+  font-family: var(--winxp-font);
+  font-size: 11px;
+  font-weight: 500;
+  color: #000000;
+  box-shadow: inset 1px 1px 0px #ffffff, inset -1px -1px 0px #c0bcc0, 0 1px 2px rgba(0, 0, 0, 0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.1s ease;
+  user-select: none;
+}
+
+.winxp-button:hover {
+  background: linear-gradient(180deg, #fff2cc 0%, #ffdf80 50%, #f0c040 100%);
+  border-color: #f0a000;
+  box-shadow: inset 0 0 3px rgba(255, 170, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.winxp-button:active {
+  background: linear-gradient(180deg, #d0ccb5 0%, #e0dcc5 100%);
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.4);
+  transform: translate(0.5px, 0.5px);
+}
+
+.winxp-button-primary {
+  border: 1px solid #0055ea;
+  box-shadow: 0 0 0 1px #3399ff, inset 1px 1px 0px #ffffff;
+}
+
+/* Botón con el clásico contorno punteado de foco de Windows */
+.winxp-button:focus-visible {
+  outline: 1px dotted #000000;
+  outline-offset: -3px;
+}
+
+/* ==========================================================================
+   Inputs y Selects
+   ========================================================================== */
+.winxp-input {
+  background-color: #ffffff;
+  color: #000000;
+  font-size: 11px;
+  font-family: var(--winxp-font);
+  padding: 3px 6px;
+  border: 2px solid #7f9db9;
+  border-radius: 0;
+  box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.winxp-input:focus {
+  outline: none;
+  border-color: #0055ea;
+}
+
+/* ==========================================================================
+   Barra de Tareas Windows XP Luna (Taskbar)
+   ========================================================================== */
+.winxp-taskbar {
+  background: linear-gradient(180deg, 
+    #3c8df6 0%, 
+    #245edb 10%, 
+    #1d52c7 40%, 
+    #1941a5 90%, 
+    #14358a 100%
+  );
+  border-top: 1px solid #538df8;
+  height: 32px;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 0 0;
+  user-select: none;
+  z-index: 9999;
+}
+
+/* Botón Inicio Windows XP (Verde icónico) */
+.winxp-start-btn {
+  background: linear-gradient(180deg, 
+    #4caf50 0%, 
+    #43a047 15%, 
+    #2e7d32 45%, 
+    #1b5e20 85%, 
+    #144a17 100%
+  );
+  border: 1px solid #144a17;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  color: #ffffff;
+  font-style: italic;
+  font-weight: 900;
+  font-size: 14px;
+  height: 32px;
+  padding: 0 14px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-shadow: 1px 1px 2px #003300;
+  box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.6), 2px 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.winxp-start-btn:hover {
+  background: linear-gradient(180deg, #66bb6a 0%, #4caf50 20%, #388e3c 60%, #2e7d32 100%);
+  filter: brightness(1.08);
+}
+
+.winxp-start-btn:active {
+  box-shadow: inset 2px 2px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* Área de Notificación (System Tray) */
+.winxp-tray {
+  background: linear-gradient(180deg, #0e44b8 0%, #1653cf 35%, #0b3bb5 100%);
+  border-left: 1px solid #1b387a;
+  border-top: 1px solid #1b387a;
+  box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.5);
+  height: 30px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 11px;
+}
+
+/* Barra de Progreso Windows XP (Bloques Azules Segmentados) */
+.winxp-progress {
+  height: 16px;
+  background-color: #ffffff;
+  border: 2px solid #7f9db9;
+  padding: 1px;
+  display: flex;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.winxp-progress-chunk {
+  width: 8px;
+  height: 100%;
+  background: linear-gradient(180deg, #6ba6ff 0%, #2474fc 45%, #0050d8 50%, #003ea8 100%);
+  border-radius: 1px;
+}
+
+/* Cuadro de Diálogo Estilo "Error" / "System Message" */
+.winxp-dialog-card {
+  background-color: #ece9d8;
+  border: 2px solid #ffffff;
+  border-right-color: #707070;
+  border-bottom-color: #707070;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.25);
+  padding: 12px;
+}
+
+/* Barra de Estado inferior */
+.winxp-statusbar {
+  background-color: #ece9d8;
+  border-top: 1px solid #999999;
+  padding: 3px 6px;
+  font-size: 11px;
+  color: #333333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Legibilidad y Contraste de Contenido
+   ========================================================================== */
+.winxp-content-pane [class*="text-slate-"],
+.winxp-window [class*="text-slate-"] {
+  color: #333333;
+}
+
+.winxp-content-pane [class*="text-white"]:not(.winxp-btn-ctrl):not(.winxp-titlebar *):not(.winxp-taskbar *):not(.winamp-container *) {
+  color: #111111;
+}
+
+.winxp-titlebar [class*="text-white"],
+.winxp-titlebar-title,
+.winxp-taskbar [class*="text-white"],
+.winxp-btn-ctrl {
+  color: #ffffff !important;
+}
+

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Minus, Square, X, Sparkles } from 'lucide-react';
+import { PixelIcon } from '../common/PixelIcon';
 
 interface WindowFrameProps {
   title?: string;
@@ -16,98 +16,99 @@ interface WindowFrameProps {
   statusBarText?: string;
 }
 
+/**
+ * WindowFrame: Contenedor principal de ventana estilo Windows XP Luna Blue.
+ * 
+ * Cumple estrictamente con las directrices de diseño:
+ * - Marco biselado y barra de título azul degradado con botones clásicos.
+ * - Fondo interior blanco puro (#ffffff) para máxima legibilidad.
+ * - Tipografía clara, no pixelada y pequeña.
+ */
 export const WindowFrame: React.FC<WindowFrameProps> = ({
-  title = 'Nolimits OS v2.0 - [Apparel Terminal]',
+  title = 'Nolimits OS - [Windows XP Explorer]',
   subtitle,
   icon,
   children,
-  variant = 'lavender',
   className = '',
   bodyClassName = '',
   onClose,
   onMinimize,
   onMaximize,
   showControls = true,
-  statusBarText = 'STATUS: ONLINE // STOCK SYNC: REAL-TIME // CLUSTER: VINA-VALPO-QUILPUE'
+  statusBarText = 'Listo // Sistema operativo Windows XP Luna Edition // Conectado a Servidor Central'
 }) => {
-  const getHeaderClass = () => {
-    switch (variant) {
-      case 'active':
-        return 'os-titlebar-active';
-      case 'chrome':
-        return 'os-titlebar-chrome';
-      case 'lavender':
-      default:
-        return 'os-titlebar-lavender';
-    }
-  };
-
   return (
-    <div
-      className={`bevel-chrome rounded-xs overflow-hidden bg-[#0c0a14]/95 backdrop-blur-md shadow-2xl flex flex-col ${className}`}
-    >
-      {/* OS Titlebar */}
-      <div
-        className={`${getHeaderClass()} px-3 py-1.5 flex items-center justify-between select-none cursor-default text-white`}
-      >
-        <div className="flex items-center gap-2 overflow-hidden">
-          {icon || <Sparkles className="w-3.5 h-3.5 text-[#ff007f]" />}
-          <span className="font-['Silkscreen'] text-xs tracking-wider text-white truncate drop-shadow-sm font-semibold">
-            {title}
-          </span>
+    <div className={`winxp-window ${className}`}>
+      {/* Barra de Título Windows XP Luna */}
+      <div className="winxp-titlebar">
+        <div className="winxp-titlebar-title truncate">
+          {icon || <PixelIcon name="windows-flag" size={15} />}
+          <span className="truncate">{title}</span>
           {subtitle && (
-            <span className="hidden sm:inline-block font-['VT323'] text-sm text-[#e9d5ff]/90 ml-1">
-              :: {subtitle}
+            <span className="hidden sm:inline font-normal text-[11px] text-white/90">
+              - {subtitle}
             </span>
           )}
         </div>
 
-        {/* Windows Control Buttons */}
+        {/* Botones de Control de Ventana */}
         {showControls && (
-          <div className="flex items-center gap-1 shrink-0 ml-2">
+          <div className="winxp-controls">
             <button
               type="button"
               onClick={onMinimize}
               aria-label="Minimizar"
-              className="win-btn"
+              className="winxp-btn-ctrl winxp-btn-min"
+              title="Minimizar"
             >
-              <Minus className="w-2.5 h-2.5" />
+              _
             </button>
             <button
               type="button"
               onClick={onMaximize}
               aria-label="Maximizar"
-              className="win-btn"
+              className="winxp-btn-ctrl winxp-btn-max"
+              title="Maximizar"
             >
-              <Square className="w-2 h-2" />
+              □
             </button>
             <button
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="win-btn win-btn-close"
+              className="winxp-btn-ctrl winxp-btn-close"
+              title="Cerrar"
             >
-              <X className="w-2.5 h-2.5" />
+              ×
             </button>
           </div>
         )}
       </div>
 
-      {/* Main Window Body Content */}
-      <div className={`flex-1 p-3 sm:p-5 overflow-auto ${bodyClassName}`}>
+      {/* Menú de ventana clásico (Archivo, Edición, Ver, Ayuda) */}
+      <div className="winxp-menubar">
+        <span className="winxp-menu-item">Archivo</span>
+        <span className="winxp-menu-item">Edición</span>
+        <span className="winxp-menu-item">Ver</span>
+        <span className="winxp-menu-item">Favoritos</span>
+        <span className="winxp-menu-item">Herramientas</span>
+        <span className="winxp-menu-item">Ayuda</span>
+      </div>
+
+      {/* Área de Contenido Principal (Fondo Blanco Limpio y Bisel Interior) */}
+      <div className={`winxp-content-pane flex-1 overflow-auto ${bodyClassName}`}>
         {children}
       </div>
 
-      {/* Retro Status Bar at bottom of window */}
+      {/* Barra de Estado Inferior estilo Windows XP */}
       {statusBarText && (
-        <div className="bevel-sunken px-2.5 py-1 text-[11px] font-['VT323'] text-slate-300 flex items-center justify-between tracking-wide select-none border-t border-[#2d2242]">
-          <div className="flex items-center gap-2 truncate">
-            <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse"></span>
-            <span className="truncate">{statusBarText}</span>
+        <div className="winxp-statusbar select-none">
+          <div className="winxp-status-pane flex-1 truncate text-gray-700 font-sans">
+            {statusBarText}
           </div>
-          <span className="text-[#a78bfa] shrink-0 hidden md:inline-block font-mono">
-            PORT: 3000 // Y2K SECURE
-          </span>
+          <div className="winxp-status-pane hidden sm:flex items-center gap-1 text-[10px] text-gray-600 font-mono">
+            <span>Red Local: 100 Mbps</span>
+          </div>
         </div>
       )}
     </div>

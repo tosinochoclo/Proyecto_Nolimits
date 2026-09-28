@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Minus, Square, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
 import { INITIAL_PRODUCTS } from '../services/mockData';
 import { Product } from '../types';
+import { PixelIcon } from '../components/common/PixelIcon';
 
 /* =========================================================================
-   Componentes Modulares Extraídos y Estilos Separados
+   Componentes Windows XP Design System
    ========================================================================= */
 import { CosmicBackgroundFx } from '../components/home/CosmicBackgroundFx/CosmicBackgroundFx';
 import { HeroWelcome } from '../components/home/HeroWelcome/HeroWelcome';
@@ -15,52 +15,37 @@ import { FeaturedCatalog } from '../components/home/FeaturedCatalog/FeaturedCata
 import { MasterStatusBar } from '../components/home/MasterStatusBar/MasterStatusBar';
 import { DiarioWidget } from '../components/home/DiarioWidget';
 import { ContactoWidget } from '../components/home/ContactoWidget';
+import { WindowsSystemDialog } from '../components/home/WindowsSystemDialog/WindowsSystemDialog';
 
 import './HomeView.css';
 
 /**
- * Vista: HomeView
+ * Vista: HomeView (Windows XP Luna Edition)
  * 
- * Propósito:
- * Orquestador principal de la vista de inicio del sistema operativo Cyber-Gothic Nolimits.
- * Integra la ambientación cósmica, el encabezado Hero, los widgets interactivos de escritorio,
- * la telemetría de stock físico en vivo (Viña, Valparaíso, Quilpué) y el catálogo destacado.
- * 
- * Arquitectura y Refactorización:
- * - Cada sección visual ha sido delegada a componentes especializados con sus propios archivos CSS.
- * - Mantiene el estado de UI de nivel superior (widgets de diario/contacto y selección rápida de carro).
- * - Código empático, limpio y preparado para mantenimiento en equipo.
+ * Orquestador principal de la experiencia de compra bajo la nueva dirección
+ * artística nostálgica de Windows XP y tecnología de principios de los 2000.
  */
 export const HomeView: React.FC = () => {
-  // Contextos globales para gestión de carrito y sucursal activa
   const { addToCart } = useCart();
   const { branches, activeBranchId } = useBranch();
 
-  // Estados de control para la apertura de widgets interactivos estilo escritorio retro
-  const [showDiario, setShowDiario] = useState<boolean>(true);
+  const [showDiario, setShowDiario] = useState<boolean>(false);
   const [showContacto, setShowContacto] = useState<boolean>(false);
   const [activeWidgetTab, setActiveWidgetTab] = useState<'diario' | 'contacto' | null>(null);
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState<boolean>(false);
 
-  // Estado transitorio para dar feedback visual instantáneo cuando se añade un producto
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
 
-  // Memorización de productos activos para evitar recalcular en renders menores
   const featuredProducts = useMemo(() => {
     return INITIAL_PRODUCTS.filter((product) => !product.isHidden);
   }, []);
 
-  /**
-   * Manejador para abrir o alternar un widget desde el Dock pixelado
-   */
   const handleOpenWidget = (widgetId: 'diario' | 'contacto') => {
     setActiveWidgetTab(widgetId);
     if (widgetId === 'diario') setShowDiario(true);
     if (widgetId === 'contacto') setShowContacto(true);
   };
 
-  /**
-   * Manejador de compra rápida de productos desde la grilla destacada
-   */
   const handleQuickAdd = (product: Product) => {
     addToCart(product, product.sizes[0], product.colors[0]);
     setAddedProductId(product.id);
@@ -69,58 +54,67 @@ export const HomeView: React.FC = () => {
 
   return (
     <div className="home-view-wrapper">
-      {/* 
-        VENTANA MAESTRA DEL NAVEGADOR / SISTEMA OPERATIVO
-        Bisel cromado, barra de título morado lavanda y controles retro
-      */}
-      <div className="master-os-window bevel-chrome">
-        {/* Barra de título de la ventana OS */}
-        <header className="master-os-titlebar os-titlebar-lavender">
-          <div className="titlebar-brand-group">
-            <span className="w-2.5 h-2.5 bg-[#00ff66] rounded-full animate-pulse shadow-[0_0_8px_#00ff66]" />
-            <span className="titlebar-brand-title">
-              Nolimits
-            </span>
-            <span className="titlebar-brand-subtitle">
-              :: [Cyber-Gothic OS v2.0 - Chile Central Network]
-            </span>
+      {/* Diálogo emergente estilo "Mensaje del Sistema Windows XP" (opcional/descartable) */}
+      {showWelcomeDialog && (
+        <WindowsSystemDialog
+          title="Nolimits.exe - Inicialización Completa"
+          message="Bienvenido al nuevo sistema operativo de compra NoLimits en Windows XP. Su conexión con el servidor central de Santiago y Valparaíso está activa."
+          iconType="info"
+          onOk={() => setShowWelcomeDialog(false)}
+          onCancel={() => setShowWelcomeDialog(false)}
+        />
+      )}
+
+      {/* Ventana Maestra de Windows XP Luna */}
+      <div className="master-xp-window">
+        {/* Barra de Título Luna Azul */}
+        <header className="winxp-titlebar">
+          <div className="winxp-titlebar-title">
+            <PixelIcon name="windows-flag" size={16} />
+            <span>Nolimits Apparel OS - [Escritorio Principal Windows XP]</span>
           </div>
 
-          {/* Botones de control estilo Windows 95/98 (Minimizar, Maximizar, Cerrar) */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="winxp-controls">
             <button
               type="button"
-              className="win-btn"
-              title="Minimizar Ventana Principal"
-              aria-label="Minimizar"
+              className="winxp-btn-ctrl winxp-btn-min"
+              title="Minimizar"
             >
-              <Minus className="w-2.5 h-2.5" />
+              _
             </button>
             <button
               type="button"
-              className="win-btn"
+              className="winxp-btn-ctrl winxp-btn-max"
               title="Maximizar"
-              aria-label="Maximizar"
             >
-              <Square className="w-2 h-2" />
+              □
             </button>
             <button
               type="button"
-              className="win-btn win-btn-close"
-              title="Cerrar Terminal"
-              aria-label="Cerrar"
+              onClick={() => setShowWelcomeDialog(true)}
+              className="winxp-btn-ctrl winxp-btn-close"
+              title="Cerrar ventana / Ayuda del sistema"
             >
-              <X className="w-2.5 h-2.5" />
+              ×
             </button>
           </div>
         </header>
 
-        {/* Cuerpo principal de la ventana */}
-        <main className="master-os-body">
-          {/* Fondo animado cósmico con haces de luz y estrellas */}
+        {/* Menú de ventana clásico */}
+        <nav className="winxp-menubar">
+          <span className="winxp-menu-item">Archivo</span>
+          <span className="winxp-menu-item">Edición</span>
+          <span className="winxp-menu-item">Ver</span>
+          <span className="winxp-menu-item">Herramientas</span>
+          <span className="winxp-menu-item" onClick={() => setShowWelcomeDialog(true)}>Ayuda</span>
+        </nav>
+
+        {/* Cuerpo Interior de la Ventana */}
+        <main className="master-xp-body">
+          {/* Elementos de Tecnología Antigua: Íconos de Escritorio, Winamp, Paint y Bryce 3D */}
           <CosmicBackgroundFx />
 
-          {/* Encabezado principal Hero con logo, dock de navegación y accesos */}
+          {/* Encabezado Principal Hero (Fondo Blanco Limpio, Tipografía Tahoma) */}
           <HeroWelcome
             showDiario={showDiario}
             onToggleDiario={() => setShowDiario((prev) => !prev)}
@@ -130,27 +124,53 @@ export const HomeView: React.FC = () => {
             onOpenWidget={handleOpenWidget}
           />
 
-          {/* Widgets de escritorio desplegables (Diario de lanzamientos y Contacto) */}
+          {/* Paneles Desplegables de Bitácora y Contacto */}
           {(showDiario || showContacto) && (
-            <section className="master-os-widgets-grid" aria-label="Widgets Interactivos">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {showDiario && (
-                <div className={`${showContacto ? 'lg:col-span-6' : 'lg:col-span-12 max-w-2xl mx-auto w-full'}`}>
-                  <DiarioWidget onClose={() => setShowDiario(false)} className="w-full" />
+                <div className="bg-white p-3 border border-gray-400 winxp-bevel-in">
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-300 font-bold text-xs text-blue-900">
+                    <span className="flex items-center gap-1.5">
+                      <PixelIcon name="notepad" size={15} />
+                      Bitácora de Lanzamientos
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowDiario(false)}
+                      className="text-gray-500 hover:text-red-600 font-bold text-xs"
+                    >
+                      [Cerrar]
+                    </button>
+                  </div>
+                  <DiarioWidget onClose={() => setShowDiario(false)} className="w-full mt-2" />
                 </div>
               )}
 
               {showContacto && (
-                <div className={`${showDiario ? 'lg:col-span-6' : 'lg:col-span-12 max-w-2xl mx-auto w-full'}`}>
-                  <ContactoWidget onClose={() => setShowContacto(false)} className="w-full" />
+                <div className="bg-white p-3 border border-gray-400 winxp-bevel-in">
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-300 font-bold text-xs text-blue-900">
+                    <span className="flex items-center gap-1.5">
+                      <PixelIcon name="info" size={15} />
+                      Mesa de Ayuda & Atención
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowContacto(false)}
+                      className="text-gray-500 hover:text-red-600 font-bold text-xs"
+                    >
+                      [Cerrar]
+                    </button>
+                  </div>
+                  <ContactoWidget onClose={() => setShowContacto(false)} className="w-full mt-2" />
                 </div>
               )}
-            </section>
+            </div>
           )}
 
-          {/* Telemetría en vivo del clúster de sucursales físicas */}
+          {/* Telemetría y Estado de Nodos Físicos */}
           <TelemetryCluster branches={branches} />
 
-          {/* Catálogo de prendas destacadas con stock reactivo */}
+          {/* Catálogo de Prendas Destacadas con fondo blanco y tarjetas nítidas */}
           <FeaturedCatalog
             products={featuredProducts}
             activeBranchId={activeBranchId}
@@ -158,7 +178,7 @@ export const HomeView: React.FC = () => {
             onQuickAdd={handleQuickAdd}
           />
 
-          {/* Barra de estado inferior con métricas del sistema */}
+          {/* Barra de Estado inferior de la ventana */}
           <MasterStatusBar />
         </main>
       </div>

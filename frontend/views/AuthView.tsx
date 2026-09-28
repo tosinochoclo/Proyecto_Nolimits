@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Mail, Lock, User as UserIcon, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Lock, Mail, User as UserIcon, CheckCircle2 } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
-import { PixelButton } from '../components/common/PixelButton';
 import { useAuth } from '../context/AuthContext';
+import { PixelIcon } from '../components/common/PixelIcon';
 
 export const AuthView: React.FC = () => {
   const { login, loginWithGoogle, currentUser, logout } = useAuth();
@@ -23,7 +23,7 @@ export const AuthView: React.FC = () => {
     try {
       await login(email, password);
       setMessage('¡Sesión iniciada con éxito!');
-      setTimeout(() => navigate('/profile'), 600);
+      setTimeout(() => navigate('/profile'), 500);
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export const AuthView: React.FC = () => {
     try {
       await loginWithGoogle();
       setMessage('¡Autenticado con Google OAuth exitosamente!');
-      setTimeout(() => navigate('/profile'), 600);
+      setTimeout(() => navigate('/profile'), 500);
     } finally {
       setLoading(false);
     }
@@ -42,28 +42,39 @@ export const AuthView: React.FC = () => {
 
   if (currentUser.role !== 'guest') {
     return (
-      <div className="max-w-md mx-auto py-8">
+      <div className="max-w-md mx-auto py-8 font-sans">
         <WindowFrame
-          title="AUTH_SESSION_ACTIVE.EXE - [Sesión Iniciada]"
-          variant="lavender"
+          title="Sesion_Activa.exe - [Usuario Conectado]"
+          icon={<PixelIcon name="windows-flag" size={16} />}
           statusBarText={`USUARIO: ${currentUser.email} // ROL: ${currentUser.role}`}
         >
-          <div className="text-center py-6 space-y-4">
-            <div className="inline-flex p-3 rounded-full bg-[#ff007f]/20 border border-[#ff007f] text-[#ff007f]">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="text-center py-6 space-y-3">
+            <div className="w-16 h-16 rounded-sm border-2 border-gray-400 bg-amber-100 mx-auto flex items-center justify-center text-3xl shadow-md">
+              🦆
             </div>
             <div>
-              <h2 className="font-['Silkscreen'] text-base text-white">SESIÓN ACTIVA</h2>
-              <p className="font-['Chakra_Petch'] text-sm text-[#00d4ff] font-bold">{currentUser.name}</p>
-              <p className="font-['VT323'] text-sm text-slate-400">{currentUser.email}</p>
+              <h2 className="text-base font-bold text-gray-900">
+                Sesión Iniciada en Windows XP
+              </h2>
+              <p className="text-sm text-blue-900 font-bold">{currentUser.name}</p>
+              <p className="text-xs text-gray-600">{currentUser.email}</p>
             </div>
-            <div className="flex justify-center gap-3 pt-2">
-              <PixelButton variant="primary" onClick={() => navigate('/profile')}>
-                Ir a Mi Perfil
-              </PixelButton>
-              <PixelButton variant="retro" onClick={logout}>
-                Cerrar Sesión
-              </PixelButton>
+
+            <div className="flex justify-center gap-2 pt-3">
+              <button
+                type="button"
+                onClick={() => navigate('/profile')}
+                className="winxp-button winxp-button-primary text-xs py-1.5 px-4 font-bold text-blue-900"
+              >
+                <span>Ir a Mi Perfil</span>
+              </button>
+              <button
+                type="button"
+                onClick={logout}
+                className="winxp-button text-xs py-1.5 px-3 text-red-800"
+              >
+                <span>Cerrar Sesión</span>
+              </button>
             </div>
           </div>
         </WindowFrame>
@@ -72,139 +83,117 @@ export const AuthView: React.FC = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto py-6">
+    <div className="max-w-md mx-auto py-6 font-sans">
       <WindowFrame
-        title="AUTH_PORTAL.SYS - [Acceso Clientes No Limits]"
-        variant="lavender"
-        statusBarText="PROTOCOLO JWT ACTIVO // SSL ENCRIPTADO"
+        title="Iniciar_Sesion.exe - [Windows XP Logon]"
+        icon={<PixelIcon name="key" size={16} />}
+        statusBarText="SEGURIDAD SSL 128-BITS // CUENTA DE USUARIO"
       >
         <div className="space-y-4">
-          <div className="text-center space-y-1">
-            <h2 className="font-['Silkscreen'] text-sm sm:text-base text-white">
-              {isRegisterMode ? 'REGISTRO DE NUEVO CLIENTE' : 'INICIAR SESIÓN'}
-            </h2>
-            <p className="font-['Chakra_Petch'] text-xs text-slate-300">
-              Guarda tus pedidos, acumula puntos por compra y accede a drops exclusivos antes de los lives.
-            </p>
+          {/* Cabecera estilo Logon de Windows XP */}
+          <div className="flex items-center gap-3 p-2 bg-[#f0f4f8] border border-gray-300">
+            <div className="w-12 h-12 bg-blue-100 border border-blue-400 flex items-center justify-center text-2xl shrink-0">
+              👤
+            </div>
+            <div>
+              <div className="font-bold text-xs text-blue-900">
+                {isRegisterMode ? 'Crear Nueva Cuenta en NoLimits' : 'Para comenzar, inicie su sesión'}
+              </div>
+              <div className="text-[11px] text-gray-600">
+                Acceso a historial de pedidos, cupones y seguimiento de envíos.
+              </div>
+            </div>
           </div>
 
-          {/* Quick Google OAuth Button (mitigates digital divide) */}
-          <button
-            type="button"
-            onClick={handleGoogleAuth}
-            disabled={loading}
-            className="w-full bevel-raised bg-white text-slate-800 p-2.5 flex items-center justify-center gap-3 font-['Chakra_Petch'] font-bold text-sm hover:bg-slate-100 transition-all select-none cursor-pointer"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-              />
-            </svg>
-            <span>Continuar con Google (1 Clic)</span>
-          </button>
+          {message && (
+            <div className="p-2 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
+              <span>{message}</span>
+            </div>
+          )}
 
-          <div className="relative flex items-center justify-center my-2">
-            <div className="border-t border-[#3b2b52] w-full"></div>
-            <span className="bg-[#0e0c16] px-2 font-['VT323'] text-xs text-slate-400 uppercase">
-              o formulario tradicional
-            </span>
-          </div>
-
-          {/* Traditional Form */}
-          <form onSubmit={handleSubmit} className="space-y-3 font-['Chakra_Petch'] text-xs">
+          {/* Formulario de Login / Registro */}
+          <form onSubmit={handleSubmit} className="space-y-3">
             {isRegisterMode && (
-              <div className="space-y-1">
-                <label className="text-slate-300">Nombre Completo:</label>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Nombre Completo:
+                </label>
+                <div className="flex items-center">
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ej. Martín González"
+                    className="winxp-input w-full text-xs py-1"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Correo Electrónico:
+              </label>
+              <div className="flex items-center">
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ej: Sebastián Valdés"
-                  className="w-full bevel-sunken p-2 bg-black text-white focus:outline-none focus:border-[#ff007f]"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="usuario@correo.cl"
+                  className="winxp-input w-full text-xs py-1"
                 />
               </div>
-            )}
-
-            <div className="space-y-1">
-              <label className="text-slate-300">Correo Electrónico:</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu.correo@ejemplo.cl"
-                className="w-full bevel-sunken p-2 bg-black text-white focus:outline-none focus:border-[#ff007f]"
-              />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-slate-300">Contraseña:</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bevel-sunken p-2 bg-black text-white focus:outline-none focus:border-[#ff007f]"
-              />
-            </div>
-
-            {message && (
-              <div className="p-2 bevel-sunken bg-green-950/60 border border-green-500 text-green-300 text-[11px] text-center font-['Silkscreen']">
-                {message}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Contraseña de Acceso:
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="winxp-input w-full text-xs py-1"
+                />
               </div>
-            )}
+            </div>
 
-            <PixelButton
-              variant="primary"
-              size="md"
-              type="submit"
-              disabled={loading}
-              className="w-full text-xs py-2 mt-2"
-            >
-              {isRegisterMode ? 'CREAR CUENTA' : 'INGRESAR'}
-            </PixelButton>
+            <div className="pt-2 flex flex-col gap-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="winxp-button winxp-button-primary text-xs py-1.5 w-full font-bold text-blue-900"
+              >
+                <span>{loading ? 'Validando credenciales...' : isRegisterMode ? 'Registrar Cuenta' : 'Entrar a Windows XP'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleGoogleAuth}
+                className="winxp-button text-xs py-1.5 w-full text-gray-800"
+              >
+                <span>Continuar con Google Workspace</span>
+              </button>
+            </div>
           </form>
 
-          {/* Toggle Register / Login */}
-          <div className="pt-2 border-t border-[#30214a] text-center font-['Chakra_Petch'] text-xs text-slate-400">
-            {isRegisterMode ? (
-              <span>
-                ¿Ya tienes una cuenta?{' '}
-                <button
-                  type="button"
-                  onClick={() => setIsRegisterMode(false)}
-                  className="text-[#00d4ff] hover:underline font-bold"
-                >
-                  Inicia sesión aquí
-                </button>
-              </span>
-            ) : (
-              <span>
-                ¿Eres nuevo en No Limits?{' '}
-                <button
-                  type="button"
-                  onClick={() => setIsRegisterMode(true)}
-                  className="text-[#ff007f] hover:underline font-bold"
-                >
-                  Regístrate aquí
-                </button>
-              </span>
-            )}
+          {/* Toggle entre Iniciar sesión y Registro */}
+          <div className="pt-2 border-t border-gray-300 text-center text-xs">
+            <button
+              type="button"
+              onClick={() => setIsRegisterMode(!isRegisterMode)}
+              className="text-blue-700 hover:underline font-bold"
+            >
+              {isRegisterMode
+                ? '¿Ya tienes una cuenta? Iniciar Sesión aquí'
+                : '¿No tienes cuenta? Regístrate en 30 segundos'}
+            </button>
           </div>
         </div>
       </WindowFrame>
