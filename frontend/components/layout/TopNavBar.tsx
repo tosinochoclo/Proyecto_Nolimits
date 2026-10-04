@@ -1,16 +1,12 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
   RotateCw,
   Home,
   Shield,
-  Layers,
-  ShoppingBag,
-  User as UserIcon,
-  HelpCircle,
-  ExternalLink
+  User as UserIcon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -24,25 +20,11 @@ export const TopNavBar: React.FC = () => {
   const { totalItems } = useCart();
   const { branches, activeBranchId, setActiveBranchId } = useBranch();
   const { unreadCount } = useAdminNotifications();
-  const location = useLocation();
   const navigate = useNavigate();
 
   return (
     <header className="sticky top-0 z-50 bg-[#ece9d8] border-b-2 border-[#707070] shadow-md select-none font-sans">
-      {/* 1. Barra de Título Superior de Internet Explorer 6 */}
-      <div className="winxp-titlebar py-1 px-3 flex items-center justify-between">
-        <div className="winxp-titlebar-title text-xs">
-          <PixelIcon name="internet" size={16} />
-          <span>NoLimits Apparel OS - Microsoft Internet Explorer 6.0</span>
-        </div>
-        <div className="winxp-controls">
-          <button type="button" className="winxp-btn-ctrl winxp-btn-min" title="Minimizar">_</button>
-          <button type="button" className="winxp-btn-ctrl winxp-btn-max" title="Maximizar">□</button>
-          <button type="button" className="winxp-btn-ctrl winxp-btn-close" title="Cerrar">×</button>
-        </div>
-      </div>
-
-      {/* 2. Barra de Menú Estándar (Archivo, Edición, etc.) */}
+      {/* 1. Barra de Menú Estándar (Archivo, Edición, etc.) */}
       <div className="winxp-menubar text-[11px] px-3 py-1 flex items-center justify-between border-b border-[#d0ccc0]">
         <div className="flex items-center gap-2 sm:gap-4">
           <span className="winxp-menu-item">Archivo</span>
@@ -80,8 +62,8 @@ export const TopNavBar: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Barra de Herramientas Estándar con Botones Retro */}
-      <div className="px-2 sm:px-3 py-1.5 bg-[#ece9d8] flex flex-wrap items-center justify-between gap-2 border-b border-[#b0aca0]">
+      {/* 2. Barra de Herramientas Estándar con Botones Retro */}
+      <div className="px-2 sm:px-3 py-1.5 bg-[#ece9d8] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1">
           {/* Botón Atrás */}
           <button
@@ -165,24 +147,6 @@ export const TopNavBar: React.FC = () => {
             ))}
           </select>
         </div>
-      </div>
-
-      {/* 4. Barra de Dirección (Address Bar) estilo Internet Explorer */}
-      <div className="px-2 sm:px-3 py-1 bg-[#ece9d8] flex items-center gap-2 text-xs">
-        <span className="text-gray-700 font-bold text-[11px] shrink-0">Dirección</span>
-        <div className="flex-1 flex items-center bg-white winxp-bevel-in px-2 py-0.5">
-          <PixelIcon name="internet" size={14} className="mr-1.5 shrink-0" />
-          <span className="text-gray-900 truncate font-mono text-[11px]">
-            http://www.nolimits.xp{location.pathname === '/' ? '/index.html' : location.pathname}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => {}}
-          className="winxp-button text-[11px] py-0.5 px-2 bg-green-50 text-green-900 font-bold shrink-0"
-        >
-          Ir
-        </button>
       </div>
     </header>
   );
