@@ -2,27 +2,21 @@ import React, { useState } from 'react';
 import {
   UploadCloud,
   Zap,
-  Image as ImageIcon,
   CheckCircle2,
   Trash2,
   EyeOff,
-  Eye,
   Star,
   MapPin,
   Clock,
-  Sparkles
+  Plus
 } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
-import { PixelButton } from '../../components/common/PixelButton';
+import { PixelIcon } from '../../components/common/PixelIcon';
 import { useBranch } from '../../context/BranchContext';
 import { api } from '../../services/api';
 
 export const ExpressProductUploadView: React.FC = () => {
   const { branches } = useBranch();
-
-  // Speed-run timer to prove < 5 min capability
-  const [secondsElapsed, setSecondsElapsed] = useState(0);
-  const [timerRunning, setTimerRunning] = useState(false);
 
   // Form Fields
   const [title, setTitle] = useState('');
@@ -82,106 +76,109 @@ export const ExpressProductUploadView: React.FC = () => {
     setPublishedList([newProd, ...publishedList]);
     setSuccessMessage(`✓ ¡Prenda "${title}" subida y disponible para el Live Stream!`);
 
-    // Reset fields for the next garment in the speed queue
+    // Reset fields
     setTitle('');
     setPrice('');
     setSalePrice('');
     setDescription('');
-    setTimeout(() => setSuccessMessage(null), 3000);
+    setTimeout(() => setSuccessMessage(null), 3500);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 font-sans text-gray-900">
       <WindowFrame
         title="EXPRESS_UPLOAD_ENGINE.SYS - [Publicador Ultrarrápido de Prendas]"
-        variant="lavender"
-        statusBarText="TARGET: 20 PRENDAS EN < 5 MIN // CLOUDINARY CDN PIPELINE LISTO"
+        icon={<PixelIcon name="paint" size={16} />}
+        statusBarText="TARGET: 20 PRENDAS EN < 5 MIN // CLOUDINARY CDN // SINCRONIZACIÓN AUTOMÁTICA"
       >
         <div className="space-y-4">
-          {/* Top Speed Banner */}
-          <div className="bevel-chrome p-3.5 bg-gradient-to-r from-[#200d3d] via-[#100720] to-[#250d30] flex flex-wrap items-center justify-between gap-3">
+          {/* Banner Superior Estilo Barra de Herramientas Windows XP */}
+          <div className="bg-[#f0f4f8] border border-gray-400 p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-yellow-300 animate-pulse" />
+              <Zap className="w-5 h-5 text-amber-600" />
               <div>
-                <h3 className="font-['Silkscreen'] text-sm text-white">
+                <h3 className="font-bold text-xs text-[#003c74]">
                   MÓDULO DE CARGA EXPRESS PARA TRANSMISIONES EN VIVO
                 </h3>
-                <p className="font-['Chakra_Petch'] text-xs text-slate-300">
+                <p className="text-[11px] text-gray-600">
                   Prendas publicadas en esta sesión:{' '}
-                  <strong className="text-[#00d4ff] font-mono">{publishedList.length} / 20</strong>
+                  <strong className="text-blue-900 font-bold">{publishedList.length} / 20 prendas</strong>
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 font-['VT323'] text-lg text-slate-200">
-              <Clock className="w-4 h-4 text-[#ff007f]" />
-              <span>TIEMPO OPTIMIZADO: ULTRA-RAPID</span>
+            <div className="flex items-center gap-1.5 text-xs text-gray-700 bg-white border border-gray-300 px-2 py-1">
+              <Clock className="w-3.5 h-3.5 text-blue-700" />
+              <span className="font-semibold">Tiempo Estimado: Inmediato (&lt; 30 seg)</span>
             </div>
           </div>
 
           {successMessage && (
-            <div className="p-3 bevel-raised bg-green-950/90 border border-green-500 text-green-300 font-['Silkscreen'] text-xs text-center">
-              {successMessage}
+            <div className="p-2.5 bg-green-100 border border-green-500 text-green-900 text-xs font-semibold flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-700" />
+              <span>{successMessage}</span>
             </div>
           )}
 
-          {/* Express Form */}
-          <form onSubmit={handlePublishExpress} className="grid grid-cols-1 lg:grid-cols-12 gap-5 font-['Chakra_Petch'] text-xs">
-            {/* Col 1-7: Product Data */}
-            <div className="lg:col-span-7 space-y-3">
+          {/* Formulario de Carga en 2 Columnas (Fondo Blanco Limpio) */}
+          <form onSubmit={handlePublishExpress} className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-xs">
+            {/* Columna Izquierda: Datos de la Prenda */}
+            <div className="lg:col-span-7 space-y-3 bg-[#f8fafc] border border-gray-300 p-3.5">
               <div className="space-y-1">
-                <label className="font-bold text-slate-200">Título de la Prenda (Stock Único):</label>
+                <label className="font-bold text-gray-800">
+                  Título de la Prenda (Stock Único):
+                </label>
                 <input
                   type="text"
                   required
                   placeholder="Ej: Cyber Tribal Vintage Zip Hoodie #04"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bevel-sunken p-2.5 bg-black text-white focus:outline-none focus:border-[#ff007f] font-medium"
+                  className="w-full winxp-input text-xs py-1"
                 />
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-200">Precio Normal ($ CLP):</label>
+                  <label className="font-bold text-gray-800">Precio Normal ($ CLP):</label>
                   <input
                     type="number"
                     required
                     placeholder="45990"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full bevel-sunken p-2 bg-black text-white focus:outline-none"
+                    className="w-full winxp-input text-xs py-1"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-[#ff77b8]">Precio Live Drop ($):</label>
+                  <label className="font-bold text-red-700">Precio Live Drop ($):</label>
                   <input
                     type="number"
                     placeholder="38990 (Opcional)"
                     value={salePrice}
                     onChange={(e) => setSalePrice(e.target.value)}
-                    className="w-full bevel-sunken p-2 bg-black text-white focus:outline-none border-b-2 border-b-[#ff007f]"
+                    className="w-full winxp-input text-xs py-1 font-bold text-red-800"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-200">Cantidad (Stock):</label>
+                  <label className="font-bold text-gray-800">Cantidad (Stock):</label>
                   <input
                     type="number"
                     min="1"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full bevel-sunken p-2 bg-black text-white focus:outline-none font-mono"
+                    className="w-full winxp-input text-xs py-1"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-200">Categoría:</label>
+                  <label className="font-bold text-gray-800">Categoría:</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bevel-sunken p-2 bg-black text-white focus:outline-none cursor-pointer"
+                    className="w-full winxp-input text-xs py-1 cursor-pointer"
                   >
                     <option value="Polerones & Hoodies">Polerones & Hoodies</option>
                     <option value="Pantalones & Cargos">Pantalones & Cargos</option>
@@ -190,80 +187,80 @@ export const ExpressProductUploadView: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-200">Etiquetas (separadas por coma):</label>
+                  <label className="font-bold text-gray-800">Etiquetas (separadas por coma):</label>
                   <input
                     type="text"
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
                     placeholder="Live Stream, Oversize, Y2K"
-                    className="w-full bevel-sunken p-2 bg-black text-white focus:outline-none"
+                    className="w-full winxp-input text-xs py-1"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-200">Descripción & Especificaciones:</label>
+                <label className="font-bold text-gray-800">Descripción & Especificaciones:</label>
                 <textarea
                   rows={2}
                   placeholder="Detalles de tela, corte, estado físico y medidas..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bevel-sunken p-2 bg-black text-white focus:outline-none"
+                  className="w-full winxp-input text-xs py-1"
                 />
               </div>
 
-              {/* Switches: Hidden status & Featured */}
-              <div className="bevel-chrome p-3 bg-[#0d0a17] grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+              {/* Casillas de Verificación estilo Windows XP */}
+              <div className="bg-white border border-gray-300 p-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label className="flex items-center gap-2 cursor-pointer text-gray-800">
                   <input
                     type="checkbox"
                     checked={isHidden}
                     onChange={(e) => setIsHidden(e.target.checked)}
-                    className="accent-[#ff007f] w-4 h-4"
+                    className="w-4 h-4 accent-blue-600"
                   />
                   <div>
-                    <span className="font-bold flex items-center gap-1">
-                      <EyeOff className="w-3.5 h-3.5 text-yellow-400" /> Estado Oculto
+                    <span className="font-bold text-xs flex items-center gap-1">
+                      <EyeOff className="w-3 h-3 text-amber-600" /> Estado Oculto
                     </span>
-                    <span className="text-[10px] text-slate-400 block">Solo visible para el admin/streamer</span>
+                    <span className="text-[10px] text-gray-500 block">Solo visible para el admin</span>
                   </div>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                <label className="flex items-center gap-2 cursor-pointer text-gray-800">
                   <input
                     type="checkbox"
                     checked={isFeatured}
                     onChange={(e) => setIsFeatured(e.target.checked)}
-                    className="accent-[#00d4ff] w-4 h-4"
+                    className="w-4 h-4 accent-blue-600"
                   />
                   <div>
-                    <span className="font-bold flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 text-[#00d4ff]" /> Producto Destacado
+                    <span className="font-bold text-xs flex items-center gap-1">
+                      <Star className="w-3 h-3 text-amber-500" /> Producto Destacado
                     </span>
-                    <span className="text-[10px] text-slate-400 block">Pin en portada de la tienda</span>
+                    <span className="text-[10px] text-gray-500 block">Fijar en catálogo inicial</span>
                   </div>
                 </label>
               </div>
             </div>
 
-            {/* Col 8-12: Multi-photo Upload & Branch Selectors */}
-            <div className="lg:col-span-5 space-y-3">
-              {/* Photo Upload Stage */}
-              <div className="bevel-sunken p-3 bg-black/60 space-y-2">
+            {/* Columna Derecha: Fotos y Sucursales */}
+            <div className="lg:col-span-5 space-y-3 bg-[#f8fafc] border border-gray-300 p-3.5">
+              {/* Fotos */}
+              <div className="bg-white border border-gray-300 p-2.5 space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-['Silkscreen'] text-white">FOTOS (MÁX 10):</span>
-                  <span className="font-mono text-[#00d4ff]">{images.length} / 10 fotos</span>
+                  <span className="font-bold text-gray-800">Fotos de la Prenda (Máx 10):</span>
+                  <span className="text-blue-900 font-bold">{images.length} / 10 fotos</span>
                 </div>
 
                 <div className="grid grid-cols-4 gap-2">
                   {images.map((img, i) => (
-                    <div key={i} className="relative aspect-square bevel-raised overflow-hidden group">
+                    <div key={i} className="relative aspect-square border border-gray-400 overflow-hidden group">
                       <img src={img} alt={`Prenda ${i}`} className="w-full h-full object-cover" />
                       {images.length > 1 && (
                         <button
                           type="button"
                           onClick={() => setImages(images.filter((_, idx) => idx !== i))}
-                          className="absolute inset-0 bg-red-950/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute inset-0 bg-red-900/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -275,56 +272,56 @@ export const ExpressProductUploadView: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleSimulateAddImage}
-                      className="aspect-square bevel-sunken border border-dashed border-[#7c3aed] flex flex-col items-center justify-center text-slate-400 hover:text-white hover:border-[#ff007f] transition-colors"
+                      className="aspect-square border border-dashed border-blue-500 bg-blue-50/50 flex flex-col items-center justify-center text-blue-700 hover:bg-blue-100 transition-colors"
+                      title="Agregar fotografía"
                     >
-                      <UploadCloud className="w-5 h-5 text-[#ff007f]" />
-                      <span className="text-[9px] font-['Silkscreen'] mt-1">+ FOTO</span>
+                      <UploadCloud className="w-4 h-4" />
+                      <span className="text-[10px] font-bold mt-0.5">+ Foto</span>
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* Branch Selection Checkboxes */}
-              <div className="bevel-sunken p-3 bg-black/60 space-y-2">
-                <div className="font-['Silkscreen'] text-xs text-[#00d4ff] flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>SUCURSALES HABILITADAS:</span>
+              {/* Sucursales Habilitadas */}
+              <div className="bg-white border border-gray-300 p-2.5 space-y-1.5">
+                <div className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-blue-700" />
+                  <span>Sucursales con Stock Físico:</span>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   {branches.map((b) => (
-                    <label key={b.id} className="flex items-center gap-2 cursor-pointer text-slate-300">
+                    <label key={b.id} className="flex items-center gap-2 cursor-pointer text-gray-800">
                       <input
                         type="checkbox"
                         checked={enabledBranches.includes(b.id)}
                         onChange={() => toggleBranch(b.id)}
-                        className="accent-[#00d4ff]"
+                        className="w-3.5 h-3.5 accent-blue-600"
                       />
-                      <span className="font-mono text-[11px]">{b.name}</span>
+                      <span className="text-[11px] font-semibold">{b.name} ({b.city})</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              {/* Allow Store Pickup */}
-              <label className="flex items-center gap-2 bevel-sunken p-2.5 bg-black/40 text-slate-300 cursor-pointer">
+              {/* Retiro Físico Inmediato */}
+              <label className="flex items-center gap-2 p-2 bg-white border border-gray-300 text-gray-800 cursor-pointer text-xs">
                 <input
                   type="checkbox"
                   checked={allowStorePickup}
                   onChange={(e) => setAllowStorePickup(e.target.checked)}
-                  className="accent-[#a855f7]"
+                  className="w-3.5 h-3.5 accent-blue-600"
                 />
-                <span>Habilitar retiro físico inmediato en tienda sin costo</span>
+                <span className="font-semibold">Habilitar retiro físico inmediato en tienda sin costo</span>
               </label>
 
-              {/* Submit Button */}
-              <PixelButton
-                variant="primary"
-                size="lg"
+              {/* Botón Principal de Publicar */}
+              <button
                 type="submit"
-                className="w-full py-3 text-sm"
+                className="winxp-button winxp-button-primary text-xs py-2 w-full font-bold text-blue-900 shadow-sm"
               >
-                PUBLICAR PRENDA EN VIVO
-              </PixelButton>
+                <Zap className="w-4 h-4 text-amber-600 inline mr-1" />
+                <span>PUBLICAR PRENDA EN VIVO</span>
+              </button>
             </div>
           </form>
         </div>

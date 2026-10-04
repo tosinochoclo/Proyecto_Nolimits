@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Package, Store, MapPin, CheckCircle2, Clock, Truck, Shield } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
-import { PixelButton } from '../../components/common/PixelButton';
+import { PixelIcon } from '../../components/common/PixelIcon';
 import { INITIAL_PRODUCTS, INITIAL_BRANCHES } from '../../services/mockData';
 import { useAuth } from '../../context/AuthContext';
 
@@ -27,76 +27,87 @@ export const LocalBranchAdminView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 font-sans text-gray-900">
       <WindowFrame
         title={`BRANCH_NODE.SYS - [${branch.name}]`}
-        variant="lavender"
-        statusBarText={`JEFE DE TIENDA: ${branch.managerName} // STOCK FÍSICO AUDITABLE`}
+        icon={<PixelIcon name="computer" size={16} />}
+        statusBarText={`JEFE DE TIENDA: ${branch.managerName} // STOCK FÍSICO AUDITABLE // RED CENTRAL`}
       >
-        <div className="space-y-4 font-['Chakra_Petch'] text-xs">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#302148] pb-3">
+        <div className="space-y-4 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
             <div>
-              <div className="flex items-center gap-1.5 font-['Silkscreen'] text-sm text-white">
-                <MapPin className="w-4 h-4 text-[#ff007f]" />
+              <div className="flex items-center gap-1.5 font-bold text-sm text-[#003c74]">
+                <MapPin className="w-4 h-4 text-blue-700" />
                 <span>ADMINISTRACIÓN LOCAL DE SUCURSAL: {branch.city.toUpperCase()}</span>
               </div>
-              <span className="text-slate-400 font-['VT323'] text-sm">
+              <span className="text-gray-600 text-xs">
                 {branch.address} • Teléfono: {branch.phone}
               </span>
             </div>
 
-            <span className="font-['Silkscreen'] text-xs bg-green-950 text-green-400 border border-green-600 px-3 py-1">
+            <span className="text-xs bg-green-100 text-green-800 border border-green-500 font-bold px-2.5 py-1 flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-green-600 animate-pulse" />
               SUCURSAL ACTIVA EN STREAMING
             </span>
           </div>
 
-          {/* Local Inventory Management Table */}
+          {/* Tabla de Inventario de la Sucursal */}
           <div className="space-y-2">
-            <h3 className="font-['Silkscreen'] text-xs text-white">INVENTARIO FÍSICO DE ESTA TIENDA</h3>
-            <div className="bevel-sunken overflow-x-auto">
-              <table className="w-full text-left font-['Chakra_Petch'] text-xs">
-                <thead className="bg-[#171128] font-['Silkscreen'] text-[10px] text-slate-300 border-b border-[#30214a]">
+            <h3 className="font-bold text-xs text-[#003c74] uppercase">
+              Inventario Físico de esta Tienda
+            </h3>
+            <div className="border border-gray-400 overflow-x-auto bg-white">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#ece9d8] border-b border-gray-400 text-gray-800 font-bold text-[11px]">
                   <tr>
-                    <th className="p-2.5">PRENDA</th>
-                    <th className="p-2.5">SKU</th>
-                    <th className="p-2.5">PRECIO</th>
-                    <th className="p-2.5">STOCK EN TIENDA</th>
-                    <th className="p-2.5">ESTADO</th>
-                    <th className="p-2.5">AJUSTAR EN VIVO</th>
+                    <th className="p-2 border-r border-gray-300">PRENDA</th>
+                    <th className="p-2 border-r border-gray-300">SKU</th>
+                    <th className="p-2 border-r border-gray-300">PRECIO</th>
+                    <th className="p-2 border-r border-gray-300">STOCK EN TIENDA</th>
+                    <th className="p-2 border-r border-gray-300">ESTADO</th>
+                    <th className="p-2">AJUSTAR EN VIVO</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#221736]">
+                <tbody className="divide-y divide-gray-200">
                   {products.map((p) => {
                     const localStock = p.stockPerBranch[branch.id] ?? 0;
                     return (
-                      <tr key={p.id} className="hover:bg-[#120c22]">
-                        <td className="p-2.5 font-bold text-white flex items-center gap-2">
-                          <img src={p.images[0]} alt="" className="w-8 h-8 object-cover bevel-raised" />
-                          <span className="truncate max-w-[180px]">{p.title}</span>
+                      <tr key={p.id} className="hover:bg-blue-50">
+                        <td className="p-2 font-bold text-gray-900 flex items-center gap-2">
+                          <img src={p.images[0]} alt="" className="w-8 h-8 object-cover border border-gray-300" />
+                          <span className="truncate max-w-[220px]">{p.title}</span>
                         </td>
-                        <td className="p-2.5 font-mono text-slate-400">{p.sku}</td>
-                        <td className="p-2.5 font-mono text-white">${p.price.toLocaleString('es-CL')}</td>
-                        <td className="p-2.5 font-mono font-bold text-[#00d4ff] text-sm">
+                        <td className="p-2 font-mono text-gray-600">{p.sku}</td>
+                        <td className="p-2 font-bold text-gray-900">${p.price.toLocaleString('es-CL')}</td>
+                        <td className="p-2 font-mono font-bold text-blue-900 text-sm">
                           {localStock} un.
                         </td>
-                        <td className="p-2.5">
+                        <td className="p-2">
                           {localStock > 0 ? (
-                            <span className="text-green-400 text-[10px] font-['Silkscreen']">DISPONIBLE</span>
+                            <span className="text-green-800 font-bold text-[10px] bg-green-100 border border-green-400 px-1.5 py-0.5 rounded-xs">
+                              DISPONIBLE
+                            </span>
                           ) : (
-                            <span className="text-red-400 text-[10px] font-['Silkscreen']">AGOTADO</span>
+                            <span className="text-red-800 font-bold text-[10px] bg-red-100 border border-red-400 px-1.5 py-0.5 rounded-xs">
+                              AGOTADO
+                            </span>
                           )}
                         </td>
-                        <td className="p-2.5">
-                          <div className="flex items-center gap-1 font-['Silkscreen'] text-xs">
+                        <td className="p-2">
+                          <div className="flex items-center gap-1">
                             <button
+                              type="button"
                               onClick={() => handleUpdateStock(p.id, localStock - 1)}
-                              className="win-btn w-6 h-6"
+                              className="winxp-button text-xs w-6 h-6 p-0 font-bold"
+                              title="Restar unidad"
                             >
                               -
                             </button>
                             <button
+                              type="button"
                               onClick={() => handleUpdateStock(p.id, localStock + 1)}
-                              className="win-btn w-6 h-6"
+                              className="winxp-button text-xs w-6 h-6 p-0 font-bold"
+                              title="Sumar unidad"
                             >
                               +
                             </button>

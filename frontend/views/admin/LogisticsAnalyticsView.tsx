@@ -10,10 +10,11 @@ import {
   Bell,
   CheckCircle2,
   UserX,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Plus
 } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
-import { PixelButton } from '../../components/common/PixelButton';
+import { PixelIcon } from '../../components/common/PixelIcon';
 import { INITIAL_ANALYTICS, INITIAL_BLACKLIST } from '../../services/mockData';
 import { useAdminNotifications } from '../../context/AdminNotificationContext';
 import { BlacklistCustomer } from '../../types';
@@ -69,125 +70,169 @@ export const LogisticsAnalyticsView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header & Sub-navigation */}
+    <div className="space-y-4 font-sans text-gray-900">
       <WindowFrame
         title="LOGISTICS_AND_FINANCE_OS.EXE - [Dashboard Analítico Central]"
-        variant="lavender"
-        statusBarText="PROCESADOR DE AUDITORÍA: EN LÍNEA // FRECUENCIA: STREAMING LIVE"
+        icon={<PixelIcon name="computer" size={16} />}
+        statusBarText="PROCESADOR DE AUDITORÍA: EN LÍNEA // FRECUENCIA: STREAMING LIVE // CHILE CENTRAL"
       >
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#312247] pb-3">
+          {/* Cabecera y Pestañas Estilo Windows XP */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
             <div>
-              <h2 className="font-['Silkscreen'] text-base text-white">
+              <h2 className="text-sm font-bold text-[#003c74] tracking-tight">
                 CENTRO LOGÍSTICO, FINANCIERO Y CONTROL DE RIESGO
               </h2>
-              <span className="font-['VT323'] text-sm text-[#00d4ff]">
-                // SUPERVISIÓN MULTI-SUCURSAL (VIÑA DEL MAR, VALPARAÍSO & QUILPUÉ)
+              <span className="text-xs text-blue-700 font-semibold">
+                // Supervisión Multi-Sucursal (Viña del Mar, Valparaíso & Quilpué)
               </span>
             </div>
 
-            {/* Sub-tab switcher */}
-            <div className="flex items-center gap-1.5 font-['Silkscreen'] text-xs">
+            {/* Pestañas clásicas Windows XP */}
+            <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => setSelectedSubTab('financial')}
-                className={`px-3 py-1.5 cursor-pointer ${
-                  selectedSubTab === 'financial' ? 'bevel-raised bg-[#ff007f] text-white font-bold' : 'bevel-sunken text-slate-300'
+                className={`winxp-button text-xs py-1 px-3 ${
+                  selectedSubTab === 'financial'
+                    ? 'winxp-button-primary bg-[#e6f0fa] font-bold text-blue-900'
+                    : 'text-gray-700'
                 }`}
               >
-                Finanzas & Proyecciones
+                <DollarSign className="w-3.5 h-3.5 text-green-700 mr-1 inline" />
+                <span>Finanzas & Proyecciones</span>
               </button>
+
               <button
+                type="button"
                 onClick={() => setSelectedSubTab('blacklist')}
-                className={`px-3 py-1.5 cursor-pointer flex items-center gap-1.5 ${
-                  selectedSubTab === 'blacklist' ? 'bevel-raised bg-[#7c3aed] text-white font-bold' : 'bevel-sunken text-slate-300'
+                className={`winxp-button text-xs py-1 px-3 ${
+                  selectedSubTab === 'blacklist'
+                    ? 'winxp-button-primary bg-[#e6f0fa] font-bold text-blue-900'
+                    : 'text-gray-700'
                 }`}
               >
-                <UserX className="w-3.5 h-3.5" />
+                <UserX className="w-3.5 h-3.5 text-red-600 mr-1 inline" />
                 <span>Lista Negra ({blacklist.length})</span>
               </button>
+
               <button
+                type="button"
                 onClick={() => setSelectedSubTab('reminders')}
-                className={`px-3 py-1.5 cursor-pointer flex items-center gap-1.5 ${
-                  selectedSubTab === 'reminders' ? 'bevel-raised bg-[#00d4ff] text-black font-bold' : 'bevel-sunken text-slate-300'
+                className={`winxp-button text-xs py-1 px-3 ${
+                  selectedSubTab === 'reminders'
+                    ? 'winxp-button-primary bg-[#e6f0fa] font-bold text-blue-900'
+                    : 'text-gray-700'
                 }`}
               >
-                <Bell className="w-3.5 h-3.5" />
+                <Bell className="w-3.5 h-3.5 text-amber-600 mr-1 inline" />
                 <span>Alertas & Cobranzas ({notifications.length})</span>
               </button>
             </div>
           </div>
 
-          {/* SubTab 1: Financial & Projections */}
+          {/* SubTab 1: Finanzas & Proyecciones */}
           {selectedSubTab === 'financial' && (
             <div className="space-y-4">
-              {/* Financial KPI Cards */}
+              {/* Tarjetas KPI Financieras con fondo blanco limpio */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bevel-chrome p-3.5 bg-[#120e20]">
-                  <div className="font-['VT323'] text-xs text-[#00d4ff]">VENTAS GLOBALES NETAS</div>
-                  <div className="font-['Silkscreen'] text-xl text-white mt-1">
+                {/* KPI 1: Ventas */}
+                <div className="bg-white border border-[#7f9db9] p-3.5 shadow-xs winxp-bevel-out">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-900 uppercase">
+                      Ventas Globales Netas
+                    </span>
+                    <TrendingUp className="w-4 h-4 text-blue-700" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 mt-1 font-sans">
                     ${totalGlobalSales.toLocaleString('es-CL')}
                   </div>
-                  <div className="font-['Chakra_Petch'] text-[11px] text-green-400 mt-1">
-                    ↑ +28% vs ciclo anterior sin automatización
+                  <div className="text-[11px] text-green-700 font-semibold mt-1 flex items-center gap-1">
+                    <span>↑ +28% vs ciclo anterior sin automatización</span>
                   </div>
                 </div>
 
-                <div className="bevel-chrome p-3.5 bg-[#120e20]">
-                  <div className="font-['VT323'] text-xs text-red-400">GASTOS OPERATIVOS & ENVÍOS</div>
-                  <div className="font-['Silkscreen'] text-xl text-slate-200 mt-1">
+                {/* KPI 2: Gastos */}
+                <div className="bg-white border border-[#7f9db9] p-3.5 shadow-xs winxp-bevel-out">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-red-900 uppercase">
+                      Gastos Operativos & Envíos
+                    </span>
+                    <DollarSign className="w-4 h-4 text-red-600" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 mt-1 font-sans">
                     ${totalGlobalExpenses.toLocaleString('es-CL')}
                   </div>
-                  <div className="font-['Chakra_Petch'] text-[11px] text-slate-400 mt-1">
+                  <div className="text-[11px] text-gray-600 mt-1">
                     Transportistas (Starken/Blue Express) & arriendos
                   </div>
                 </div>
 
-                <div className="bevel-chrome p-3.5 bg-[#120e20]">
-                  <div className="font-['VT323'] text-xs text-[#ff007f]">GANANCIA NETA TOTAL</div>
-                  <div className="font-['Silkscreen'] text-xl text-[#ff007f] mt-1">
+                {/* KPI 3: Ganancia Neta */}
+                <div className="bg-white border border-[#0055ea] p-3.5 shadow-xs winxp-bevel-out">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-green-900 uppercase">
+                      Ganancia Neta Total
+                    </span>
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div className="text-2xl font-bold text-green-700 mt-1 font-sans">
                     ${totalGlobalProfit.toLocaleString('es-CL')}
                   </div>
-                  <div className="font-['Chakra_Petch'] text-[11px] text-yellow-300 mt-1">
+                  <div className="text-[11px] text-blue-900 font-bold mt-1">
                     Margen operativo consolidado: 56.4%
                   </div>
                 </div>
               </div>
 
-              {/* Branch Performance Comparison */}
-              <div className="bevel-sunken p-4 bg-black/60 space-y-3">
-                <h3 className="font-['Silkscreen'] text-xs text-white">
-                  DESGLOSE GRANULAR POR SUCURSAL
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-['Chakra_Petch'] text-xs">
+              {/* Comparativa por Sucursales (Fondo Blanco Limpio y Borde Clásico) */}
+              <div className="bg-[#f8fafc] border border-gray-400 p-3.5 space-y-3">
+                <div className="flex items-center justify-between border-b border-gray-300 pb-2">
+                  <h3 className="text-xs font-bold text-[#003c74] uppercase tracking-wide">
+                    Desglose Granular por Sucursal
+                  </h3>
+                  <span className="text-[11px] text-gray-500 font-mono">
+                    3 Nodos Físicos Conectados
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                   {INITIAL_ANALYTICS.map((b) => (
-                    <div key={b.branchId} className="bevel-chrome p-3 bg-[#0d0918] space-y-2">
-                      <div className="flex justify-between items-center border-b border-[#2d2042] pb-1 font-['Silkscreen']">
-                        <span className="text-[#00d4ff]">{b.branchName}</span>
-                        <span className="text-white text-[11px] font-mono">{b.ordersProcessed} pedidos</span>
+                    <div
+                      key={b.branchId}
+                      className="bg-white border border-[#7f9db9] p-3 space-y-2 shadow-xs"
+                    >
+                      <div className="flex justify-between items-center border-b border-gray-200 pb-1.5">
+                        <span className="font-bold text-blue-900 text-xs">{b.branchName}</span>
+                        <span className="bg-blue-100 text-blue-800 border border-blue-300 text-[10px] font-bold px-1.5 py-0.2 rounded-xs">
+                          {b.ordersProcessed} pedidos
+                        </span>
                       </div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-slate-300">
-                          <span>Ventas:</span>
-                          <span className="font-mono">${b.totalSales.toLocaleString('es-CL')}</span>
+
+                      <div className="space-y-1 text-gray-700">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Ventas:</span>
+                          <span className="font-semibold">${b.totalSales.toLocaleString('es-CL')}</span>
                         </div>
-                        <div className="flex justify-between text-slate-400">
-                          <span>Gastos:</span>
-                          <span className="font-mono">-${b.totalExpenses.toLocaleString('es-CL')}</span>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Gastos:</span>
+                          <span className="text-red-700">-${b.totalExpenses.toLocaleString('es-CL')}</span>
                         </div>
-                        <div className="flex justify-between text-green-400 font-bold border-t border-[#201830] pt-1">
+                        <div className="flex justify-between text-green-700 font-bold border-t border-gray-200 pt-1">
                           <span>Ganancia:</span>
-                          <span className="font-mono">${b.netProfit.toLocaleString('es-CL')}</span>
+                          <span>${b.netProfit.toLocaleString('es-CL')}</span>
                         </div>
                       </div>
 
-                      {/* Top vs Lagging product */}
-                      <div className="pt-2 border-t border-[#201830] text-[11px] space-y-1">
-                        <div className="text-[#ff77b8] truncate">
-                          ★ Top: {b.topProducts[0]?.title} ({b.topProducts[0]?.unitsSold} un)
+                      {/* Producto estrella y rezagado con badges limpios */}
+                      <div className="pt-2 border-t border-gray-200 text-[11px] space-y-1">
+                        <div className="text-blue-900 font-semibold truncate flex items-center gap-1">
+                          <span className="text-amber-500">★</span>
+                          <span>Top: {b.topProducts[0]?.title} ({b.topProducts[0]?.unitsSold} un)</span>
                         </div>
-                        <div className="text-red-400 truncate">
-                          ⚠ Rezagado: {b.laggingProducts[0]?.title} ({b.laggingProducts[0]?.stockLeft} un)
+                        <div className="text-red-700 truncate flex items-center gap-1">
+                          <span>⚠</span>
+                          <span>Rezagado: {b.laggingProducts[0]?.title} ({b.laggingProducts[0]?.stockLeft} un)</span>
                         </div>
                       </div>
                     </div>
@@ -197,21 +242,23 @@ export const LogisticsAnalyticsView: React.FC = () => {
             </div>
           )}
 
-          {/* SubTab 2: Blacklist Management */}
+          {/* SubTab 2: Lista Negra */}
           {selectedSubTab === 'blacklist' && (
             <div className="space-y-4">
-              <div className="bevel-sunken p-3 bg-red-950/40 border border-red-500/50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" />
-                  <span className="font-['Chakra_Petch'] text-xs text-red-200">
-                    Los clientes incluidos en la <strong>Lista Negra</strong> quedan bloqueados preventivamente en el checkout y no pueden apartar prendas durante las transmisiones en vivo.
-                  </span>
-                </div>
+              <div className="bg-[#fff8e1] border border-[#ffe082] p-3 flex items-center gap-2.5 text-xs text-amber-900 shadow-xs">
+                <PixelIcon name="warning" size={20} />
+                <span>
+                  Los clientes incluidos en la <strong>Lista Negra</strong> quedan bloqueados preventivamente en el checkout y no pueden apartar prendas durante las transmisiones en vivo.
+                </span>
               </div>
 
-              {/* Add Blacklist Customer Form */}
-              <form onSubmit={handleAddBlacklist} className="bevel-chrome p-3.5 bg-[#120d20] space-y-3 font-['Chakra_Petch'] text-xs">
-                <div className="font-['Silkscreen'] text-xs text-white">BLOQUEAR NUEVO CLIENTE</div>
+              {/* Formulario de Bloqueo con fondo Windows XP y controles limpios */}
+              <form onSubmit={handleAddBlacklist} className="bg-[#ece9d8] border border-gray-400 p-3 space-y-2 text-xs">
+                <div className="font-bold text-xs text-[#003c74] flex items-center gap-1.5">
+                  <UserX className="w-3.5 h-3.5 text-red-600" />
+                  <span>BLOQUEAR NUEVO CLIENTE POR MOROSIDAD</span>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                   <input
                     type="text"
@@ -219,7 +266,7 @@ export const LogisticsAnalyticsView: React.FC = () => {
                     placeholder="Nombre y Apellido"
                     value={newBlName}
                     onChange={(e) => setNewBlName(e.target.value)}
-                    className="bevel-sunken p-2 bg-black text-white focus:outline-none"
+                    className="winxp-input text-xs py-1"
                   />
                   <input
                     type="text"
@@ -227,59 +274,67 @@ export const LogisticsAnalyticsView: React.FC = () => {
                     placeholder="RUT (ej: 18.992.334-5)"
                     value={newBlRut}
                     onChange={(e) => setNewBlRut(e.target.value)}
-                    className="bevel-sunken p-2 bg-black text-white focus:outline-none"
+                    className="winxp-input text-xs py-1"
                   />
                   <input
                     type="number"
                     placeholder="Deuda impaga ($ CLP)"
                     value={newBlDebt}
                     onChange={(e) => setNewBlDebt(e.target.value)}
-                    className="bevel-sunken p-2 bg-black text-white focus:outline-none"
+                    className="winxp-input text-xs py-1"
                   />
                   <input
                     type="text"
                     placeholder="Motivo / Causa"
                     value={newBlReason}
                     onChange={(e) => setNewBlReason(e.target.value)}
-                    className="bevel-sunken p-2 bg-black text-white focus:outline-none"
+                    className="winxp-input text-xs py-1"
                   />
                 </div>
-                <PixelButton variant="danger" size="sm" type="submit">
-                  Agregar a Lista Negra
-                </PixelButton>
+
+                <div className="pt-1">
+                  <button
+                    type="submit"
+                    className="winxp-button winxp-button-primary text-xs py-1 px-3 text-red-900 font-bold"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-red-600 inline mr-1" />
+                    <span>Agregar a Lista Negra</span>
+                  </button>
+                </div>
               </form>
 
-              {/* Blacklist Records Table */}
-              <div className="bevel-sunken overflow-x-auto">
-                <table className="w-full text-left font-['Chakra_Petch'] text-xs">
-                  <thead className="bg-[#171128] font-['Silkscreen'] text-[10px] text-slate-300 border-b border-[#30214a]">
+              {/* Tabla de Registros Estilo Windows Explorer */}
+              <div className="border border-gray-400 overflow-x-auto bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#ece9d8] border-b border-gray-400 text-gray-800 font-bold text-[11px]">
                     <tr>
-                      <th className="p-2.5">CLIENTE</th>
-                      <th className="p-2.5">RUT</th>
-                      <th className="p-2.5">DEUDA</th>
-                      <th className="p-2.5">MOTIVO DEL BLOQUEO</th>
-                      <th className="p-2.5">ESTADO</th>
-                      <th className="p-2.5">ACCIONES</th>
+                      <th className="p-2 border-r border-gray-300">CLIENTE</th>
+                      <th className="p-2 border-r border-gray-300">RUT</th>
+                      <th className="p-2 border-r border-gray-300">DEUDA</th>
+                      <th className="p-2 border-r border-gray-300">MOTIVO DEL BLOQUEO</th>
+                      <th className="p-2 border-r border-gray-300">ESTADO</th>
+                      <th className="p-2">ACCIONES</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#221736]">
+                  <tbody className="divide-y divide-gray-200">
                     {blacklist.map((item) => (
-                      <tr key={item.id} className="hover:bg-[#120c22]">
-                        <td className="p-2.5 font-bold text-white">{item.name}</td>
-                        <td className="p-2.5 font-mono text-slate-300">{item.rut}</td>
-                        <td className="p-2.5 font-mono text-[#ff007f] font-bold">
+                      <tr key={item.id} className="hover:bg-blue-50">
+                        <td className="p-2 font-bold text-gray-900">{item.name}</td>
+                        <td className="p-2 font-mono text-gray-700">{item.rut}</td>
+                        <td className="p-2 font-bold text-red-700">
                           ${item.debtAmount.toLocaleString('es-CL')}
                         </td>
-                        <td className="p-2.5 text-slate-300 max-w-xs">{item.reason}</td>
-                        <td className="p-2.5">
-                          <span className="font-['Silkscreen'] text-[10px] bg-red-950 text-red-400 px-2 py-0.5 border border-red-600">
+                        <td className="p-2 text-gray-600 max-w-xs">{item.reason}</td>
+                        <td className="p-2">
+                          <span className="text-[10px] font-bold bg-red-100 text-red-800 border border-red-400 px-1.5 py-0.5 rounded-xs">
                             {item.status.toUpperCase()}
                           </span>
                         </td>
-                        <td className="p-2.5">
+                        <td className="p-2">
                           <button
+                            type="button"
                             onClick={() => setBlacklist(blacklist.filter((b) => b.id !== item.id))}
-                            className="font-['Silkscreen'] text-[10px] text-slate-400 hover:text-white underline cursor-pointer"
+                            className="text-blue-700 hover:text-red-700 font-semibold underline cursor-pointer"
                           >
                             Desbloquear
                           </button>
@@ -292,53 +347,63 @@ export const LogisticsAnalyticsView: React.FC = () => {
             </div>
           )}
 
-          {/* SubTab 3: System Notifications & Debt Reminders */}
+          {/* SubTab 3: Alertas & Cobranzas */}
           {selectedSubTab === 'reminders' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-[#2d2042]">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-300">
                 <div>
-                  <h3 className="font-['Silkscreen'] text-xs text-white">
-                    RECORDATORIOS Y ALERTAS AUTOMATIZADAS
+                  <h3 className="text-xs font-bold text-[#003c74] uppercase">
+                    Recordatorios y Alertas Automatizadas
                   </h3>
-                  <span className="font-['Chakra_Petch'] text-xs text-slate-400">
-                    Notificaciones nativas para cobros de deudas impagas y avisos de despacho.
+                  <span className="text-xs text-gray-600">
+                    Notificaciones del sistema para cobros de deudas impagas y avisos de despacho.
                   </span>
                 </div>
-                <PixelButton variant="primary" size="sm" onClick={handleCreateReminder}>
-                  + Programar Recordatorio
-                </PixelButton>
+                <button
+                  type="button"
+                  onClick={handleCreateReminder}
+                  className="winxp-button winxp-button-primary text-xs py-1 px-3 text-blue-900 font-bold"
+                >
+                  <Plus className="w-3.5 h-3.5 text-blue-700 inline mr-1" />
+                  <span>Programar Recordatorio</span>
+                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {notifications.map((notif) => (
                   <div
                     key={notif.id}
-                    className={`bevel-chrome p-3.5 bg-[#0e0918] space-y-2 border-l-4 ${
-                      notif.severity === 'critical' ? 'border-l-[#ff007f]' : notif.severity === 'warning' ? 'border-l-yellow-400' : 'border-l-[#00d4ff]'
+                    className={`p-3 bg-white border border-[#7f9db9] space-y-2 border-l-4 shadow-xs ${
+                      notif.severity === 'critical'
+                        ? 'border-l-red-600'
+                        : notif.severity === 'warning'
+                        ? 'border-l-amber-500'
+                        : 'border-l-blue-600'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-['Silkscreen'] text-xs text-white font-bold">
+                      <span className="text-xs text-gray-900 font-bold flex items-center gap-1.5">
+                        <Bell className="w-3.5 h-3.5 text-blue-700" />
                         {notif.title}
                       </span>
-                      <span className="font-['VT323'] text-slate-400 text-sm">
+                      <span className="text-[11px] text-gray-500 font-mono">
                         {notif.createdAt}
                       </span>
                     </div>
 
-                    <p className="font-['Chakra_Petch'] text-xs text-slate-300">
+                    <p className="text-xs text-gray-700">
                       {notif.message}
                     </p>
 
-                    {/* Adjustable Reminder Hours */}
-                    <div className="flex items-center justify-between pt-2 border-t border-[#231a33] text-xs">
-                      <div className="flex items-center gap-1 font-['Chakra_Petch'] text-yellow-300">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>Plazo estimación:</span>
+                    {/* Estimación de Horas */}
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-200 text-xs">
+                      <div className="flex items-center gap-1 text-gray-700">
+                        <Clock className="w-3.5 h-3.5 text-blue-700" />
+                        <span>Plazo:</span>
                         <select
                           value={notif.dueHoursEstimate || 2}
                           onChange={(e) => updateReminderDueHours(notif.id, Number(e.target.value))}
-                          className="bevel-sunken bg-black text-white px-1 py-0.5 text-xs font-mono"
+                          className="winxp-input py-0 px-1 text-xs"
                         >
                           <option value={1}>1 hora</option>
                           <option value={2}>2 horas</option>
@@ -348,9 +413,12 @@ export const LogisticsAnalyticsView: React.FC = () => {
                         </select>
                       </div>
 
-                      <PixelButton variant="retro" size="sm">
+                      <button
+                        type="button"
+                        className="winxp-button text-xs py-0.5 px-2.5 text-blue-900 font-bold"
+                      >
                         Ejecutar Cobro
-                      </PixelButton>
+                      </button>
                     </div>
                   </div>
                 ))}

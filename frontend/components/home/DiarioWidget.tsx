@@ -1,6 +1,7 @@
 import React from 'react';
-import { BookOpen, Calendar, Sparkles, MapPin, Tag } from 'lucide-react';
+import { BookOpen, Calendar, MapPin, Tag } from 'lucide-react';
 import { WindowFrame } from '../layout/WindowFrame';
+import { PixelIcon } from '../common/PixelIcon';
 
 interface DiarioWidgetProps {
   onClose?: () => void;
@@ -38,45 +39,45 @@ export const DiarioWidget: React.FC<DiarioWidgetProps> = ({
   return (
     <WindowFrame
       title="DIARIO_DE_LANZAMIENTOS.TXT - [Bitácora de Diseño]"
-      variant="lavender"
+      icon={<PixelIcon name="notepad" size={16} />}
       showControls={true}
       onClose={onClose}
       statusBarText="DOC SIZE: 4.8 KB // AUTORES: COLECTIVO NOLIMITS // ARCHIVO PRIVADO"
       className={`max-w-lg ${className}`}
     >
-      <div className="space-y-4 font-['Chakra_Petch'] text-xs text-slate-200">
-        <div className="bevel-sunken p-2.5 bg-black/60 border-l-2 border-l-[#ff007f] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[#ff007f]" />
-            <span className="font-['Silkscreen'] text-[11px] text-white">
+      <div className="space-y-3 font-sans text-xs text-gray-900">
+        <div className="bg-[#f0f4f8] border border-gray-300 p-2 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <PixelIcon name="notepad" size={15} />
+            <span className="font-bold text-xs text-[#003c74]">
               BITÁCORA DE CONFECCIÓN & DROPS
             </span>
           </div>
-          <span className="font-mono text-[10px] text-[#00d4ff]">V2.0_PUBLIC_LOG</span>
+          <span className="font-mono text-[11px] text-gray-500">v2.0_PUBLIC_LOG</span>
         </div>
 
-        <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+        <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
           {diaryEntries.map((entry, idx) => (
-            <div key={idx} className="bevel-chrome p-3 bg-[#0d0918] space-y-1.5">
-              <div className="flex items-center justify-between border-b border-[#281a3d] pb-1">
-                <span className="font-['Silkscreen'] text-[10px] text-[#ff77b8] flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-[#ff007f]" />
+            <div key={idx} className="bg-white border border-[#7f9db9] p-3 space-y-1.5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-1 text-[11px]">
+                <span className="font-bold text-blue-900 flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-blue-700" />
                   {entry.date}
                 </span>
-                <span className="font-['VT323'] text-xs text-[#00d4ff] flex items-center gap-1">
+                <span className="text-gray-500 flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
                   {entry.location}
                 </span>
               </div>
 
-              <h4 className="font-bold text-white text-xs">{entry.title}</h4>
-              <p className="text-slate-300 text-[11px] leading-relaxed">{entry.body}</p>
+              <h4 className="font-bold text-gray-900 text-xs">{entry.title}</h4>
+              <p className="text-gray-700 text-[11px] leading-relaxed">{entry.body}</p>
 
               <div className="flex flex-wrap gap-1 pt-1">
                 {entry.tags.map((t, i) => (
                   <span
                     key={i}
-                    className="font-mono text-[9px] bg-black px-1.5 py-0.5 text-[#a855f7] border border-[#a855f7]/30"
+                    className="text-[10px] bg-gray-100 text-gray-700 px-1.5 py-0.5 border border-gray-300"
                   >
                     #{t}
                   </span>

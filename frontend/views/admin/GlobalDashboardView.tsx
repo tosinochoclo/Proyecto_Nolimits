@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Zap, TrendingUp, Users, Store, Package, Bell, FileSpreadsheet } from 'lucide-react';
+import { Shield, Zap, TrendingUp, Users, Store, Package, Bell, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
-import { PixelButton } from '../../components/common/PixelButton';
+import { PixelIcon } from '../../components/common/PixelIcon';
 import { INITIAL_ANALYTICS, INITIAL_BRANCHES } from '../../services/mockData';
 import { useAuth } from '../../context/AuthContext';
 
@@ -10,93 +10,115 @@ export const GlobalDashboardView: React.FC = () => {
   const { currentUser } = useAuth();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 font-sans text-gray-900">
       <WindowFrame
         title="SUPER_ROOT_CONTROL.SYS - [Dashboard Global Consolidado]"
-        variant="lavender"
-        statusBarText="NODOS ACTIVOS: 3 // AUDITORÍA PERMANENTE // SIN DEPENDENCIAS EXTERNAS"
+        icon={<PixelIcon name="computer" size={16} />}
+        statusBarText="NODOS ACTIVOS: 3 // AUDITORÍA PERMANENTE // SINCRONIZACIÓN WEBPAY TRANSBANK OK"
       >
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#302148] pb-3">
+          {/* Cabecera del Panel */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 pb-3">
             <div>
-              <h2 className="font-['Silkscreen'] text-base text-white">
+              <h2 className="text-sm font-bold text-[#003c74]">
                 PANEL DE CONTROL CENTRAL - NO LIMITS
               </h2>
-              <span className="font-['VT323'] text-sm text-[#ff007f]">
-                // BIENVENIDO {currentUser.name} (SUPER ADMINISTRADOR GLOBAL)
+              <span className="text-xs text-blue-700 font-semibold">
+                // Bienvenido {currentUser.name} (Super Administrador Global)
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <Link to="/admin/express-upload">
-                <PixelButton variant="primary" size="sm" icon={<Zap className="w-3.5 h-3.5" />}>
-                  Carga Express Live
-                </PixelButton>
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1 px-3 text-blue-900 font-bold"
+                >
+                  <Zap className="w-3.5 h-3.5 text-amber-600 inline mr-1" />
+                  <span>Carga Express Live</span>
+                </button>
               </Link>
               <Link to="/admin/logistics">
-                <PixelButton variant="retro" size="sm">
-                  Logística & Deudores
-                </PixelButton>
+                <button
+                  type="button"
+                  className="winxp-button text-xs py-1 px-3 text-gray-800"
+                >
+                  <TrendingUp className="w-3.5 h-3.5 text-blue-700 inline mr-1" />
+                  <span>Logística & Deudores</span>
+                </button>
               </Link>
             </div>
           </div>
 
+          {/* Tarjetas de Métricas Globales (Fondo Blanco Limpio y Borde Clásico) */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <div className="bevel-chrome p-3.5 bg-[#100d1c]">
-              <div className="font-['VT323'] text-xs text-[#00d4ff]">SUCURSALES VINCULADAS</div>
-              <div className="font-['Silkscreen'] text-2xl text-white mt-1">3 TIENDAS</div>
-              <div className="font-['Chakra_Petch'] text-[11px] text-slate-400">Viña, Valparaíso, Quilpué</div>
+            <div className="bg-white border border-[#7f9db9] p-3 shadow-xs">
+              <div className="text-xs font-bold text-blue-900 uppercase">Sucursales Vinculadas</div>
+              <div className="text-2xl font-bold text-gray-900 mt-1">3 Tiendas</div>
+              <div className="text-[11px] text-gray-600 mt-0.5">Viña, Valparaíso, Quilpué</div>
             </div>
-            <div className="bevel-chrome p-3.5 bg-[#100d1c]">
-              <div className="font-['VT323'] text-xs text-[#ff007f]">TOTAL VENTAS HISTÓRICAS</div>
-              <div className="font-['Silkscreen'] text-2xl text-[#ff007f] mt-1">$30.450.000</div>
-              <div className="font-['Chakra_Petch'] text-[11px] text-green-400">Sin desfase de planillas</div>
+
+            <div className="bg-white border border-[#7f9db9] p-3 shadow-xs">
+              <div className="text-xs font-bold text-green-900 uppercase">Ventas Históricas</div>
+              <div className="text-2xl font-bold text-green-700 mt-1">$30.450.000</div>
+              <div className="text-[11px] text-gray-600 mt-0.5">Sin desfase de planillas</div>
             </div>
-            <div className="bevel-chrome p-3.5 bg-[#100d1c]">
-              <div className="font-['VT323'] text-xs text-yellow-300">PEDIDOS TRANSMISIÓN LIVE</div>
-              <div className="font-['Silkscreen'] text-2xl text-white mt-1">36 ACTIVOS</div>
-              <div className="font-['Chakra_Petch'] text-[11px] text-yellow-400">Validación OCR & Webpay</div>
+
+            <div className="bg-white border border-[#7f9db9] p-3 shadow-xs">
+              <div className="text-xs font-bold text-amber-900 uppercase">Pedidos Transmisión Live</div>
+              <div className="text-2xl font-bold text-gray-900 mt-1">36 Activos</div>
+              <div className="text-[11px] text-gray-600 mt-0.5">Validación OCR & Webpay</div>
             </div>
-            <div className="bevel-chrome p-3.5 bg-[#100d1c]">
-              <div className="font-['VT323'] text-xs text-purple-400">CLIENTES EN LISTA NEGRA</div>
-              <div className="font-['Silkscreen'] text-2xl text-red-400 mt-1">2 BLOQUEADOS</div>
-              <div className="font-['Chakra_Petch'] text-[11px] text-slate-400">Protección de stock</div>
+
+            <div className="bg-white border border-[#7f9db9] p-3 shadow-xs">
+              <div className="text-xs font-bold text-red-900 uppercase">Clientes Bloqueados</div>
+              <div className="text-2xl font-bold text-red-700 mt-1">2 en Lista Negra</div>
+              <div className="text-[11px] text-gray-600 mt-0.5">Protección de stock</div>
             </div>
           </div>
 
-          {/* Quick Hub Navigation Cards */}
+          {/* Accesos Directos a los Módulos de Administración */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
             <Link to="/admin/branches" className="block group">
-              <div className="bevel-sunken p-4 bg-[#0c0915] hover:border-[#ff007f] transition-all space-y-2">
-                <Store className="w-6 h-6 text-[#00d4ff]" />
-                <h3 className="font-['Silkscreen'] text-sm text-white group-hover:text-[#ff007f]">
+              <div className="p-4 bg-white border border-[#7f9db9] hover:border-blue-600 hover:shadow-md transition-all space-y-2 h-full">
+                <div className="flex items-center justify-between">
+                  <Store className="w-5 h-5 text-blue-700" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-700 transition-colors" />
+                </div>
+                <h3 className="font-bold text-xs text-blue-900 group-hover:underline">
                   GESTIÓN DE SUCURSALES
                 </h3>
-                <p className="font-['Chakra_Petch'] text-xs text-slate-400">
+                <p className="text-xs text-gray-600 leading-relaxed">
                   Aperturas de tiendas físicas, habilitación de stock regional y configuración de permisos de jefes de local.
                 </p>
               </div>
             </Link>
 
             <Link to="/admin/logistics" className="block group">
-              <div className="bevel-sunken p-4 bg-[#0c0915] hover:border-[#ff007f] transition-all space-y-2">
-                <TrendingUp className="w-6 h-6 text-[#ff007f]" />
-                <h3 className="font-['Silkscreen'] text-sm text-white group-hover:text-[#ff007f]">
+              <div className="p-4 bg-white border border-[#7f9db9] hover:border-blue-600 hover:shadow-md transition-all space-y-2 h-full">
+                <div className="flex items-center justify-between">
+                  <TrendingUp className="w-5 h-5 text-green-700" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-700 transition-colors" />
+                </div>
+                <h3 className="font-bold text-xs text-blue-900 group-hover:underline">
                   LOGÍSTICA & CONTROL FINANCIERO
                 </h3>
-                <p className="font-['Chakra_Petch'] text-xs text-slate-400">
+                <p className="text-xs text-gray-600 leading-relaxed">
                   Despachos con Starken/Blue Express, balance de ingresos y egresos, y bloqueo preventivo de usuarios conflictivos.
                 </p>
               </div>
             </Link>
 
             <Link to="/admin/express-upload" className="block group">
-              <div className="bevel-sunken p-4 bg-[#0c0915] hover:border-[#ff007f] transition-all space-y-2">
-                <Zap className="w-6 h-6 text-yellow-300" />
-                <h3 className="font-['Silkscreen'] text-sm text-white group-hover:text-[#ff007f]">
+              <div className="p-4 bg-white border border-[#7f9db9] hover:border-blue-600 hover:shadow-md transition-all space-y-2 h-full">
+                <div className="flex items-center justify-between">
+                  <Zap className="w-5 h-5 text-amber-600" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-700 transition-colors" />
+                </div>
+                <h3 className="font-bold text-xs text-blue-900 group-hover:underline">
                   MÓDULO DE CARGA EXPRESS
                 </h3>
-                <p className="font-['Chakra_Petch'] text-xs text-slate-400">
+                <p className="text-xs text-gray-600 leading-relaxed">
                   Sube hasta 20 prendas exclusivas en menos de 5 minutos directamente al live stream con fotos de alta resolución.
                 </p>
               </div>
