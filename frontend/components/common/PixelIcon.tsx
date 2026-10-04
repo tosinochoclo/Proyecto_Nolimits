@@ -20,7 +20,9 @@ export type PixelIconName =
   | 'cd'
   | 'internet'
   | 'settings'
-  | 'key';
+  | 'key'
+  | 'whatsapp'
+  | 'phone';
 
 interface PixelIconProps {
   name: PixelIconName;
@@ -352,6 +354,73 @@ export const PixelIcon: React.FC<PixelIconProps> = ({
             {/* Reflejo arcoíris */}
             <path d="M4 4 L6 6 M10 10 L12 12" stroke="#00bcd4" strokeWidth="1" />
             <path d="M4 12 L6 10 M10 6 L12 4" stroke="#e91e63" strokeWidth="1" />
+          </svg>
+        );
+
+      /* ===================================================================
+         13. DIÁLOGO INFO WINDOWS XP (Círculo Azul con 'i' Blanca)
+         =================================================================== */
+      case 'info':
+        return (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 16 16"
+            fill="none"
+            style={{ shapeRendering: 'crispEdges' }}
+            className={className}
+          >
+            <circle cx="8" cy="8" r="7" fill="#1976d2" stroke="#0d47a1" strokeWidth="1" />
+            {/* Punto de la 'i' */}
+            <rect x="7" y="4" width="2" height="2" fill="#ffffff" />
+            {/* Cuerpo de la 'i' */}
+            <rect x="7" y="7" width="2" height="5" fill="#ffffff" />
+            <rect x="6" y="7" width="1" height="1" fill="#ffffff" />
+            <rect x="6" y="11" width="4" height="1" fill="#ffffff" />
+          </svg>
+        );
+
+      /* ===================================================================
+         14. WHATSAPP RETRO ICON (Bocadillo Verde con Teléfono Blanco)
+         =================================================================== */
+      case 'whatsapp':
+        return (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 16 16"
+            fill="none"
+            className={className}
+          >
+            {/* Fondo Verde WhatsApp con degradado y borde suave */}
+            <circle cx="8" cy="8" r="7.5" fill="#25D366" stroke="#128C7E" strokeWidth="0.8" />
+            {/* Cola del bocadillo de mensaje */}
+            <polygon points="3,11 1.5,14.5 5.5,13.5" fill="#25D366" stroke="#128C7E" strokeWidth="0.5" />
+            {/* Auricular de teléfono blanco en el centro */}
+            <path
+              d="M10.8 9.5c-.15-.08-.9-.45-1.04-.5-.14-.05-.24-.08-.34.08-.1.15-.38.5-.47.6-.09.1-.18.12-.33.04-.15-.07-.63-.23-1.2-1.03-.45-.62-.48-.69-.55-.84-.07-.15 0-.23.07-.3.07-.07.15-.17.22-.26.07-.09.1-.15.15-.25.05-.1 0-.19-.02-.27-.03-.07-.34-.82-.47-1.12-.13-.3-.26-.26-.36-.26h-.3c-.1 0-.27.04-.41.2-.14.15-.54.53-.54 1.3 0 .76.55 1.5.63 1.6.08.1 1.09 1.66 2.64 2.33 1.55.66 1.55.44 1.83.42.28-.03.9-.37 1.03-.73.13-.35.13-.66.09-.72-.04-.07-.15-.1-.3-.17z"
+              fill="#ffffff"
+            />
+          </svg>
+        );
+
+      /* ===================================================================
+         15. TELÉFONO VERDE VINTAGE (Green Phone Handset)
+         =================================================================== */
+      case 'phone':
+        return (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 16 16"
+            fill="none"
+            className={className}
+          >
+            <rect x="1" y="1" width="14" height="14" rx="3" fill="#22c55e" stroke="#15803d" strokeWidth="1" />
+            <path
+              d="M5.2 4.2c.2-.2.5-.2.7 0l1.2 1.2c.2.2.2.5 0 .7l-.6.6c.4.8 1.1 1.5 1.9 1.9l.6-.6c.2-.2.5-.2.7 0l1.2 1.2c.2.2.2.5 0 .7l-.7.7c-.4.4-1 .4-1.5.1-1.8-.9-3.2-2.3-4.1-4.1-.3-.5-.3-1.1.1-1.5l.6-.6z"
+              fill="#ffffff"
+            />
           </svg>
         );
 

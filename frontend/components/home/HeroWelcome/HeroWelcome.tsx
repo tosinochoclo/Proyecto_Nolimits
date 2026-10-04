@@ -1,35 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Sparkles, ShoppingBag } from 'lucide-react';
 import { PixelIcon } from '../../common/PixelIcon';
+import portadaImg from '../../../images/portada.jpg';
 import './HeroWelcome.css';
 
 interface HeroWelcomeProps {
-  showDiario: boolean;
-  onToggleDiario: () => void;
   showContacto: boolean;
   onToggleContacto: () => void;
-  activeWidgetTab: 'diario' | 'contacto' | null;
-  onOpenWidget: (widgetId: 'diario' | 'contacto') => void;
 }
 
 /**
  * HeroWelcome: Cabecera principal estilo Windows XP.
  * 
- * Directrices aplicadas:
- * - Contenedor con fondo blanco puro y bisel interior clásico de ventana.
- * - Tipografía Tahoma pequeña y ultra-legible (sin fuentes pixeladas ilegibles).
- * - Iconografía retro pixel art auténtica para búsqueda y carrito.
+ * En lugar del texto simple "NoLimits Apparel", ahora despliega la imagen
+ * de portada oficial alojada en /frontend/images/portada.jpg.
  */
 export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
-  showDiario,
-  onToggleDiario,
   showContacto,
   onToggleContacto,
 }) => {
   return (
     <div className="hero-welcome-xp-box">
-      <div className="text-center">
+      <div className="text-center flex flex-col items-center">
         {/* Banner de Estado del Sistema */}
         <div className="hero-xp-banner winxp-bevel-out">
           <PixelIcon name="network" size={16} />
@@ -37,13 +29,19 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1" />
         </div>
 
-        {/* Título Principal y Subtítulo no pixelados */}
-        <div>
-          <h1 className="hero-xp-title">
-            NoLimits Apparel
-          </h1>
-          <p className="hero-xp-subtitle">
-            Indumentaria Cyber-Gótica & Despacho Descentralizado
+        {/* Imagen de Portada oficial en reemplazo del texto plano */}
+        <div className="my-2 flex justify-center">
+          <img
+            src={portadaImg}
+            alt="NoLimits Apparel - LMTS"
+            className="h-28 sm:h-36 md:h-44 w-auto max-w-full object-contain rounded border border-[#7eaadb] shadow-md hover:scale-[1.01] transition-transform duration-200"
+          />
+        </div>
+
+        {/* Subtítulo y Descripción */}
+        <div className="max-w-2xl">
+          <p className="hero-xp-subtitle mt-2">
+            INDUMENTARIA CYBER-GÓTICA & DESPACHO DESCENTRALIZADO
           </p>
           <p className="hero-xp-desc">
             Bienvenido al portal oficial de NoLimits en Windows XP. Todas las prendas cuentan con sincronización de inventario físico en tiempo real, retiro inmediato en sucursales autorizadas y pago seguro mediante Webpay.
@@ -51,7 +49,7 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
         </div>
 
         {/* Botones de Acción Estilo Windows XP */}
-        <div className="hero-xp-actions">
+        <div className="hero-xp-actions mt-3">
           <Link to="/catalog">
             <button
               type="button"
@@ -64,19 +62,10 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
 
           <button
             type="button"
-            onClick={onToggleDiario}
-            className="winxp-button text-xs py-1.5 px-3"
-          >
-            <PixelIcon name="notepad" size={15} />
-            <span>{showDiario ? 'Ocultar Bitácora' : 'Ver Bitácora de Drops'}</span>
-          </button>
-
-          <button
-            type="button"
             onClick={onToggleContacto}
-            className="winxp-button text-xs py-1.5 px-3"
+            className="winxp-button text-xs py-1.5 px-3 flex items-center gap-1.5"
           >
-            <PixelIcon name="info" size={15} />
+            <PixelIcon name="whatsapp" size={15} />
             <span>{showContacto ? 'Ocultar Soporte' : 'Mesa de Ayuda / WhatsApp'}</span>
           </button>
         </div>

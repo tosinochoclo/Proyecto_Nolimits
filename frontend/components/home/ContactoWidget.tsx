@@ -32,7 +32,7 @@ export const ContactoWidget: React.FC<ContactoWidgetProps> = ({
   return (
     <WindowFrame
       title="CONTACTO_DIRECTO.MSG - [Mesa de Ayuda & WhatsApp]"
-      icon={<PixelIcon name="info" size={16} />}
+      icon={<PixelIcon name="whatsapp" size={16} />}
       showControls={true}
       onClose={onClose}
       statusBarText="CANAL DE CONTACTO DIRECTO // RESPUESTA PROMEDIO: 4 MINUTOS"

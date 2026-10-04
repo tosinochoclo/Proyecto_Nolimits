@@ -112,15 +112,14 @@ export const OSDesktopTaskbar: React.FC = () => {
 
               <div className="border-t border-gray-200 my-1 pt-1" />
 
-              <div className="px-2 py-1 text-[11px] font-bold text-gray-600">Herramientas:</div>
-              <div className="flex items-center gap-2 px-2 py-1 text-gray-700">
-                <PixelIcon name="paint" size={16} />
-                <span>MS Paint Suite</span>
-              </div>
-              <div className="flex items-center gap-2 px-2 py-1 text-gray-700">
-                <PixelIcon name="winamp" size={16} />
-                <span>Winamp Audio Player</span>
-              </div>
+              <div className="px-2 py-1 text-[11px] font-bold text-gray-600">Sistema:</div>
+              <Link
+                to="/auth"
+                className="flex items-center gap-2 px-2 py-1 hover:bg-[#316ac5] hover:text-white rounded-xs text-gray-700"
+              >
+                <PixelIcon name="computer" size={16} />
+                <span>Mi Cuenta / Perfil</span>
+              </Link>
             </div>
 
             {/* Columna Derecha: Sistema y Gestión (Fondo Azul Claro) */}
@@ -218,11 +217,6 @@ export const OSDesktopTaskbar: React.FC = () => {
               <span className="font-semibold truncate max-w-[160px]">
                 {location.pathname === '/' ? 'NoLimits - Home' : location.pathname.replace('/', '')}
               </span>
-            </div>
-
-            <div className="h-6 px-3 bg-[#245edb] hover:bg-[#326ce5] border border-[#143ea8] rounded-sm text-white/90 text-xs flex items-center gap-1.5 cursor-pointer">
-              <PixelIcon name="winamp" size={14} />
-              <span className="hidden md:inline text-[11px]">Winamp Player</span>
             </div>
           </div>
         </div>
