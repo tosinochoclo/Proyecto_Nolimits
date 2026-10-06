@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Info } from 'lucide-react';
+import { Check, Info, XCircle } from 'lucide-react';
 import { Product } from '../../../types';
 import { PixelIcon } from '../../common/PixelIcon';
+import { SoldOutCardOverlay } from '../../common/SoldOutState';
 import './ProductCard.css';
 
 interface ProductCardProps {
@@ -18,7 +19,7 @@ interface ProductCardProps {
  * Directrices aplicadas:
  * - Fondo blanco limpio (#ffffff).
  * - Tipografía pequeña no pixelada y de máxima legibilidad (Tahoma).
- * - Botón de compra con icono retro pixel art del carrito de compras.
+ * - Componente y overlay oficial de "Agotado" para productos sin stock.
  */
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
@@ -26,33 +27,47 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   isRecentlyAdded,
   onQuickAdd,
 }) => {
+  const isSoldOut = currentStock <= 0;
+
   return (
-    <div className="product-card-xp">
+    <div className={`product-card-xp ${isSoldOut ? 'opacity-95' : ''}`}>
       {/* Vista previa de imagen con etiquetas de stock y descuento */}
-      <div className="product-card-xp-media">
+      <div className="product-card-xp-media relative">
         <img
-          src={product.images[0]}
+          src={isSoldOut && product.images[0] ? product.images[0] : product.images[0]}
           alt={product.title}
-          className="product-card-xp-img"
+          className={`product-card-xp-img ${isSoldOut ? 'grayscale-30 contrast-90' : ''}`}
           loading="lazy"
         />
 
-        {product.discountPercent && (
+        {/* Overlay oficial de Agotado */}
+        {isSoldOut && <SoldOutCardOverlay />}
+
+        {product.discountPercent && !isSoldOut && (
           <span className="product-card-xp-discount">
             -{product.discountPercent}%
           </span>
         )}
 
-        <span className="product-card-xp-stock">
-          Stock: {currentStock} un.
+        <span
+          className={`product-card-xp-stock ${
+            isSoldOut ? 'bg-red-700 text-white font-bold border-red-900' : ''
+          }`}
+        >
+          {isSoldOut ? '0 un. (Agotado)' : `Stock: ${currentStock} un.`}
         </span>
       </div>
 
       {/* Información detallada del producto */}
       <div className="product-card-xp-info">
         <div>
-          <div className="product-card-xp-category">
-            {product.category}
+          <div className="product-card-xp-category flex items-center justify-between">
+            <span>{product.category}</span>
+            {isSoldOut && (
+              <span className="text-[10px] text-red-600 font-bold uppercase tracking-wider">
+                Sin Stock
+              </span>
+            )}
           </div>
           <h3 className="product-card-xp-title" title={product.title}>
             {product.title}
@@ -61,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Precios en moneda chilena */}
         <div>
-          <span className="product-card-xp-price">
+          <span className={`product-card-xp-price ${isSoldOut ? 'text-gray-600' : ''}`}>
             ${(product.salePrice ?? product.price).toLocaleString('es-CL')}
           </span>
           {product.salePrice && (
@@ -86,15 +101,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             type="button"
             onClick={() => onQuickAdd(product)}
-            disabled={currentStock <= 0}
+            disabled={isSoldOut}
             className={`winxp-button text-xs py-1 px-2.5 font-bold ${
-              isRecentlyAdded
+              isSoldOut
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-400'
+                : isRecentlyAdded
                 ? 'bg-green-100 text-green-900 border-green-600'
                 : 'winxp-button-primary text-blue-900'
             }`}
-            title={currentStock <= 0 ? 'Sin stock disponible' : 'Añadir al Carrito'}
+            title={isSoldOut ? 'Prenda agotada en todos los nodos' : 'Añadir al Carrito'}
           >
-            {isRecentlyAdded ? (
+            {isSoldOut ? (
+              <>
+                <XCircle className="w-3.5 h-3.5 text-red-500" />
+                <span>Agotado</span>
+              </>
+            ) : isRecentlyAdded ? (
               <>
                 <Check className="w-3.5 h-3.5 text-green-700" />
                 <span>¡Listo!</span>

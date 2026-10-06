@@ -98,7 +98,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=800&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop&q=80'
     ],
-    sizes: ['S', 'M', 'L', 'XL'],
+    sizes: ['S', 'M', 'L', 'XL', 'Talla estándar'],
     colors: [
       { name: 'Void Black / Silver Bevel', hex: '#0a0a0c' },
       { name: 'Neon Acid Purple', hex: '#6b21a8' }
@@ -134,7 +134,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=800&auto=format&fit=crop&q=80'
     ],
-    sizes: ['M', 'L', 'XL'],
+    sizes: ['M', 'L', 'XL', 'Talla estándar'],
     colors: [
       { name: 'Cyber Black', hex: '#111116' },
       { name: 'Washed Grey Metal', hex: '#4b5563' }
@@ -170,7 +170,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&auto=format&fit=crop&q=80'
     ],
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XLL', 'Talla estándar'],
     colors: [
       { name: 'Acid Washed Black', hex: '#1f2937' },
       { name: 'Electric Lilac', hex: '#a855f7' }
@@ -202,7 +202,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     images: [
       'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&auto=format&fit=crop&q=80'
     ],
-    sizes: ['Única (Ajustable)'],
+    sizes: [],
     colors: [
       { name: 'Liquid Chrome', hex: '#e2e8f0' }
     ],
@@ -221,6 +221,273 @@ export const INITIAL_PRODUCTS: Product[] = [
     reviewCount: 15,
     createdAt: '2026-03-12',
     updatedAt: '2026-03-20'
+  },
+  {
+    id: 'prod_cartera_holographic_05',
+    sku: 'NL-BAG-005',
+    title: 'Cartera Y2K Mini Baguette Plateada Mirror',
+    description: 'Mini cartera estilo baguette noventera en eco-cuero metalizado con acabado espejo, cierre plateado reforzado y correa compacta al hombro.',
+    price: 34990,
+    category: 'Carteras',
+    subCategory: 'Baguette',
+    tags: ['Y2K', 'Carteras', 'Baguette', 'Chrome'],
+    images: [
+      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&auto=format&fit=crop&q=80'
+    ],
+    sizes: [],
+    colors: [
+      { name: 'Liquid Mirror Silver', hex: '#e2e8f0' }
+    ],
+    stockPerBranch: {
+      vina_del_mar: 5,
+      valparaiso: 3,
+      quilpue: 2
+    },
+    totalStock: 10,
+    isExclusive: false,
+    isFeatured: true,
+    isHidden: false,
+    allowStorePickup: true,
+    branchesEnabled: ['vina_del_mar', 'valparaiso', 'quilpue'],
+    rating: 4.8,
+    reviewCount: 19,
+    createdAt: '2026-03-25',
+    updatedAt: '2026-04-01'
+  },
+  {
+    id: 'prod_cartera_cyber_sale_06',
+    sku: 'NL-BAG-006',
+    title: 'Bolso Bandolera Cyber-Goth con Cadena Gruesa & Remaches',
+    description: 'Bolso bandolera unisex con herrajes góticos cromados, bolsillo frontal expandible con cierre industrial y correa con cinta de seguridad regulable.',
+    price: 42990,
+    salePrice: 29990,
+    discountPercent: 30,
+    category: 'Carteras',
+    subCategory: 'Crossbody',
+    tags: ['Cyberpunk', 'Gótico', 'Carteras', 'Oferta', 'Sale'],
+    images: [
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&auto=format&fit=crop&q=80'
+    ],
+    sizes: [],
+    colors: [
+      { name: 'Onyx Black', hex: '#111116' }
+    ],
+    stockPerBranch: {
+      vina_del_mar: 8,
+      valparaiso: 4,
+      quilpue: 3
+    },
+    totalStock: 15,
+    isExclusive: true,
+    isFeatured: true,
+    isHidden: false,
+    allowStorePickup: true,
+    branchesEnabled: ['vina_del_mar', 'valparaiso', 'quilpue'],
+    rating: 4.9,
+    reviewCount: 22,
+    createdAt: '2026-03-26',
+    updatedAt: '2026-04-02'
+  },
+  {
+    id: 'prod_gorra_trucker_07',
+    sku: 'NL-CAP-007',
+    title: 'Gorra Foam Trucker "NoLimits" Y2K Glitch',
+    description: 'Gorra trucker de espuma frontal con panel trasero de malla transpirable, visera semicurva y parche bordado con tipografía pixel y cromo.',
+    price: 19990,
+    category: 'Gorras',
+    subCategory: 'Trucker',
+    tags: ['Trucker', 'Gorras', 'Y2K', 'Retro'],
+    images: [
+      'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800&auto=format&fit=crop&q=80'
+    ],
+    sizes: [],
+    colors: [
+      { name: 'Black & Acid Cyan', hex: '#00e5ff' },
+      { name: 'Total Blackout', hex: '#000000' }
+    ],
+    stockPerBranch: {
+      vina_del_mar: 12,
+      valparaiso: 8,
+      quilpue: 5
+    },
+    totalStock: 25,
+    isExclusive: false,
+    isFeatured: false,
+    isHidden: false,
+    allowStorePickup: true,
+    branchesEnabled: ['vina_del_mar', 'valparaiso', 'quilpue'],
+    rating: 4.6,
+    reviewCount: 14,
+    createdAt: '2026-03-22',
+    updatedAt: '2026-04-01'
+  },
+  {
+    id: 'prod_gorra_snapback_sale_08',
+    sku: 'NL-CAP-008',
+    title: 'Gorra Snapback Cyber-Gothic Bordado Neón 3D',
+    description: 'Gorra snapback de 6 paneles con visera plana rígida, ojales metálicos bordados y logotipo cyber-gótico frontal en alto relieve.',
+    price: 23990,
+    salePrice: 17990,
+    discountPercent: 25,
+    category: 'Gorras',
+    subCategory: 'Snapback',
+    tags: ['Snapback', 'Gorras', 'Cyber-Goth', 'Oferta', 'Sale'],
+    images: [
+      'https://images.unsplash.com/photo-1534215754734-18e55d13e346?w=800&auto=format&fit=crop&q=80'
+    ],
+    sizes: [],
+    colors: [
+      { name: 'Goth Black / Neon Violet', hex: '#8b5cf6' }
+    ],
+    stockPerBranch: {
+      vina_del_mar: 7,
+      valparaiso: 5,
+      quilpue: 2
+    },
+    totalStock: 14,
+    isExclusive: false,
+    isFeatured: true,
+    isHidden: false,
+    allowStorePickup: true,
+    branchesEnabled: ['vina_del_mar', 'valparaiso', 'quilpue'],
+    rating: 4.8,
+    reviewCount: 31,
+    createdAt: '2026-03-24',
+    updatedAt: '2026-04-02'
+  },
+  {
+    id: 'prod_choker_sale_09',
+    sku: 'NL-ACC-009',
+    title: 'Choker Industrial O-Ring con Cadena Triple Cromada',
+    description: 'Collar gargantilla con argolla central O-Ring cromada de 45mm y triple caída de cadenas en eslabón cubano.',
+    price: 21990,
+    salePrice: 15990,
+    discountPercent: 27,
+    category: 'Accesorios & Joyería',
+    subCategory: 'Chokers',
+    tags: ['Punk', 'Choker', 'Oferta', 'Chrome', 'Sale'],
+    images: [
+      'https://images.unsplash.com/photo-1611591475152-47354c5ec054?w=800&auto=format&fit=crop&q=80'
+    ],
+    sizes: [],
+    colors: [
+      { name: 'Chrome & Black', hex: '#1f2937' }
+    ],
+    stockPerBranch: {
+      vina_del_mar: 4,
+      valparaiso: 4,
+      quilpue: 2
+    },
+    totalStock: 10,
+    isExclusive: false,
+    isFeatured: false,
+    isHidden: false,
+    allowStorePickup: true,
+    branchesEnabled: ['vina_del_mar', 'valparaiso', 'quilpue'],
+    rating: 4.9,
+    reviewCount: 11,
+    createdAt: '2026-03-28',
+    updatedAt: '2026-04-03'
+  },
+  {
+    id: 'prod_chaqueta_biker_10',
+    sku: 'NL-JKT-010',
+    title: 'Chaqueta Biker Cyber-Goth Cuero Vegano con Cierres Y2K',
+    description: 'Chaqueta motera pesada en eco-cuero granulado con múltiples cierres metálicos plateados, tachas industriales y cinturón con hebilla cromada.',
+    price: 68990,
+    category: 'Chaquetas',
+    subCategory: 'Biker',
+    tags: ['Chaquetas', 'Biker', 'Gótico', 'Y2K', 'Cuero'],
+    images: [
+      'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&auto=format&fit=crop&q=80'
+    ],
+    sizes: ['S', 'M', 'L', 'XL'],
+    colors: [
+      { name: 'Pitch Black', hex: '#0f0f14' }
+    ],
+    stockPerBranch: {
+      vina_del_mar: 6,
+      valparaiso: 4,
+      quilpue: 2
+    },
+    totalStock: 12,
+    isExclusive: true,
+    isFeatured: true,
+    isHidden: false,
+    allowStorePickup: true,
+    branchesEnabled: ['vina_del_mar', 'valparaiso', 'quilpue'],
+    rating: 4.9,
+    reviewCount: 28,
+    createdAt: '2026-03-29',
+    updatedAt: '2026-04-04'
+  },
+  {
+    id: 'prod_chaqueta_windbreaker_sale_11',
+    sku: 'NL-JKT-011',
+    title: 'Chaqueta Cortavientos Reflectante Cyber-Track Y2K',
+    description: 'Chaqueta cortavientos técnica ultraliviana con paneles de microfibra reflectante 3M, cuello alto y elásticos ajustables con tancas de acetal.',
+    price: 49990,
+    salePrice: 34990,
+    discountPercent: 30,
+    category: 'Chaquetas',
+    subCategory: 'Windbreaker',
+    tags: ['Chaquetas', 'Reflectante', 'Cyberpunk', 'Oferta', 'Sale'],
+    images: [
+      'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=800&auto=format&fit=crop&q=80'
+    ],
+    sizes: ['M', 'L', 'XL'],
+    colors: [
+      { name: 'Silver Glitch & Neon Green', hex: '#4ade80' },
+      { name: 'Dark Slate', hex: '#334155' }
+    ],
+    stockPerBranch: {
+      vina_del_mar: 9,
+      valparaiso: 5,
+      quilpue: 3
+    },
+    totalStock: 17,
+    isExclusive: false,
+    isFeatured: true,
+    isHidden: false,
+    allowStorePickup: true,
+    branchesEnabled: ['vina_del_mar', 'valparaiso', 'quilpue'],
+    rating: 4.8,
+    reviewCount: 16,
+    createdAt: '2026-03-30',
+    updatedAt: '2026-04-05'
+  },
+  {
+    id: 'prod_cyber_vest_soldout_12',
+    sku: 'NL-VST-012',
+    title: 'Chaleco Táctico Cyber-Rave Arnés Cromado [EDICIÓN AGOTADA]',
+    description: 'Chaleco táctico con cinchas de nylon balístico de alta tenacidad, hebillas cobra de aluminio y mosquetones cromados. Edición limitada de Drop Live.',
+    price: 39990,
+    category: 'Chaquetas',
+    subCategory: 'Vests',
+    tags: ['Chaquetas', 'Techwear', 'Tactical', 'Agotado', 'Sold Out'],
+    images: [
+      'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&auto=format&fit=crop&q=80'
+    ],
+    sizes: ['M', 'L', 'XL', 'Talla estándar'],
+    colors: [
+      { name: 'Void Blackout', hex: '#000000' }
+    ],
+    stockPerBranch: {
+      vina_del_mar: 0,
+      valparaiso: 0,
+      quilpue: 0
+    },
+    totalStock: 0,
+    isExclusive: true,
+    isFeatured: true,
+    isHidden: false,
+    allowStorePickup: false,
+    branchesEnabled: ['vina_del_mar', 'valparaiso', 'quilpue'],
+    rating: 5.0,
+    reviewCount: 45,
+    createdAt: '2026-03-30',
+    updatedAt: '2026-04-05'
   }
 ];
 

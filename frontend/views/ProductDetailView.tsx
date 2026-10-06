@@ -8,13 +8,15 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  XCircle
 } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { INITIAL_PRODUCTS, INITIAL_REVIEWS } from '../services/mockData';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
 import { PixelIcon } from '../components/common/PixelIcon';
+import { SoldOutDetailBanner } from '../components/common/SoldOutState';
 
 export const ProductDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,8 +24,29 @@ export const ProductDetailView: React.FC = () => {
   const { addToCart } = useCart();
   const { branches } = useBranch();
 
+  // Función para determinar si la categoría corresponde a ropa que utiliza tallas
+  const isApparelCategory = (categoryName: string) => {
+    const c = categoryName.toLowerCase();
+    return (
+      c.includes('poleron') ||
+      c.includes('hoodie') ||
+      c.includes('chaqueta') ||
+      c.includes('pantalon') ||
+      c.includes('cargo') ||
+      c.includes('polera') ||
+      c.includes('top')
+    );
+  };
+
+  const hasSizeOption = isApparelCategory(product.category);
+  const isSoldOut = product.totalStock <= 0;
+
+  const initialSize = hasSizeOption
+    ? (product.sizes[0] === 'Única (Ajustable)' ? 'Talla estándar' : product.sizes[0] || 'M')
+    : 'Talla estándar';
+
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0] || 'M');
+  const [selectedSize, setSelectedSize] = useState(initialSize);
   const [selectedColor, setSelectedColor] = useState(product.colors[0] || { name: 'Void Black', hex: '#000000' });
   const [selectedPickupBranch, setSelectedPickupBranch] = useState(product.branchesEnabled[0] || 'vina_del_mar');
   const [reviewFilter, setReviewFilter] = useState<'all' | 'with_images' | '5_stars' | 'verified'>('all');
@@ -39,7 +62,8 @@ export const ProductDetailView: React.FC = () => {
   });
 
   const handleAddToCart = () => {
-    addToCart(product, selectedSize, selectedColor, selectedPickupBranch, 1);
+    if (isSoldOut) return;
+    addToCart(product, hasSizeOption ? selectedSize : 'Talla estándar', selectedColor, selectedPickupBranch, 1);
     setAddedAlert(true);
     setTimeout(() => setAddedAlert(false), 3000);
   };
@@ -140,64 +164,77 @@ export const ProductDetailView: React.FC = () => {
               {product.description}
             </p>
 
-            {/* Selección de Talla */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-800">
-                Seleccionar Talla Disponible:
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {product.sizes.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setSelectedSize(s)}
-                    className={`winxp-button text-xs py-1 px-3 ${
-                      selectedSize === s ? 'winxp-button-primary bg-blue-100 font-bold' : ''
-                    }`}
+            {/* Si el producto está agotado: Renderizar componente específico de Sin Stock */}
+            {isSoldOut ? (
+              <SoldOutDetailBanner productTitle={product.title} sku={product.sku} />
+            ) : (
+              <>
+                {/* Selección de Talla (SOLO para ropa: polerones, chaquetas, pantalones, poleras) */}
+                {hasSizeOption && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-800 flex items-center justify-between">
+                      <span>Seleccionar Talla Disponible:</span>
+                      <span className="text-[10px] text-gray-500 font-normal">S, M, L, XL, XXL o Talla estándar</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.sizes.map((s) => {
+                        const displaySize = s === 'Única (Ajustable)' ? 'Talla estándar' : s;
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setSelectedSize(displaySize)}
+                            className={`winxp-button text-xs py-1 px-3 ${
+                              selectedSize === displaySize ? 'winxp-button-primary bg-blue-100 font-bold' : ''
+                            }`}
+                          >
+                            {displaySize}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sucursal de Retiro Inmediato */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Sucursal de Retiro Inmediato (Chile Central):</span>
+                  </label>
+                  <select
+                    value={selectedPickupBranch}
+                    onChange={(e) => setSelectedPickupBranch(e.target.value)}
+                    className="winxp-input w-full text-xs py-1"
                   >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Sucursal de Retiro Inmediato */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-blue-700" />
-                <span>Sucursal de Retiro Inmediato (Chile Central):</span>
-              </label>
-              <select
-                value={selectedPickupBranch}
-                onChange={(e) => setSelectedPickupBranch(e.target.value)}
-                className="winxp-input w-full text-xs py-1"
-              >
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.city} - {b.name} ({b.address})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Botón de Agregar al Carrito */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                className="winxp-button winxp-button-primary text-sm py-2 px-6 w-full font-bold text-blue-900"
-              >
-                <PixelIcon name="cart" size={16} />
-                <span>AÑADIR ESTA PRENDA AL CARRITO</span>
-              </button>
-
-              {addedAlert && (
-                <div className="mt-2 p-2 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
-                  <span>¡Prenda añadida al carrito con éxito! Ya puedes completar la compra.</span>
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.city} - {b.name} ({b.address})
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              )}
-            </div>
+
+                {/* Botón de Agregar al Carrito */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    className="winxp-button winxp-button-primary text-sm py-2 px-6 w-full font-bold text-blue-900 shadow-sm"
+                  >
+                    <PixelIcon name="cart" size={16} />
+                    <span>AÑADIR ESTA PRENDA AL CARRITO</span>
+                  </button>
+
+                  {addedAlert && (
+                    <div className="mt-2 p-2 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
+                      <span>¡Prenda añadida al carrito con éxito! Ya puedes completar la compra en caja.</span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* Garantías de Seguridad */}
             <div className="bg-gray-100 border border-gray-300 p-2.5 text-[11px] text-gray-700 space-y-1">

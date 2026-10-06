@@ -181,9 +181,12 @@ export const ExpressProductUploadView: React.FC = () => {
                     className="w-full winxp-input text-xs py-1 cursor-pointer"
                   >
                     <option value="Polerones & Hoodies">Polerones & Hoodies</option>
+                    <option value="Chaquetas">Chaquetas</option>
                     <option value="Pantalones & Cargos">Pantalones & Cargos</option>
                     <option value="Poleras & Tops">Poleras & Tops</option>
                     <option value="Accesorios & Joyería">Accesorios & Joyería</option>
+                    <option value="Carteras">Carteras</option>
+                    <option value="Gorras">Gorras</option>
                   </select>
                 </div>
                 <div className="space-y-1">

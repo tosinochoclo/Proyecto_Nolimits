@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
+  <defs>
+    <linearGradient id="xpGrayBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#ece9d8"/>
+    </linearGradient>
+
+    <linearGradient id="alertRed" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#991b1b"/>
+    </linearGradient>
+
+    <filter id="stampShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="3" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+
+    <pattern id="hazardStripes" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="10" height="20" fill="#dc2626"/>
+      <rect x="10" width="10" height="20" fill="#1e293b"/>
+    </pattern>
+  </defs>
+
+  <!-- Fondo Ventana Windows XP -->
+  <rect x="5" y="5" width="590" height="390" rx="4" fill="url(#xpGrayBg)" stroke="#707070" stroke-width="3"/>
+  
+  <!-- Bisel interior Windows XP -->
+  <rect x="12" y="12" width="576" height="376" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <rect x="14" y="14" width="572" height="372" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+
+  <!-- Franja superior de advertencia -->
+  <rect x="15" y="15" width="570" height="12" fill="url(#hazardStripes)"/>
+  <rect x="15" y="373" width="570" height="12" fill="url(#hazardStripes)"/>
+
+  <!-- Icono de Error / Advertencia estilo Windows XP -->
+  <g transform="translate(60, 110)">
+    <!-- Círculo rojo grande -->
+    <circle cx="60" cy="60" r="54" fill="url(#alertRed)" stroke="#7f1d1d" stroke-width="4"/>
+    <circle cx="60" cy="60" r="48" fill="none" stroke="#fca5a5" stroke-width="2" opacity="0.6"/>
+    <!-- Cruz / X blanca de Windows XP -->
+    <line x1="36" y1="36" x2="84" y2="84" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <line x1="84" y1="36" x2="36" y2="84" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+  </g>
+
+  <!-- Información de Estado de Inventario -->
+  <g transform="translate(200, 95)">
+    <rect x="0" y="0" width="350" height="26" rx="2" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
+    <text x="12" y="18" font-family="'Tahoma', 'Segoe UI', Arial, sans-serif" font-size="12" font-weight="bold" fill="#b91c1c">
+      ● ALERTA DE STOCK // PROTOCOLO TCP-INVENTORY
+    </text>
+
+    <text x="0" y="62" font-family="'Tahoma', 'Segoe UI', Arial, sans-serif" font-size="28" font-weight="900" fill="#0f172a" letter-spacing="-0.5">
+      SIN STOCK DISPONIBLE
+    </text>
+
+    <text x="0" y="90" font-family="'Tahoma', Arial, sans-serif" font-size="14" font-weight="bold" fill="#dc2626">
+      UNIDADES FÍSICAS AGOTADAS EN TODOS LOS NODOS
+    </text>
+
+    <text x="0" y="118" font-family="'Tahoma', Arial, sans-serif" font-size="12" fill="#475569">
+      Sucursales: Viña del Mar [0] · Valparaíso [0] · Quilpué [0]
+    </text>
+
+    <text x="0" y="138" font-family="'Tahoma', Arial, sans-serif" font-size="11" fill="#64748b">
+      Siguiente lote de producción en proceso de confección Y2K.
+    </text>
+  </g>
+
+  <!-- Sello Diagonal Rojo de Goma "AGOTADO / SOLD OUT" -->
+  <g transform="translate(360, 260) rotate(-12)" filter="url(#stampShadow)">
+    <rect x="-10" y="-8" width="220" height="58" rx="4" fill="#ef4444" opacity="0.15"/>
+    <rect x="-10" y="-8" width="220" height="58" rx="4" fill="none" stroke="#dc2626" stroke-width="4" stroke-dasharray="8 4"/>
+    <text x="100" y="32" font-family="'Impact', 'Arial Black', sans-serif" font-size="34" font-weight="900" fill="#b91c1c" text-anchor="middle" letter-spacing="3">
+      AGOTADO
+    </text>
+  </g>
+
+  <!-- Código de barras retro -->
+  <g transform="translate(60, 275)" opacity="0.75">
+    <rect x="0" y="0" width="3" height="40" fill="#000000"/>
+    <rect x="6" y="0" width="6" height="40" fill="#000000"/>
+    <rect x="16" y="0" width="2" height="40" fill="#000000"/>
+    <rect x="22" y="0" width="8" height="40" fill="#000000"/>
+    <rect x="34" y="0" width="4" height="40" fill="#000000"/>
+    <rect x="42" y="0" width="2" height="40" fill="#000000"/>
+    <rect x="48" y="0" width="7" height="40" fill="#000000"/>
+    <rect x="60" y="0" width="4" height="40" fill="#000000"/>
+    <rect x="68" y="0" width="2" height="40" fill="#000000"/>
+    <rect x="74" y="0" width="9" height="40" fill="#000000"/>
+    <rect x="88" y="0" width="3" height="40" fill="#000000"/>
+    <text x="45" y="52" font-family="'Courier New', monospace" font-size="10" font-weight="bold" fill="#000000" text-anchor="middle">
+      NULL_STOCK_00
+    </text>
+  </g>
+</svg>
