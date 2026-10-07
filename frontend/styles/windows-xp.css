@@ -405,8 +405,19 @@ input[type="text"], input[type="search"], input[type="email"], input[type="passw
   color: #333333;
 }
 
-.winxp-content-pane [class*="text-white"]:not(.winxp-btn-ctrl):not(.winxp-titlebar *):not(.winxp-taskbar *):not(.winamp-container *) {
-  color: #f8f7f7;
+/* Excepción estricta para reseñas: flechas de navegación y contadores de fotos (ej. 1/3, 2/3) */
+.winxp-content-pane [data-force-white],
+.winxp-content-pane [data-force-white] *,
+.winxp-content-pane .review-img-arrow,
+.winxp-content-pane .review-img-arrow *,
+.winxp-content-pane .review-img-counter,
+.winxp-content-pane .review-img-counter * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.winxp-content-pane [class*="text-white"]:not(.winxp-btn-ctrl):not(.winxp-titlebar *):not(.winxp-taskbar *):not(.winamp-container *):not([data-force-white]):not([data-force-white] *):not(.review-img-arrow):not(.review-img-arrow *):not(.review-img-counter):not(.review-img-counter *) {
+  color: #111111;
 }
 
 .winxp-titlebar [class*="text-white"],

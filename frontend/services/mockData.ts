@@ -368,7 +368,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     subCategory: 'Chokers',
     tags: ['Punk', 'Choker', 'Oferta', 'Chrome', 'Sale'],
     images: [
-      'https://images.unsplash.com/photo-1611591475152-47354c5ec054?w=800&auto=format&fit=crop&q=80'
+      'https://joyaspatriciolillo.cl/wp-content/uploads/2023/12/WhatsApp-Image-2021-04-21-at-7.29.28-PM.jpeg'
     ],
     sizes: [],
     colors: [
@@ -503,7 +503,9 @@ export const INITIAL_REVIEWS: Review[] = [
     date: '2026-03-15',
     verifiedPurchase: true,
     photos: [
-      'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=80'
     ],
     likes: 19,
     branchPurchased: 'Viña del Mar'
@@ -609,7 +611,8 @@ export const INITIAL_REVIEWS: Review[] = [
     date: '2026-04-03',
     verifiedPurchase: true,
     photos: [
-      'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&auto=format&fit=crop&q=80'
     ],
     likes: 22,
     branchPurchased: 'Viña del Mar'

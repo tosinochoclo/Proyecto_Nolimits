@@ -32,20 +32,38 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
   const { currentUser } = useAuth();
   const storageKey = `nolimits_reviews_${product.id}`;
 
-  // Carga de reseñas combinando mockData y las subidas localmente por el cliente
+  // Carga de reseñas combinando mockData y las subidas localmente por el cliente (sin saltos de línea)
+  const sanitizeCommentText = (text: string) =>
+    (text || '').replace(/[\r\n]+/g, ' ').replace(/\s{2,}/g, ' ').trim().slice(0, 600);
+
   const [reviews, setReviews] = useState<Review[]>(() => {
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          const userUploaded = parsed
+            .filter((r: Review) => r.id.startsWith('rev_user_'))
+            .map((r: Review) => ({ ...r, comment: sanitizeCommentText(r.comment) }));
+          const mergedInitial = initialReviews.map((initR) => {
+            const found = parsed.find((p: Review) => p.id === initR.id);
+            const likes = found?.likes ?? initR.likes;
+            return {
+              ...initR,
+              comment: sanitizeCommentText(initR.comment),
+              likes,
+            };
+          });
+          return [...userUploaded, ...mergedInitial];
         }
       }
     } catch {
       // ignore
     }
-    return initialReviews;
+    return initialReviews.map((r) => ({
+      ...r,
+      comment: sanitizeCommentText(r.comment),
+    }));
   });
 
   // Guardar en localStorage cuando cambian las reseñas
@@ -191,19 +209,24 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
     setUploadedPhotos((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
-  // Enviar reseña
+  // Enviar reseña (sin saltos de línea y hasta 600 caracteres)
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    const sanitizedComment = newComment
+      .replace(/[\r\n]+/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+      .slice(0, 600);
+    if (!sanitizedComment) return;
 
     const newRev: Review = {
       id: `rev_user_${Date.now()}`,
       productId: product.id,
       userId: currentUser?.id || 'guest_user',
-      userName: authorName.trim() || 'Cliente Verificado',
+      userName: authorName.trim() || 'Cliente',
       rating: newRating,
-      title: newTitle.trim() || 'Valoración de Prenda',
-      comment: newComment.trim(),
+      title: newTitle.replace(/[\r\n]+/g, ' ').trim() || 'Valoración de Prenda',
+      comment: sanitizedComment,
       date: new Date().toISOString().split('T')[0],
       verifiedPurchase: true,
       photos: [...uploadedPhotos],
@@ -323,7 +346,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                     }`}
                   >
                     <span>
-                      {filterKey === 'all' ? 'All ratings' : `${filterKey} estrella`}
+                      {filterKey === 'all' ? 'Todas las Valoraciones' : `${filterKey} estrella`}
                     </span>
                     {filterKey !== 'all' && (
                       <span className="text-[10px] text-gray-400">
@@ -481,22 +504,61 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                 <input
                   type="text"
                   value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
+                  onChange={(e) => setNewTitle(e.target.value.replace(/[\r\n]+/g, ' '))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.preventDefault();
+                  }}
                   placeholder="Ej. Calce perfecto y excelente peso del algodón"
                   className="winxp-input w-full text-xs py-1 px-2"
                   required
                 />
               </div>
 
-              {/* Comentario */}
+              {/* Comentario (sin saltos de línea, límite de 600 caracteres) */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-800 block">
-                  Comentario / Experiencia con la prenda:
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                    <span>Comentario / Experiencia con la prenda:</span>
+                    <span className="font-normal text-[10px] text-gray-500">
+                      (sin saltos de línea)
+                    </span>
+                  </label>
+                  <span
+                    className={`text-[10px] font-mono ${
+                      newComment.length >= 600 ? 'text-red-600 font-bold' : 'text-gray-500'
+                    }`}
+                  >
+                    {newComment.length}/600 caracteres
+                  </span>
+                </div>
                 <textarea
                   value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Cuéntale a otros compradores cómo te quedó la talla, la caída de la tela, el tiempo de entrega..."
+                  onChange={(e) =>
+                    setNewComment(e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 600))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                    }
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pasteText = e.clipboardData.getData('text');
+                    const cleanPaste = pasteText.replace(/[\r\n]+/g, ' ');
+                    const target = e.currentTarget;
+                    const start = target.selectionStart || 0;
+                    const end = target.selectionEnd || 0;
+                    const nextVal = (
+                      newComment.slice(0, start) +
+                      cleanPaste +
+                      newComment.slice(end)
+                    )
+                      .replace(/[\r\n]+/g, ' ')
+                      .slice(0, 600);
+                    setNewComment(nextVal);
+                  }}
+                  maxLength={600}
+                  placeholder="Cuéntale a otros compradores cómo te quedó la talla, la caída de la tela... (texto continuo sin saltos de línea, máx. 600 caracteres)"
                   rows={3}
                   className="winxp-input w-full text-xs p-2"
                   required
@@ -614,109 +676,21 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 min-w-0">
           {filteredReviews.map((rev) => (
-            <div
+            <ReviewCardItem
               key={rev.id}
-              className="p-3 bg-gray-50 border border-gray-300 text-xs space-y-2 winxp-bevel-out flex flex-col justify-between"
-            >
-              <div className="space-y-1.5">
-                {/* Cabecera del comentario */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-gray-900">{rev.userName}</span>
-                    {rev.verifiedPurchase && (
-                      <span className="text-[10px] bg-green-100 text-green-800 px-1.5 py-0.2 rounded border border-green-300 font-semibold flex items-center gap-0.5">
-                        <CheckCircle2 className="w-2.5 h-2.5 text-green-700" />
-                        <span>Verificado</span>
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[10px] text-gray-500">{rev.date}</span>
-                </div>
-
-                {/* Estrellas y Título */}
-                <div className="flex items-center gap-2">
-                  <div className="flex text-amber-500 text-xs">
-                    {'★'.repeat(rev.rating)}
-                    <span className="text-gray-300">
-                      {'★'.repeat(5 - rev.rating)}
-                    </span>
-                  </div>
-                  {rev.title && (
-                    <span className="font-bold text-gray-800 text-xs truncate">
-                      {rev.title}
-                    </span>
-                  )}
-                </div>
-
-                {/* Texto del comentario */}
-                <p className="text-gray-700 leading-relaxed text-[11px]">
-                  {rev.comment}
-                </p>
-
-                {/* Galería de Fotografías Reales Subidas por el Cliente */}
-                {rev.photos && rev.photos.length > 0 && (
-                  <div className="pt-1 space-y-1">
-                    <div className="text-[10px] font-bold text-gray-600 flex items-center justify-between">
-                      <span className="flex items-center gap-1">
-                        <Camera className="w-3 h-3 text-blue-700" />
-                        <span>Fotos reales del cliente ({rev.photos.length}):</span>
-                      </span>
-                      {rev.photos.length > 1 && (
-                        <span className="text-[10px] text-blue-700 font-semibold hidden sm:inline">
-                          (Click para ver galería con flechas)
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {rev.photos.map((photoUrl, photoIdx) => (
-                        <button
-                          key={photoIdx}
-                          type="button"
-                          onClick={() => openLightbox(rev, photoIdx)}
-                          className="relative w-16 h-16 border border-gray-400 rounded-xs overflow-hidden group bg-black/5 hover:ring-2 hover:ring-blue-500 transition-all cursor-zoom-in"
-                          title={`Click para ampliar fotografía ${photoIdx + 1} de ${rev.photos.length}`}
-                        >
-                          <img
-                            src={photoUrl}
-                            alt={`Foto real de ${rev.userName}`}
-                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                            <Maximize2 className="w-3.5 h-3.5 drop-shadow" />
-                          </div>
-                          {rev.photos.length > 1 && (
-                            <span className="absolute bottom-0.5 right-0.5 bg-black/70 text-white text-[9px] px-1 font-mono rounded-xs">
-                              {photoIdx + 1}/{rev.photos.length}
-                            </span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Pie de la tarjeta: Botón Útil */}
-              <div className="flex items-center justify-end pt-2 border-t border-gray-200 text-[10px] text-gray-500 mt-2">
-                <button
-                  type="button"
-                  onClick={() => handleLikeReview(rev.id)}
-                  className="hover:text-blue-800 flex items-center gap-1.5 font-semibold text-gray-600 hover:bg-blue-50 px-2 py-0.5 rounded transition-colors"
-                >
-                  <ThumbsUp className="w-3.5 h-3.5 text-blue-600" />
-                  <span>¿Útil? ({rev.likes})</span>
-                </button>
-              </div>
-            </div>
+              rev={rev}
+              onOpenLightbox={openLightbox}
+              onLikeReview={handleLikeReview}
+            />
           ))}
         </div>
       )}
 
       {/* =========================================================================
           LIGHTBOX / MODAL PARA VER FOTO REAL AMPLIADA EN ALTA RESOLUCIÓN
-          CON BOTONES DE FLECHAS SEMITRANSPARENTES PARA NAVEGAR ANTERIOR Y SIGUIENTE
+          CON FLECHAS BLANCAS SEMITRANSPARENTES Y CONTADOR DE IMÁGENES EN TEXTO BLANCO
           Y LÍMITES RESPONSIVOS DE ALTURA PARA IMÁGENES MUY ALTAS
           ========================================================================= */}
       {lightbox && (
@@ -749,7 +723,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
               </button>
             </div>
 
-            {/* Contenedor de la Imagen con Flechas Semitransparentes y Contención Responsiva */}
+            {/* Contenedor de la Imagen con Flechas Blancas Semitransparentes y Contención Responsiva */}
             <div className="relative flex-1 min-h-0 overflow-hidden flex items-center justify-center bg-black/15 border border-gray-300 winxp-bevel-in select-none p-1">
               <img
                 src={lightbox.photos[lightbox.currentIndex]}
@@ -757,33 +731,47 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                 className="w-auto h-auto max-w-full max-h-[46vh] sm:max-h-[50vh] object-contain block mx-auto select-none transition-all duration-150"
               />
 
-              {/* Botones de Flechas Semitransparentes (visibles cuando la reseña tiene más de 1 imagen) */}
+              {/* Botones de Flechas Blancas Semitransparentes (visibles cuando la reseña tiene más de 1 imagen) */}
               {lightbox.photos.length > 1 && (
                 <>
-                  {/* Flecha Anterior (Izquierda) - Semitransparente para no estorbar la imagen */}
+                  {/* Flecha Anterior (Izquierda) - Blanca y semitransparente */}
                   <button
                     type="button"
+                    data-force-white="true"
                     onClick={handlePrevPhoto}
-                    className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-black/35 hover:bg-black/75 text-white/95 hover:text-white p-2 sm:p-2.5 rounded-full backdrop-blur-xs border border-white/25 shadow-lg transition-all z-20 cursor-pointer active:scale-90"
+                    className="review-img-arrow absolute left-2.5 top-1/2 -translate-y-1/2 bg-black/45 hover:bg-black/80 !text-white text-white p-2 sm:p-2.5 rounded-full backdrop-blur-xs border border-white/35 shadow-lg transition-all z-20 cursor-pointer active:scale-90"
+                    style={{ color: '#ffffff', stroke: '#ffffff' }}
                     aria-label="Ver imagen anterior"
                     title="Ver imagen anterior (←)"
                   >
-                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
+                    <ChevronLeft
+                      className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5] !text-white !stroke-white text-white"
+                      style={{ color: '#ffffff', stroke: '#ffffff' }}
+                    />
                   </button>
 
-                  {/* Flecha Siguiente (Derecha) - Semitransparente para no estorbar la imagen */}
+                  {/* Flecha Siguiente (Derecha) - Blanca y semitransparente */}
                   <button
                     type="button"
+                    data-force-white="true"
                     onClick={handleNextPhoto}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-black/35 hover:bg-black/75 text-white/95 hover:text-white p-2 sm:p-2.5 rounded-full backdrop-blur-xs border border-white/25 shadow-lg transition-all z-20 cursor-pointer active:scale-90"
+                    className="review-img-arrow absolute right-2.5 top-1/2 -translate-y-1/2 bg-black/45 hover:bg-black/80 !text-white text-white p-2 sm:p-2.5 rounded-full backdrop-blur-xs border border-white/35 shadow-lg transition-all z-20 cursor-pointer active:scale-90"
+                    style={{ color: '#ffffff', stroke: '#ffffff' }}
                     aria-label="Ver siguiente imagen"
                     title="Ver siguiente imagen (→)"
                   >
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
+                    <ChevronRight
+                      className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5] !text-white !stroke-white text-white"
+                      style={{ color: '#ffffff', stroke: '#ffffff' }}
+                    />
                   </button>
 
-                  {/* Indicador de posición flotante semitransparente */}
-                  <div className="absolute top-2 right-2 bg-black/55 text-white text-[11px] font-mono px-2.5 py-0.5 rounded-full border border-white/20 backdrop-blur-xs z-20">
+                  {/* Indicador de posición flotante semitransparente con TEXTO BLANCO (ej. 1/3 o 2/3) */}
+                  <div
+                    data-force-white="true"
+                    className="review-img-counter absolute top-2 right-2 bg-black/60 !text-white text-white text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full border border-white/25 backdrop-blur-xs z-20 shadow-sm"
+                    style={{ color: '#ffffff' }}
+                  >
                     {lightbox.currentIndex + 1} / {lightbox.photos.length}
                   </div>
                 </>
@@ -837,6 +825,114 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// =========================================================================
+// SUBCOMPONENTE DE TARJETA DE RESEÑA INDIVIDUAL
+// Muestra cuadros de fotos reales con indicador blanco (ej. 1/3, 2/3) y click para ampliar
+// =========================================================================
+interface ReviewCardItemProps {
+  rev: Review;
+  onOpenLightbox: (review: Review, startIndex: number) => void;
+  onLikeReview: (id: string) => void;
+}
+
+const ReviewCardItem: React.FC<ReviewCardItemProps> = ({
+  rev,
+  onOpenLightbox,
+  onLikeReview,
+}) => {
+  const totalPhotos = rev.photos?.length || 0;
+
+  return (
+    <div className="p-3 bg-gray-50 border border-gray-300 text-xs space-y-2 winxp-bevel-out flex flex-col justify-between overflow-hidden min-w-0">
+      <div className="space-y-1.5 min-w-0 overflow-hidden">
+        {/* Cabecera del comentario */}
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <span className="font-bold text-gray-900 truncate min-w-0">{rev.userName}</span>
+          <span className="text-[10px] text-gray-500 shrink-0">{rev.date}</span>
+        </div>
+
+        {/* Estrellas y Título */}
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex text-amber-500 text-xs shrink-0">
+            {'★'.repeat(rev.rating)}
+            <span className="text-gray-300">
+              {'★'.repeat(5 - rev.rating)}
+            </span>
+          </div>
+          {rev.title && (
+            <span className="font-bold text-gray-800 text-xs truncate min-w-0">
+              {rev.title}
+            </span>
+          )}
+        </div>
+
+        {/* Texto del comentario (sin saltos de línea, máx. 600 caracteres y ajuste de palabras) */}
+        <p className="text-gray-700 leading-relaxed text-[11px] break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-normal">
+          {rev.comment.replace(/[\r\n]+/g, ' ').slice(0, 600)}
+        </p>
+
+        {/* Galería de Fotografías Reales Subidas por el Cliente (Cuadros de fotos) */}
+        {totalPhotos > 0 && (
+          <div className="pt-1 space-y-1">
+            <div className="text-[10px] font-bold text-gray-600 flex items-center justify-between">
+              <span className="flex items-center gap-1">
+                <Camera className="w-3 h-3 text-blue-700" />
+                <span>Fotos reales del cliente ({totalPhotos}):</span>
+              </span>
+            </div>
+
+            {/* Cuadros de fotos: con indicador numérico blanco y clic para ver en visor ampliado */}
+            <div className="flex flex-wrap gap-1.5">
+              {rev.photos!.map((photoUrl, photoIdx) => (
+                <button
+                  key={photoIdx}
+                  type="button"
+                  onClick={() => onOpenLightbox(rev, photoIdx)}
+                  className="relative w-16 h-16 border border-gray-400 rounded-xs overflow-hidden group bg-black/5 hover:ring-2 hover:ring-blue-500 transition-all cursor-zoom-in"
+                  title={`Click para ampliar fotografía ${photoIdx + 1} de ${totalPhotos}`}
+                >
+                  <img
+                    src={photoUrl}
+                    alt={`Foto real de ${rev.userName}`}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                    <Maximize2
+                      className="w-3.5 h-3.5 drop-shadow text-white stroke-white"
+                      style={{ color: '#ffffff', stroke: '#ffffff' }}
+                    />
+                  </div>
+                  {totalPhotos > 1 && (
+                    <span
+                      data-force-white="true"
+                      className="review-img-counter absolute bottom-0.5 right-0.5 bg-black/75 !text-white text-white text-[9px] px-1 font-mono font-bold rounded-xs shadow-xs"
+                      style={{ color: '#ffffff' }}
+                    >
+                      {photoIdx + 1}/{totalPhotos}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Pie de la tarjeta: Botón Útil */}
+      <div className="flex items-center justify-end pt-2 border-t border-gray-200 text-[10px] text-gray-500 mt-2">
+        <button
+          type="button"
+          onClick={() => onLikeReview(rev.id)}
+          className="hover:text-blue-800 flex items-center gap-1.5 font-semibold text-gray-600 hover:bg-blue-50 px-2 py-0.5 rounded transition-colors"
+        >
+          <ThumbsUp className="w-3.5 h-3.5 text-blue-600" />
+          <span>¿Útil? ({rev.likes})</span>
+        </button>
+      </div>
     </div>
   );
 };
