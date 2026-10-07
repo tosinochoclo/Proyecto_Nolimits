@@ -451,7 +451,7 @@ export const CatalogView: React.FC = () => {
                         className="winxp-button text-xs py-1 w-full text-gray-800"
                       >
                         <Info className="w-3 h-3 text-blue-700" />
-                        <span>Ver Ficha</span>
+                        <span>Ver Detalle</span>
                       </button>
                     </Link>
 
