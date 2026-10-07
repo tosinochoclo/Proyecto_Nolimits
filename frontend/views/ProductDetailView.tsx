@@ -1,28 +1,23 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
-  MapPin,
   ShieldCheck,
-  Star,
-  ThumbsUp,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft,
-  XCircle
+  Info
 } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { INITIAL_PRODUCTS, INITIAL_REVIEWS } from '../services/mockData';
 import { useCart } from '../context/CartContext';
-import { useBranch } from '../context/BranchContext';
 import { PixelIcon } from '../components/common/PixelIcon';
 import { SoldOutDetailBanner } from '../components/common/SoldOutState';
+import { ProductReviewsSection } from '../components/product/ProductReviewsSection';
 
 export const ProductDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const product = INITIAL_PRODUCTS.find((p) => p.id === id) || INITIAL_PRODUCTS[0];
   const { addToCart } = useCart();
-  const { branches } = useBranch();
 
   // Función para determinar si la categoría corresponde a ropa que utiliza tallas
   const isApparelCategory = (categoryName: string) => {
@@ -48,89 +43,71 @@ export const ProductDetailView: React.FC = () => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState(initialSize);
   const [selectedColor, setSelectedColor] = useState(product.colors[0] || { name: 'Void Black', hex: '#000000' });
-  const [selectedPickupBranch, setSelectedPickupBranch] = useState(product.branchesEnabled[0] || 'vina_del_mar');
-  const [reviewFilter, setReviewFilter] = useState<'all' | 'with_images' | '5_stars' | 'verified'>('all');
   const [addedAlert, setAddedAlert] = useState(false);
 
-  const reviews = INITIAL_REVIEWS.filter(r => r.productId === product.id || r.productId === 'prod_cyber_hoodie_01');
-
-  const filteredReviews = reviews.filter((r) => {
-    if (reviewFilter === 'with_images') return r.photos.length > 0;
-    if (reviewFilter === '5_stars') return r.rating === 5;
-    if (reviewFilter === 'verified') return r.verifiedPurchase;
-    return true;
-  });
+  const productReviews = INITIAL_REVIEWS.filter(
+    (r) => r.productId === product.id || r.productId === 'prod_cyber_hoodie_01'
+  );
 
   const handleAddToCart = () => {
     if (isSoldOut) return;
-    addToCart(product, hasSizeOption ? selectedSize : 'Talla estándar', selectedColor, selectedPickupBranch, 1);
+    addToCart(product, hasSizeOption ? selectedSize : 'Talla estándar', selectedColor, undefined, 1);
     setAddedAlert(true);
     setTimeout(() => setAddedAlert(false), 3000);
   };
 
   return (
     <div className="space-y-4 font-sans">
-      <Link
-        to="/catalog"
-        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-900 hover:underline"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        <span>Volver al Catálogo de Productos</span>
-      </Link>
-
-      {/* Ventana de Propiedades de Prenda estilo Windows XP */}
+      {/* Ventana de Detalles de Producto estilo Windows XP */}
       <WindowFrame
-        title={`Propiedades_de_${product.sku}.exe - [${product.title}]`}
-        icon={<PixelIcon name="notepad" size={16} />}
-        statusBarText={`SKU: ${product.sku} // SUCURSALES AUTORIZADAS: ${product.branchesEnabled.length} // STOCK VERIFICADO`}
+        title="Detalles de Productos.exe"
+        icon={<Info className="w-4 h-4 text-white shrink-0" />}
+        statusBarText={`SKU: ${product.sku} // ${product.title.toUpperCase()} // STOCK: ${product.totalStock} UNIDADES`}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Galería de Imágenes (Col 1-6) */}
-          <div className="lg:col-span-6 space-y-3">
-            <div className="relative aspect-square border border-gray-400 bg-white winxp-bevel-in flex items-center justify-center overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Galería de Imágenes (Col 1-5, tamaño reducido para no abrumar la vista) */}
+          <div className="lg:col-span-5 space-y-3 max-w-sm sm:max-w-md mx-auto w-full">
+            <div className="relative aspect-square max-h-[450px] border border-gray-400 bg-white winxp-bevel-in flex items-center justify-center overflow-hidden shadow-inner">
               <img
                 src={product.images[activeImageIndex] || product.images[0]}
                 alt={product.title}
                 className="w-full h-full object-cover"
               />
 
+              {/* Botones con flechas visibles y claras para cambiar de imagen */}
               {product.images.length > 1 && (
                 <>
                   <button
                     type="button"
                     onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : product.images.length - 1))}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 winxp-button text-xs w-7 h-7 p-0"
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 winxp-button text-xs w-8 h-8 p-0 flex items-center justify-center shadow-md bg-white/95 hover:bg-white text-gray-900 z-10"
                     aria-label="Foto anterior"
+                    title="Foto anterior (←)"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5 text-gray-800 stroke-[2.5]" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveImageIndex((prev) => (prev < product.images.length - 1 ? prev + 1 : 0))}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 winxp-button text-xs w-7 h-7 p-0"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 winxp-button text-xs w-8 h-8 p-0 flex items-center justify-center shadow-md bg-white/95 hover:bg-white text-gray-900 z-10"
                     aria-label="Foto siguiente"
+                    title="Foto siguiente (→)"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5 text-gray-800 stroke-[2.5]" />
                   </button>
                 </>
-              )}
-
-              {product.discountPercent && (
-                <span className="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2 py-0.5 rounded-xs shadow">
-                  -{product.discountPercent}% OFF
-                </span>
               )}
             </div>
 
             {/* Miniaturas */}
             {product.images.length > 1 && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-center">
                 {product.images.map((img, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`w-16 h-16 border ${
+                    className={`w-14 h-14 border ${
                       activeImageIndex === idx ? 'border-blue-600 ring-2 ring-blue-400' : 'border-gray-400'
                     }`}
                   >
@@ -141,8 +118,8 @@ export const ProductDetailView: React.FC = () => {
             )}
           </div>
 
-          {/* Detalles y Configuración de Compra (Col 7-12) */}
-          <div className="lg:col-span-6 space-y-4">
+          {/* Detalles y Configuración de Compra (Col 6-12) */}
+          <div className="lg:col-span-7 space-y-4">
             <div>
               <div className="text-xs font-bold text-blue-700 uppercase">
                 Categoría: {product.category}
@@ -150,19 +127,23 @@ export const ProductDetailView: React.FC = () => {
               <h1 className="text-xl font-bold text-gray-900 mt-1">
                 {product.title}
               </h1>
-              <div className="text-sm font-bold text-red-700 mt-1">
-                ${(product.salePrice ?? product.price).toLocaleString('es-CL')} CLP
+              {/* Precios con descuento al lado derecho del precio original tachado */}
+              <div className="flex items-center flex-wrap gap-2 mt-1">
+                <span className="text-sm font-bold text-red-700">
+                  ${(product.salePrice ?? product.price).toLocaleString('es-CL')} CLP
+                </span>
                 {product.salePrice && (
-                  <span className="text-xs text-gray-500 line-through ml-2 font-normal">
+                  <span className="text-xs text-gray-500 line-through font-normal">
                     ${product.price.toLocaleString('es-CL')}
+                  </span>
+                )}
+                {product.discountPercent && (
+                  <span className="bg-red-600 text-white font-bold text-[11px] px-2 py-0.5 rounded-xs shadow-xs tracking-wider">
+                    -{product.discountPercent}% OFF
                   </span>
                 )}
               </div>
             </div>
-
-            <p className="text-xs text-gray-700 leading-relaxed border-t border-b border-gray-300 py-2">
-              {product.description}
-            </p>
 
             {/* Si el producto está agotado: Renderizar componente específico de Sin Stock */}
             {isSoldOut ? (
@@ -172,9 +153,8 @@ export const ProductDetailView: React.FC = () => {
                 {/* Selección de Talla (SOLO para ropa: polerones, chaquetas, pantalones, poleras) */}
                 {hasSizeOption && (
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-800 flex items-center justify-between">
-                      <span>Seleccionar Talla Disponible:</span>
-                      <span className="text-[10px] text-gray-500 font-normal">S, M, L, XL, XXL o Talla estándar</span>
+                    <label className="text-xs font-bold text-gray-800 block">
+                      Seleccionar Talla Disponible:
                     </label>
                     <div className="flex flex-wrap gap-1.5">
                       {product.sizes.map((s) => {
@@ -196,25 +176,6 @@ export const ProductDetailView: React.FC = () => {
                   </div>
                 )}
 
-                {/* Sucursal de Retiro Inmediato */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Sucursal de Retiro Inmediato (Chile Central):</span>
-                  </label>
-                  <select
-                    value={selectedPickupBranch}
-                    onChange={(e) => setSelectedPickupBranch(e.target.value)}
-                    className="winxp-input w-full text-xs py-1"
-                  >
-                    {branches.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.city} - {b.name} ({b.address})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 {/* Botón de Agregar al Carrito */}
                 <div className="pt-2">
                   <button
@@ -223,7 +184,7 @@ export const ProductDetailView: React.FC = () => {
                     className="winxp-button winxp-button-primary text-sm py-2 px-6 w-full font-bold text-blue-900 shadow-sm"
                   >
                     <PixelIcon name="cart" size={16} />
-                    <span>AÑADIR ESTA PRENDA AL CARRITO</span>
+                    <span>AÑADIR AL CARRITO</span>
                   </button>
 
                   {addedAlert && (
@@ -235,6 +196,17 @@ export const ProductDetailView: React.FC = () => {
                 </div>
               </>
             )}
+
+            {/* Bloque de Descripción Detallada (Ubicado en la parte inferior del botón de añadir al carrito) */}
+            <div className="bg-gray-50 border border-gray-300 p-2.5 winxp-bevel-in text-xs text-gray-800 space-y-1">
+              <div className="font-bold text-gray-900 flex items-center gap-1.5 border-b border-gray-300 pb-1">
+                <PixelIcon name="notepad" size={13} />
+                <span>Descripción del Producto:</span>
+              </div>
+              <p className="text-gray-700 leading-relaxed pt-1">
+                {product.description}
+              </p>
+            </div>
 
             {/* Garantías de Seguridad */}
             <div className="bg-gray-100 border border-gray-300 p-2.5 text-[11px] text-gray-700 space-y-1">
@@ -248,34 +220,11 @@ export const ProductDetailView: React.FC = () => {
           </div>
         </div>
 
-        {/* Sección de Reseñas de Clientes */}
-        <div className="mt-6 pt-4 border-t border-gray-300 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-sm text-blue-900">
-              Comentarios y Valoraciones de Clientes ({reviews.length})
-            </h3>
-            <div className="text-xs text-gray-600 font-semibold">
-              ★ 4.8 / 5.0 Promedio General
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {filteredReviews.map((rev) => (
-              <div key={rev.id} className="p-3 bg-gray-50 border border-gray-300 text-xs space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-900">{rev.userName}</span>
-                  <span className="text-[10px] text-gray-500">{rev.date}</span>
-                </div>
-                <div className="flex text-amber-500">
-                  {Array.from({ length: rev.rating }).map((_, i) => (
-                    <span key={i}>★</span>
-                  ))}
-                </div>
-                <p className="text-gray-700">{rev.comment}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Sección de Reseñas de Clientes con Filtros y Carga de Fotos Reales */}
+        <ProductReviewsSection
+          product={product}
+          initialReviews={productReviews}
+        />
       </WindowFrame>
     </div>
   );

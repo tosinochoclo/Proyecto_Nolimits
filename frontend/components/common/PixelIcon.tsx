@@ -358,6 +358,31 @@ export const PixelIcon: React.FC<PixelIconProps> = ({
         );
 
       /* ===================================================================
+         12b. BLOC DE NOTAS (Notepad Clásico)
+         =================================================================== */
+      case 'notepad':
+        return (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 16 16"
+            fill="none"
+            style={{ shapeRendering: 'crispEdges' }}
+            className={className}
+          >
+            {/* Hoja de papel blanca con borde oscuro */}
+            <rect x="2" y="1" width="11" height="14" fill="#ffffff" stroke="#000080" strokeWidth="1" />
+            {/* Espiral o lomo superior */}
+            <rect x="2" y="1" width="11" height="3" fill="#1e88e5" />
+            {/* Líneas de texto */}
+            <rect x="4" y="6" width="7" height="1" fill="#757575" />
+            <rect x="4" y="8" width="7" height="1" fill="#757575" />
+            <rect x="4" y="10" width="7" height="1" fill="#757575" />
+            <rect x="4" y="12" width="5" height="1" fill="#757575" />
+          </svg>
+        );
+
+      /* ===================================================================
          13. DIÁLOGO INFO WINDOWS XP (Círculo Azul con 'i' Blanca)
          =================================================================== */
       case 'info':

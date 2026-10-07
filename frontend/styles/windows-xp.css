@@ -87,8 +87,8 @@ input[type="text"], input[type="search"], input[type="email"], input[type="passw
 .winxp-bevel-in {
   border-top: 2px solid #707070;
   border-left: 2px solid #707070;
-  border-right: 2px solid #ffffff;
-  border-bottom: 2px solid #ffffff;
+  border-right: 2px solid #707070;
+  border-bottom: 2px solid #707070;
   box-shadow: inset 1px 1px 0px #000000, inset -1px -1px 0px #dfdfdf;
   background-color: #ffffff;
 }
@@ -406,7 +406,7 @@ input[type="text"], input[type="search"], input[type="email"], input[type="passw
 }
 
 .winxp-content-pane [class*="text-white"]:not(.winxp-btn-ctrl):not(.winxp-titlebar *):not(.winxp-taskbar *):not(.winamp-container *) {
-  color: #111111;
+  color: #f8f7f7;
 }
 
 .winxp-titlebar [class*="text-white"],

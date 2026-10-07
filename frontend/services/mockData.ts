@@ -503,7 +503,7 @@ export const INITIAL_REVIEWS: Review[] = [
     date: '2026-03-15',
     verifiedPurchase: true,
     photos: [
-      'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=400&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80'
     ],
     likes: 19,
     branchPurchased: 'Viña del Mar'
@@ -518,8 +518,114 @@ export const INITIAL_REVIEWS: Review[] = [
     comment: 'Mido 1.82m y la talla L queda impecable. La serigrafía no se despega con los lavados.',
     date: '2026-03-18',
     verifiedPurchase: true,
+    photos: [
+      'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=800&auto=format&fit=crop&q=80'
+    ],
+    likes: 14,
+    branchPurchased: 'Valparaíso'
+  },
+  {
+    id: 'rev_03',
+    productId: 'prod_cyber_hoodie_01',
+    userId: 'usr_camila_y2k',
+    userName: 'Camila Rojas',
+    rating: 4,
+    title: 'Muy buen corte aunque abrigado para media estación',
+    comment: 'El material es súper grueso (algodón frisado pesado). Me encantó el diseño gótico y los cierres plateados. Solo tardó 1 día extra por Blue Express.',
+    date: '2026-03-22',
+    verifiedPurchase: true,
+    photos: [
+      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=80'
+    ],
+    likes: 8,
+    branchPurchased: 'Quilpué'
+  },
+  {
+    id: 'rev_04',
+    productId: 'prod_cyber_hoodie_01',
+    userId: 'usr_lucas_v',
+    userName: 'Lucas Vera',
+    rating: 4,
+    title: 'Estilo cyber excelente y costuras reforzadas',
+    comment: 'Queda excelente con pantalones cargo negros. Buenos acabados y los estampados reflectantes se ven genial con flash.',
+    date: '2026-03-25',
+    verifiedPurchase: false,
     photos: [],
-    likes: 7,
+    likes: 5,
+    branchPurchased: 'Viña del Mar'
+  },
+  {
+    id: 'rev_05',
+    productId: 'prod_cyber_hoodie_01',
+    userId: 'usr_ignacio_s',
+    userName: 'Ignacio Silva',
+    rating: 3,
+    title: 'Talla ligeramente más ancha de lo esperado',
+    comment: 'Recomiendo pedir una talla menos si no te gusta el calce muy holgado. La calidad es buena pero consideren que es bien oversize.',
+    date: '2026-03-27',
+    verifiedPurchase: true,
+    photos: [
+      'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&auto=format&fit=crop&q=80'
+    ],
+    likes: 11,
+    branchPurchased: 'Valparaíso'
+  },
+  {
+    id: 'rev_06',
+    productId: 'prod_cyber_hoodie_01',
+    userId: 'usr_sofia_m',
+    userName: 'Sofía Moraga',
+    rating: 5,
+    title: 'Una joya del streetwear chileno',
+    comment: 'Compré en preventa durante el Live y no me arrepiento. La atención en el local de Viña fue un 7 cuando fui a probarme.',
+    date: '2026-04-01',
+    verifiedPurchase: true,
+    photos: [],
+    likes: 6,
+    branchPurchased: 'Viña del Mar'
+  },
+  {
+    id: 'rev_07',
+    productId: 'prod_cyber_hoodie_01',
+    userId: 'usr_diego_k',
+    userName: 'Diego K.',
+    rating: 2,
+    title: 'Llegó con retraso del transportista',
+    comment: 'La prenda en sí está bien confeccionada pero Starken tardó 4 días en entregar en mi comuna. Sugiero mejorar el courier.',
+    date: '2026-04-02',
+    verifiedPurchase: true,
+    photos: [],
+    likes: 3,
+    branchPurchased: 'Quilpué'
+  },
+  {
+    id: 'rev_08',
+    productId: 'prod_cyber_hoodie_01',
+    userId: 'usr_fernanda_z',
+    userName: 'Fernanda Z.',
+    rating: 5,
+    title: 'Fotos reales del calce puestas',
+    comment: 'Dejo mis fotos para que vean cómo cae en persona. Queda espectacular, la textura es suave por dentro y rígida por fuera.',
+    date: '2026-04-03',
+    verifiedPurchase: true,
+    photos: [
+      'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800&auto=format&fit=crop&q=80'
+    ],
+    likes: 22,
+    branchPurchased: 'Viña del Mar'
+  },
+  {
+    id: 'rev_09',
+    productId: 'prod_cyber_hoodie_01',
+    userId: 'usr_andres_p',
+    userName: 'Andrés Pavez',
+    rating: 1,
+    title: 'Elegí mal la talla y tuve que ir a cambiarla',
+    comment: 'La tabla de medidas me confundió un poco. Fui a la tienda de Valparaíso y me la cambiaron sin problema, pero ojo con el tamaño.',
+    date: '2026-04-04',
+    verifiedPurchase: true,
+    photos: [],
+    likes: 2,
     branchPurchased: 'Valparaíso'
   }
 ];
