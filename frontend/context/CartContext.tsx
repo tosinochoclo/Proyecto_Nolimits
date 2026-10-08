@@ -84,8 +84,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateQuantity = (itemId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId);
+    if (quantity < 1) {
+      // No quitar automáticamente la prenda al reducir a menos de 1 con '-';
+      // para eliminar la prenda se debe usar el botón 'Quitar' (removeFromCart).
       return;
     }
     setItems(prev =>

@@ -4,6 +4,7 @@ import { HomeView } from '../views/HomeView';
 import { CatalogView } from '../views/CatalogView';
 import { ProductDetailView } from '../views/ProductDetailView';
 import { CartView } from '../views/CartView';
+import { CheckoutView } from '../views/CheckoutView';
 import { AuthView } from '../views/AuthView';
 import { ProfileView } from '../views/ProfileView';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -23,6 +24,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/catalog" element={<CatalogView />} />
       <Route path="/product/:id" element={<ProductDetailView />} />
       <Route path="/cart" element={<CartView />} />
+      <Route path="/checkout" element={<CheckoutView />} />
       <Route path="/auth" element={<AuthView />} />
 
       {/* 2. Registered Customer Protected Route */}

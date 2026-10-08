@@ -186,3 +186,23 @@ export interface BranchAnalytics {
   topProducts: { productId: string; title: string; unitsSold: number; revenue: number }[];
   laggingProducts: { productId: string; title: string; daysInStock: number; stockLeft: number }[];
 }
+
+export interface CheckoutCustomerData {
+  customerName: string;
+  customerRut?: string;
+  customerPhone: string;
+  customerEmail: string;
+  deliveryMethod: 'pickup' | 'shipping';
+  selectedBranchId: string;
+  shippingCountry?: string; // Fijo 'Chile'
+  shippingComuna?: string;
+  shippingStreet?: string;
+  shippingNumber?: string;
+  shippingNoNumber?: boolean;
+  shippingApartment?: string;
+  shippingPostalCode?: string;
+  shippingNotes?: string;
+  shippingCourier?: 'Starken' | 'bluexpress' | 'Paket' | 'Paket ';
+  shippingAddress: string;
+  shippingCity: string;
+}
