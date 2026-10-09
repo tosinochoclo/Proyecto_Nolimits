@@ -21,7 +21,7 @@ export default function App() {
           <CartProvider>
             <AdminNotificationProvider>
               {/* Escritorio Windows XP con Tapiz Clásico "Bliss" (Colina verde, cielo azul y nubes) */}
-              <div className="min-h-screen winxp-bliss-background text-gray-900 flex flex-col selection:bg-[#316ac5] selection:text-white pb-12 font-sans">
+              <div className="min-h-screen winxp-bliss-background text-gray-900 flex flex-col selection:bg-[#316ac5] selection:text-white pb-14 font-sans">
                 {/* Barra de Navegación Estilo Internet Explorer 6 / Windows Explorer */}
                 <TopNavBar />
 
@@ -30,7 +30,7 @@ export default function App() {
                   <AppRoutes />
                 </main>
 
-                {/* Barra de Tareas Oficial de Windows XP Luna Blue con Botón Inicio Verde */}
+                {/* Barra de Tareas Inferior Windows XP Luna Blue con Menú de Expansión Corporativo */}
                 <OSDesktopTaskbar />
               </div>
             </AdminNotificationProvider>

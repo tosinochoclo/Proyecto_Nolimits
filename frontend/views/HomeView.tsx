@@ -9,7 +9,6 @@ import { PixelIcon } from '../components/common/PixelIcon';
    Componentes Windows XP Design System
    ========================================================================= */
 import { WindowsMediaPlayerWidget } from '../components/home/WindowsMediaPlayerWidget/WindowsMediaPlayerWidget';
-import { HeroWelcome } from '../components/home/HeroWelcome/HeroWelcome';
 import { TelemetryCluster } from '../components/home/TelemetryCluster/TelemetryCluster';
 import { FeaturedCatalog } from '../components/home/FeaturedCatalog/FeaturedCatalog';
 import { MasterStatusBar } from '../components/home/MasterStatusBar/MasterStatusBar';
@@ -101,14 +100,8 @@ export const HomeView: React.FC = () => {
 
         {/* Cuerpo Interior de la Ventana */}
         <main className="master-xp-body">
-          {/* Ventana de Reproductor Multimedia / Video / GIF (Ancho Completo) */}
+          {/* Ventana de Reproductor Multimedia / Video / GIF (Ancho Completo y sin botones molestos) */}
           <WindowsMediaPlayerWidget />
-
-          {/* Encabezado Principal Hero (Fondo Blanco Limpio, Tipografía Tahoma) */}
-          <HeroWelcome
-            showContacto={showContacto}
-            onToggleContacto={() => setShowContacto((prev) => !prev)}
-          />
 
           {/* Panel Desplegable de Mesa de Ayuda / Soporte */}
           {showContacto && (

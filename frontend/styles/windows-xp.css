@@ -349,7 +349,7 @@ input[type="text"], input[type="search"], input[type="email"], input[type="passw
   justify-content: space-between;
   padding: 0 4px 0 0;
   user-select: none;
-  z-index: 9999;
+  z-index: 40;
 }
 
 /* Botón Inicio Windows XP (Verde icónico) */
