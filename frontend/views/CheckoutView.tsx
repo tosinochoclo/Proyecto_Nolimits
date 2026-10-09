@@ -65,7 +65,12 @@ export const CheckoutView: React.FC = () => {
       customerEmail: currentUser.email || 'cliente@nolimits.cl',
       deliveryMethod: 'pickup',
       selectedBranchId: 'vina_del_mar',
-      shippingAddress: 'Av. Álvarez 1250, Depto 402',
+      shippingCountry: 'Chile',
+      shippingComuna: 'Viña del Mar',
+      shippingStreet: 'Av. Libertad',
+      shippingNumber: '1400',
+      shippingCourier: 'Starken',
+      shippingAddress: 'Av. Libertad 1400, Depto 402',
       shippingCity: 'Viña del Mar',
     };
   });
@@ -181,9 +186,14 @@ export const CheckoutView: React.FC = () => {
                     {checkoutData.shippingCity}
                   </div>
                   <div>
-                    <strong>Courier Asignado:</strong> Starken / Blue Express (Tracking enviado a{' '}
+                    <strong>Courier Asignado:</strong> {checkoutData.shippingCourier || 'Starken'} (Tracking enviado a{' '}
                     {checkoutData.customerEmail})
                   </div>
+                  {checkoutData.shippingNotes && (
+                    <div className="text-[11px] text-gray-600 bg-gray-50 p-1 rounded border border-gray-200 mt-1">
+                      <strong>Indicaciones:</strong> {checkoutData.shippingNotes}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -197,6 +207,12 @@ export const CheckoutView: React.FC = () => {
                 <span>Titular:</span>
                 <span className="font-semibold">{checkoutData.customerName}</span>
               </div>
+              {checkoutData.customerRut && (
+                <div className="flex justify-between">
+                  <span>RUT:</span>
+                  <span className="font-mono font-semibold">{checkoutData.customerRut}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Medio de Pago:</span>
                 <span>
@@ -405,6 +421,11 @@ export const CheckoutView: React.FC = () => {
                   <div>
                     <strong>Nombre:</strong> {checkoutData.customerName}
                   </div>
+                  {checkoutData.customerRut && (
+                    <div>
+                      <strong>RUT:</strong> <span className="font-mono">{checkoutData.customerRut}</span>
+                    </div>
+                  )}
                   <div>
                     <strong>Teléfono:</strong> {checkoutData.customerPhone}
                   </div>
@@ -448,9 +469,14 @@ export const CheckoutView: React.FC = () => {
                       <div>
                         <strong>Ciudad:</strong> {checkoutData.shippingCity}
                       </div>
-                      <div className="text-[10px] text-blue-700">
-                        Courier: Starken / Blue Express
+                      <div className="text-[10px] text-blue-700 font-semibold">
+                        Courier: {checkoutData.shippingCourier || 'Starken'}
                       </div>
+                      {checkoutData.shippingNotes && (
+                        <div className="text-[10px] text-gray-600 italic">
+                          Indicaciones: {checkoutData.shippingNotes}
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

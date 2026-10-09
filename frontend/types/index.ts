@@ -189,6 +189,8 @@ export interface BranchAnalytics {
 
 export interface CheckoutCustomerData {
   customerName: string;
+  customerFirstName?: string;
+  customerLastName?: string;
   customerRut?: string;
   customerPhone: string;
   customerEmail: string;

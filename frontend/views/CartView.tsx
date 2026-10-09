@@ -46,6 +46,19 @@ const hasApparelSize = (product: Product, size?: string) => {
   return true;
 };
 
+// Función para dar formato automático al RUT chileno con puntos y guion:
+// - Solo permite números (hasta 9 números)
+// - Inserta '.' cada 3 dígitos en el cuerpo y '-' antes del dígito verificador
+export const formatRutNumbers = (rawDigits: string): string => {
+  const digits = rawDigits.replace(/\D/g, '').slice(0, 9);
+  if (!digits) return '';
+  if (digits.length === 1) return digits;
+  const dv = digits.slice(-1);
+  const body = digits.slice(0, -1);
+  const formattedBody = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${formattedBody}-${dv}`;
+};
+
 export const CartView: React.FC = () => {
   const navigate = useNavigate();
   const {
@@ -69,9 +82,12 @@ export const CartView: React.FC = () => {
       }
     }
     return {
+      customerFirstName: 'Valeria',
+      customerLastName: 'Gallardo',
       customerName: currentUser.name || 'Valeria Gallardo',
+      customerRut: '198765432',
       customerPhone: '9123 4567',
-      customerEmail: currentUser.email || 'cliente@nolimits.cl',
+      customerEmail: currentUser.email?.toLowerCase().endsWith('@gmail.com') ? currentUser.email : 'cliente@gmail.com',
       deliveryMethod: 'pickup',
       selectedBranchId:
         activeBranchId !== 'all' ? activeBranchId : branches[0]?.id || 'vina_del_mar',
@@ -90,28 +106,83 @@ export const CartView: React.FC = () => {
   });
 
   // PASO 1: Datos del Titular de la Compra
-  // Nombre Completo: sin caracteres especiales (solo letras, espacios, acentos, ñ/Ñ)
-  const [customerName, setCustomerName] = useState(
-    (initialData.customerName || '').replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '')
-  );
+  // Nombres y Apellidos separados (sin caracteres especiales para prevenir inyección SQL)
+  const [customerFirstName, setCustomerFirstName] = useState(() => {
+    if (initialData.customerFirstName) {
+      return initialData.customerFirstName.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+    }
+    const full = (initialData.customerName || currentUser.name || 'Valeria').trim();
+    const parts = full.split(/\s+/);
+    return (parts[0] || 'Valeria').replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+  });
+
+  const [customerLastName, setCustomerLastName] = useState(() => {
+    if (initialData.customerLastName) {
+      return initialData.customerLastName.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+    }
+    const full = (initialData.customerName || currentUser.name || '').trim();
+    const parts = full.split(/\s+/);
+    const rest = parts.slice(1).join(' ') || 'Gallardo';
+    return rest.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+  });
+
+  // RUT: solo números (límite 9 números), formato automático con '.' y '-'
+  const [customerRutDigits, setCustomerRutDigits] = useState(() => {
+    const raw = (initialData.customerRut || '198765432').replace(/\D/g, '');
+    return raw.slice(0, 9);
+  });
+
   // Teléfono: solo dígitos numéricos (máximo 8 dígitos, con espacio tras los primeros 4)
   // El prefijo +56 9 es fijo e inmutable en la interfaz
   const [customerPhoneDigits, setCustomerPhoneDigits] = useState(() => {
     const raw = (initialData.customerPhone || '').replace(/\+56\s*9/g, '').replace(/\D/g, '');
     return raw.slice(0, 8);
   });
-  const [customerEmail, setCustomerEmail] = useState(initialData.customerEmail || '');
+  const [customerEmail, setCustomerEmail] = useState(
+    initialData.customerEmail || 'cliente@gmail.com'
+  );
+  // Mensaje de error para correo que solo se activa al presionar "Proceder con el Pago"
+  const [emailError, setEmailError] = useState<string>('');
 
-  // Formato visual de los 8 dígitos: "1234 5678"
+  // Validación de correo: debe ser real y terminar estrictamente con @gmail.com
+  const isGmailValid = (email: string) => {
+    const trimmed = email.trim().toLowerCase();
+    return (
+      trimmed.endsWith('@gmail.com') &&
+      trimmed.length > '@gmail.com'.length &&
+      !trimmed.includes(' ') &&
+      /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(trimmed)
+    );
+  };
+
+  // RUT con máscara automática
+  const formattedRut = formatRutNumbers(customerRutDigits);
+
+  // Nombre completo unificado para compatibilidad
+  const customerName = `${customerFirstName.trim()} ${customerLastName.trim()}`.trim();
+
+  // Formato visual de los 8 dígitos del teléfono: "1234 5678"
   const formattedPhoneDigits =
     customerPhoneDigits.length > 4
       ? `${customerPhoneDigits.slice(0, 4)} ${customerPhoneDigits.slice(4)}`
       : customerPhoneDigits;
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // No permitir caracteres especiales para prevenir inyección SQL / saneamiento estricto
+  const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // No permitir caracteres especiales (solo letras, espacios, acentos)
     const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
-    setCustomerName(sanitized);
+    setCustomerFirstName(sanitized);
+  };
+
+  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // No permitir caracteres especiales (solo letras, espacios, acentos)
+    const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+    setCustomerLastName(sanitized);
+  };
+
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Solo permitir números y máximo 9 dígitos (el límite de un RUT)
+    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 9);
+    setCustomerRutDigits(digitsOnly);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,6 +268,9 @@ export const CartView: React.FC = () => {
     try {
       const payload: CheckoutCustomerData = {
         customerName,
+        customerFirstName,
+        customerLastName,
+        customerRut: formattedRut,
         customerPhone: fullPhoneNumber,
         customerEmail,
         deliveryMethod,
@@ -219,6 +293,9 @@ export const CartView: React.FC = () => {
     }
   }, [
     customerName,
+    customerFirstName,
+    customerLastName,
+    formattedRut,
     fullPhoneNumber,
     customerEmail,
     deliveryMethod,
@@ -243,17 +320,32 @@ export const CartView: React.FC = () => {
   // Botón "Proceder con el Pago": valida datos de Paso 1 y Paso 2 y navega a la pasarela de pago (/checkout)
   const handleProceedToPayment = () => {
     setErrorMessage('');
+    setEmailError('');
 
-    if (!customerName.trim()) {
-      setErrorMessage('Falta ingresar el Nombre Completo en el PASO 1.');
+    if (!customerFirstName.trim()) {
+      setErrorMessage('Falta ingresar los Nombres en el PASO 1.');
+      return;
+    }
+    if (!customerLastName.trim()) {
+      setErrorMessage('Falta ingresar los Apellidos en el PASO 1.');
+      return;
+    }
+    if (customerRutDigits.length < 7) {
+      setErrorMessage('Falta ingresar el RUT del titular (mínimo 7 números) en el PASO 1.');
       return;
     }
     if (customerPhoneDigits.length < 8) {
       setErrorMessage('El Teléfono debe tener los 8 dígitos requeridos después de +56 9.');
       return;
     }
-    if (!customerEmail.trim() || !customerEmail.includes('@') || !customerEmail.includes('.')) {
-      setErrorMessage('Falta ingresar un Correo electrónico válido en el PASO 1.');
+    if (!customerEmail.trim()) {
+      setEmailError('correo invalido');
+      setErrorMessage('correo invalido: falta ingresar el correo electrónico en el PASO 1.');
+      return;
+    }
+    if (!isGmailValid(customerEmail)) {
+      setEmailError('correo invalido');
+      setErrorMessage('correo invalido (debe terminar con @gmail.com).');
       return;
     }
     if (deliveryMethod === 'shipping') {
@@ -278,6 +370,9 @@ export const CartView: React.FC = () => {
     // Guardar los datos confirmados antes de navegar
     const payload: CheckoutCustomerData = {
       customerName: customerName.trim(),
+      customerFirstName: customerFirstName.trim(),
+      customerLastName: customerLastName.trim(),
+      customerRut: formattedRut,
       customerPhone: fullPhoneNumber,
       customerEmail: customerEmail.trim(),
       deliveryMethod,
@@ -550,24 +645,62 @@ export const CartView: React.FC = () => {
               </div>
 
               <div className="space-y-2.5">
-                {/* 1. Nombre Completo (sin caracteres especiales para evitar inyección) */}
+                {/* 1. Nombres y Apellidos separados (sin caracteres especiales para evitar inyección SQL) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[11px] font-semibold text-gray-700 block mb-0.5">
+                      Nombres:
+                    </label>
+                    <input
+                      type="text"
+                      value={customerFirstName}
+                      onChange={handleFirstNameChange}
+                      placeholder="Ej. Valeria"
+                      className="winxp-input w-full text-xs py-1 px-2"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-gray-700 block mb-0.5">
+                      Apellidos:
+                    </label>
+                    <input
+                      type="text"
+                      value={customerLastName}
+                      onChange={handleLastNameChange}
+                      placeholder="Ej. Gallardo Contreras"
+                      className="winxp-input w-full text-xs py-1 px-2"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="text-[10px] text-gray-500 font-mono -mt-1.5">
+                  (Solo letras y espacios, sin caracteres especiales para evitar inyección SQL)
+                </div>
+
+                {/* 2. Campo RUT (solo números, formato automático con '.' y '-', límite de 9 números) */}
                 <div>
                   <div className="flex items-center justify-between mb-0.5">
                     <label className="text-[11px] font-semibold text-gray-700">
-                      Nombre Completo:
+                      RUT:
                     </label>
                     <span className="text-[10px] text-gray-500 font-mono">
-                      (Solo letras, sin caracteres especiales)
+                      {customerRutDigits.length}/9 números
                     </span>
                   </div>
                   <input
                     type="text"
-                    value={customerName}
-                    onChange={handleNameChange}
-                    placeholder="Ej. Valeria Gallardo"
-                    className="winxp-input w-full text-xs py-1 px-2"
+                    inputMode="numeric"
+                    value={formattedRut}
+                    onChange={handleRutChange}
+                    placeholder="Ej. 12.345.678-9"
+                    maxLength={12}
+                    className="winxp-input w-full text-xs py-1 px-2 font-mono tracking-wider focus:outline-none"
                     required
                   />
+                  <div className="text-[10px] text-gray-500 font-mono mt-0.5">
+                    (Solo números, puntos y guion se agregan de manera automática)
+                  </div>
                 </div>
 
                 {/* 2. Teléfono (+56 9 fijo y no borrable, solo números, espacio automático a los 4 dígitos, máx 8 números) */}
@@ -597,19 +730,39 @@ export const CartView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 3. Correo electrónico */}
+                {/* 3. Correo electrónico (debe terminar con @gmail.com) */}
                 <div>
-                  <label className="text-[11px] font-semibold text-gray-700 block mb-0.5">
-                    Correo electrónico:
-                  </label>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="text-[11px] font-semibold text-gray-700">
+                      Correo electrónico:
+                    </label>
+                  </div>
                   <input
                     type="email"
                     value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    placeholder="cliente@nolimits.cl"
-                    className="winxp-input w-full text-xs py-1 px-2"
+                    onChange={(e) => {
+                      setCustomerEmail(e.target.value);
+                      if (emailError) {
+                        setEmailError('');
+                      }
+                      if (errorMessage.toLowerCase().includes('correo')) {
+                        setErrorMessage('');
+                      }
+                    }}
+                    placeholder="ejemplo@gmail.com"
+                    className={`winxp-input w-full text-xs py-1 px-2 ${
+                      emailError
+                        ? 'border-red-500 bg-red-50/50 text-red-950 focus:border-red-600'
+                        : ''
+                    }`}
                     required
                   />
+                  {emailError && (
+                    <div className="text-[10px] text-red-600 font-bold flex items-center gap-1 mt-1">
+                      <AlertCircle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>{emailError} (debe terminar con @gmail.com)</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
