@@ -1,0 +1,65 @@
+/* ==========================================================================
+   AdminImageCarousel.css
+   Estilos auténticos para el carrusel de imágenes con las mismas dimensiones
+   y aspecto del Reproductor de Windows Media (Windows XP Luna Edition)
+   ========================================================================== */
+
+.wmp-carousel-wrapper {
+  width: 100%;
+}
+
+.wmp-carousel-viewport {
+  position: relative;
+  width: 100%;
+  background: radial-gradient(circle at center, #111d2e 0%, #060a12 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  max-height: 480px;
+  overflow: hidden;
+  border-top: 1px solid #404040;
+}
+
+@media (min-width: 640px) {
+  .wmp-carousel-viewport {
+    min-height: 340px;
+    height: 380px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .wmp-carousel-viewport {
+    min-height: 400px;
+    height: 440px;
+  }
+}
+
+/* Botones de flecha exclusivos para el carrusel con iconos y texto negros sin afectar otras páginas */
+.carousel-arrow-btn {
+  background: linear-gradient(180deg, #ffffff 0%, #ece9d8 25%, #d8d4c0 85%, #b5b09b 100%);
+  border: 1px solid #707070;
+  border-radius: 3px;
+  padding: 3px 8px;
+  color: #000000 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 1px 1px 0px #ffffff, inset -1px -1px 0px #c0bcc0, 0 1px 2px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  user-select: none;
+}
+
+.carousel-arrow-btn:hover {
+  background: linear-gradient(180deg, #fff2cc 0%, #ffdf80 50%, #f0c040 100%);
+  border-color: #d09000;
+  color: #000000 !important;
+}
+
+.carousel-arrow-btn:active {
+  background: linear-gradient(180deg, #d0ccb5 0%, #e0dcc5 100%);
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.4);
+  transform: translate(0.5px, 0.5px);
+}

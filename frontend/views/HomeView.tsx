@@ -9,7 +9,7 @@ import { PixelIcon } from '../components/common/PixelIcon';
    Componentes Windows XP Design System
    ========================================================================= */
 import { WindowsMediaPlayerWidget } from '../components/home/WindowsMediaPlayerWidget/WindowsMediaPlayerWidget';
-import { TelemetryCluster } from '../components/home/TelemetryCluster/TelemetryCluster';
+import { AdminImageCarousel } from '../components/home/AdminImageCarousel/AdminImageCarousel';
 import { FeaturedCatalog } from '../components/home/FeaturedCatalog/FeaturedCatalog';
 import { MasterStatusBar } from '../components/home/MasterStatusBar/MasterStatusBar';
 import { ContactoWidget } from '../components/home/ContactoWidget';
@@ -123,8 +123,8 @@ export const HomeView: React.FC = () => {
             </div>
           )}
 
-          {/* Telemetría y Estado de Nodos Físicos */}
-          <TelemetryCluster branches={branches} />
+          {/* Carrusel de Campañas con Movimiento Automático y Gestión de Administrador (Mismo tamaño del Reproductor de Windows Media) */}
+          <AdminImageCarousel />
 
           {/* Catálogo de Prendas Destacadas con fondo blanco y tarjetas nítidas */}
           <FeaturedCatalog
