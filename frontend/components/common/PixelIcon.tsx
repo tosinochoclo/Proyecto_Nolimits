@@ -22,7 +22,9 @@ export type PixelIconName =
   | 'settings'
   | 'key'
   | 'whatsapp'
-  | 'phone';
+  | 'phone'
+  | 'badge-gold'
+  | 'badge';
 
 interface PixelIconProps {
   name: PixelIconName;
@@ -223,6 +225,76 @@ export const PixelIcon: React.FC<PixelIconProps> = ({
             <rect x="2" y="5" width="12" height="8" fill="#ffeb3b" />
             <rect x="2" y="5" width="12" height="1" fill="#ffffff" />
             <rect x="2" y="8" width="12" height="5" fill="#fbc02d" />
+          </svg>
+        );
+
+      /* ===================================================================
+         6B. CARPETA ABIERTA (Folder Open)
+         =================================================================== */
+      case 'folder-open':
+        return (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 16 16"
+            fill="none"
+            style={{ shapeRendering: 'crispEdges' }}
+            className={className}
+          >
+            <rect x="1" y="2" width="6" height="2" fill="#000000" />
+            <rect x="2" y="3" width="5" height="1" fill="#fdd835" />
+            <rect x="1" y="4" width="14" height="2" fill="#000000" />
+            <rect x="2" y="5" width="12" height="3" fill="#fff9c4" />
+            <polygon points="1,14 4,7 15,7 13,14" fill="#fbc02d" stroke="#000000" strokeWidth="1" />
+            <polygon points="2,13 4.5,8 14,8 12.5,13" fill="#ffeb3b" />
+          </svg>
+        );
+
+      /* ===================================================================
+         6C. INSIGNIA DESTACADA DORADA (Golden Featured Badge / Award Ribbon)
+         =================================================================== */
+      case 'badge-gold':
+      case 'badge':
+        return (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 16 16"
+            fill="none"
+            style={{ shapeRendering: 'crispEdges' }}
+            className={className}
+          >
+            {/* Cintas inferiores colgantes (rojo rubí profundo con ribete dorado) */}
+            <path d="M4 9 L2 15 L5 13.5 L6 15 L7 9 Z" fill="#b91c1c" />
+            <path d="M2 15 L2.5 12 L3 12 L2 15 Z" fill="#fbbf24" />
+            <path d="M12 9 L14 15 L11 13.5 L10 15 L9 9 Z" fill="#b91c1c" />
+            <path d="M14 15 L13.5 12 L13 12 L14 15 Z" fill="#fbbf24" />
+
+            {/* Borde exterior dentado de la medalla dorada */}
+            <rect x="5" y="0" width="6" height="11" fill="#78350f" />
+            <rect x="2" y="3" width="12" height="5" fill="#78350f" />
+            <rect x="3" y="1" width="10" height="9" fill="#78350f" />
+
+            {/* Cuerpo dorado principal */}
+            <rect x="5" y="1" width="6" height="9" fill="#f59e0b" />
+            <rect x="3" y="3" width="10" height="5" fill="#f59e0b" />
+            <rect x="4" y="2" width="8" height="7" fill="#fbbf24" />
+
+            {/* Brillo superior dorado/blanco */}
+            <rect x="5" y="1" width="6" height="1" fill="#fef08a" />
+            <rect x="4" y="2" width="2" height="1" fill="#ffffff" />
+            <rect x="3" y="3" width="1" height="2" fill="#ffffff" />
+
+            {/* Sombra dorada inferior */}
+            <rect x="4" y="9" width="8" height="1" fill="#b45309" />
+            <rect x="3" y="7" width="1" height="1" fill="#b45309" />
+            <rect x="12" y="7" width="1" height="1" fill="#b45309" />
+
+            {/* Estrella brillante destacada en el centro */}
+            <rect x="7" y="3" width="2" height="5" fill="#ffffff" />
+            <rect x="5" y="5" width="6" height="1" fill="#ffffff" />
+            <rect x="6" y="4" width="4" height="3" fill="#fef08a" />
+            <rect x="7" y="5" width="2" height="1" fill="#ffffff" />
           </svg>
         );
 

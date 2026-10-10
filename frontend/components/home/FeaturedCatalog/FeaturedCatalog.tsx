@@ -31,7 +31,7 @@ export const FeaturedCatalog: React.FC<FeaturedCatalogProps> = ({
     <WindowFrame
       title="CATALOGO_DESTACADOS.EXE - [Colección Drop Actual]"
       subtitle="Filtrado por inventario físico en tiempo real"
-      icon={<PixelIcon name="folder-open" size={16} />}
+      icon={<PixelIcon name="badge-gold" size={16} />}
       statusBarText={`PRENDAS DESTACADAS: ${displayedProducts.length} // RETIRO INMEDIATO EN SUCURSALES`}
     >
       <div>
