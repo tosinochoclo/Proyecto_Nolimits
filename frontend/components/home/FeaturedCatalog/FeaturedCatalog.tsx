@@ -24,12 +24,15 @@ export const FeaturedCatalog: React.FC<FeaturedCatalogProps> = ({
   addedProductId,
   onQuickAdd,
 }) => {
+  // Asegurar que el escaparate de destacados no muestre más de 8 productos
+  const displayedProducts = products.slice(0, 8);
+
   return (
     <WindowFrame
       title="CATALOGO_DESTACADOS.EXE - [Colección Drop Actual]"
       subtitle="Filtrado por inventario físico en tiempo real"
       icon={<PixelIcon name="folder-open" size={16} />}
-      statusBarText={`TOTAL PRENDAS DISPONIBLES: ${products.length} // RETIRO INMEDIATO EN SUCURSALES`}
+      statusBarText={`PRENDAS DESTACADAS: ${displayedProducts.length} // RETIRO INMEDIATO EN SUCURSALES`}
     >
       <div>
         {/* Cabecera del Catálogo */}
@@ -55,9 +58,9 @@ export const FeaturedCatalog: React.FC<FeaturedCatalogProps> = ({
           </Link>
         </div>
 
-        {/* Grilla de Productos */}
+        {/* Grilla de Productos (Hasta 8 prendas) */}
         <div className="featured-catalog-xp-grid">
-          {products.map((product) => {
+          {displayedProducts.map((product) => {
             const currentStock =
               activeBranchId === 'all'
                 ? product.totalStock

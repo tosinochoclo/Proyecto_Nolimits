@@ -67,12 +67,36 @@ export const ProductDetailView: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Galería de Imágenes (Col 1-5, tamaño reducido para no abrumar la vista) */}
           <div className="lg:col-span-5 space-y-3 max-w-sm sm:max-w-md mx-auto w-full">
-            <div className="relative aspect-square max-h-[450px] border border-gray-400 bg-white winxp-bevel-in flex items-center justify-center overflow-hidden shadow-inner">
+            <div className="relative aspect-square max-h-[350px] border border-gray-400 bg-white winxp-bevel-in flex items-center justify-center overflow-hidden shadow-inner">
               <img
                 src={product.images[activeImageIndex] || product.images[0]}
                 alt={product.title}
                 className="w-full h-full object-cover"
               />
+
+              {/* Etiqueta de descuento oficial sobre la imagen */}
+              {product.discountPercent && !isSoldOut && (
+                <span
+                  className="product-card-xp-discount product-detail-discount-badge"
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    left: '8px',
+                    backgroundColor: '#15803d',
+                    color: '#ffffff',
+                    fontFamily: 'Tahoma, sans-serif',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    padding: '2px 8px',
+                    borderRadius: '2px',
+                    boxShadow: '1px 1px 3px rgba(0, 0, 0, 0.35)',
+                    border: '1px solid #166534',
+                    zIndex: 10,
+                  }}
+                >
+                  -{product.discountPercent}% OFF
+                </span>
+              )}
 
               {/* Botones con flechas visibles y claras para cambiar de imagen */}
               {product.images.length > 1 && (
@@ -138,7 +162,14 @@ export const ProductDetailView: React.FC = () => {
                   </span>
                 )}
                 {product.discountPercent && (
-                  <span className="bg-red-600 text-white font-bold text-[11px] px-2 py-0.5 rounded-xs shadow-xs tracking-wider">
+                  <span
+                    className="product-detail-discount-badge font-bold text-[11px] px-2 py-0.5 rounded-xs shadow-xs tracking-wider border"
+                    style={{
+                      backgroundColor: '#15803d',
+                      borderColor: '#166534',
+                      color: '#ffffff',
+                    }}
+                  >
                     -{product.discountPercent}% OFF
                   </span>
                 )}

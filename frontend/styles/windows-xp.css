@@ -501,4 +501,34 @@ input[type="text"], input[type="search"], input[type="email"], input[type="passw
   border-color: #002266;
 }
 
+/* ==========================================================================
+   Etiquetas de Descuento (Verde Pradera Intenso con Texto Blanco en Todas las Páginas)
+   ========================================================================== */
+.product-card-xp-discount,
+.product-detail-discount-badge {
+  background-color: #15803d !important; /* Verde pradera intenso */
+  color: #ffffff !important;
+  font-family: 'Tahoma', sans-serif;
+  font-weight: bold;
+}
+
+.product-card-xp-discount {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.35);
+  border: 1px solid #166534;
+  z-index: 10;
+}
+
+.product-detail-discount-badge {
+  background-color: #15803d !important;
+  color: #ffffff !important;
+  border: 1px solid #166534 !important;
+}
+
+
 

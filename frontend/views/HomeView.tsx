@@ -32,7 +32,7 @@ export const HomeView: React.FC = () => {
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
 
   const featuredProducts = useMemo(() => {
-    return INITIAL_PRODUCTS.filter((product) => !product.isHidden);
+    return INITIAL_PRODUCTS.filter((product) => !product.isHidden).slice(0, 8);
   }, []);
 
   const handleQuickAdd = (product: Product) => {
