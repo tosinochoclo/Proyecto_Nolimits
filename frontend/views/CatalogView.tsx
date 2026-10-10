@@ -174,18 +174,15 @@ export const CatalogView: React.FC = () => {
         statusBarText={`ELEMENTOS ENCONTRADOS: ${filteredProducts.length} // SERVIDOR DE INVENTARIO CENTRAL: ACTIVO`}
       >
         <div className="space-y-3">
-          {/* Fila Principal de Búsqueda (Sin filtro de sucursales, ahora reservado al Checkout) */}
+          {/* Fila Principal de Búsqueda */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1 flex items-center">
-              <span className="absolute left-2.5 top-2.5 pointer-events-none">
-                <PixelIcon name="search" size={15} />
-              </span>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar prenda, chaqueta, cartera, gorra, color o código de catálogo..."
-                className="w-full winxp-input pl-8 pr-8 py-1.5 text-xs text-black placeholder-gray-500"
+                className="w-full winxp-input px-3 pr-8 py-1.5 text-xs text-black placeholder-gray-500"
               />
               {searchTerm && (
                 <button
