@@ -530,5 +530,46 @@ input[type="text"], input[type="search"], input[type="email"], input[type="passw
   border: 1px solid #166534 !important;
 }
 
+/* ==========================================================================
+   Botones de Autenticación (Texto Blanco Garantizado y Estilos Específicos)
+   ========================================================================== */
+.btn-auth-google,
+.btn-auth-google *,
+.btn-auth-login,
+.btn-auth-login *,
+.btn-auth-register,
+.btn-auth-register * {
+  color: #ffffff !important;
+}
+
+.btn-auth-google {
+  background-color: #0078d4 !important;
+  border: 1px solid #000000 !important;
+  font-weight: bold !important;
+}
+
+.btn-auth-google:hover {
+  background-color: #006cc1 !important;
+  border: 1px solid #000000 !important;
+}
+
+.btn-auth-login {
+  background-color: #d6001c !important;
+  border-color: #a80016 !important;
+}
+
+.btn-auth-login:hover {
+  background-color: #b80017 !important;
+}
+
+.btn-auth-register {
+  background-color: #7e8590 !important; /* Color plomo más claro */
+  border-color: #656b74 !important;
+}
+
+.btn-auth-register:hover {
+  background-color: #6f7580 !important;
+}
+
 
 

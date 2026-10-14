@@ -7,6 +7,7 @@ interface AuthContextType {
   currentRole: UserRole;
   setRole: (role: UserRole) => void;
   login: (email: string, pass?: string) => Promise<boolean>;
+  register: (name: string, email: string, pass?: string) => Promise<boolean>;
   loginWithGoogle: () => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -66,6 +67,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
+  const register = async (name: string, email: string, pass?: string): Promise<boolean> => {
+    const newUser: User = {
+      id: `usr_${Date.now()}`,
+      name: name.trim() || email.split('@')[0],
+      email,
+      role: 'registered',
+      loyaltyPoints: 100, // Welcome points
+      createdAt: new Date().toISOString()
+    };
+    setCurrentUser(newUser);
+    return true;
+  };
+
   const loginWithGoogle = async (): Promise<boolean> => {
     const googleUser: User = {
       id: 'usr_google_quick',
@@ -95,6 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentRole,
         setRole,
         login,
+        register,
         loginWithGoogle,
         logout,
         isAuthenticated,

@@ -26,6 +26,8 @@ export const AppRoutes: React.FC = () => {
       <Route path="/cart" element={<CartView />} />
       <Route path="/checkout" element={<CheckoutView />} />
       <Route path="/auth" element={<AuthView />} />
+      <Route path="/register" element={<AuthView />} />
+      <Route path="/login" element={<AuthView />} />
 
       {/* 2. Registered Customer Protected Route */}
       <Route

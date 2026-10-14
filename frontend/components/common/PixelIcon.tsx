@@ -24,7 +24,10 @@ export type PixelIconName =
   | 'whatsapp'
   | 'phone'
   | 'badge-gold'
-  | 'badge';
+  | 'badge'
+  | 'register'
+  | 'register-user'
+  | 'user-add';
 
 interface PixelIconProps {
   name: PixelIconName;
@@ -521,16 +524,85 @@ export const PixelIcon: React.FC<PixelIconProps> = ({
           </svg>
         );
 
+      /* ===================================================================
+         16. LLAVE DORADA DE SEGURIDAD (Windows XP Logon Key)
+         =================================================================== */
+      case 'key':
+        return (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 16 16"
+            fill="none"
+            style={{ shapeRendering: 'crispEdges' }}
+            className={className}
+          >
+            {/* Cabeza de la llave */}
+            <circle cx="5" cy="5" r="4.5" stroke="#78350f" strokeWidth="1" fill="#f59e0b" />
+            <circle cx="5" cy="5" r="3.5" fill="#fbbf24" />
+            <circle cx="5" cy="5" r="1.5" fill="#78350f" />
+            <circle cx="5" cy="5" r="1" fill="#1e3a8a" />
+            <rect x="3" y="2" width="2" height="1" fill="#ffffff" />
+            {/* Vástago de la llave */}
+            <path d="M8 8 L14 14" stroke="#78350f" strokeWidth="3" strokeLinecap="square" />
+            <path d="M8 8 L13 13" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="square" />
+            {/* Dientes */}
+            <rect x="11" y="11" width="2" height="2" fill="#78350f" />
+            <rect x="13" y="11" width="2" height="3" fill="#78350f" />
+            <rect x="11" y="11" width="1.5" height="1.5" fill="#f59e0b" />
+            <rect x="13" y="11" width="1.5" height="2.5" fill="#fbbf24" />
+          </svg>
+        );
+
+      /* ===================================================================
+         17. ICONITO DE REGISTRO (Windows XP Account Setup / Registration)
+         =================================================================== */
+      case 'register':
+      case 'register-user':
+      case 'user-add':
+        return (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 16 16"
+            fill="none"
+            style={{ shapeRendering: 'crispEdges' }}
+            className={className}
+          >
+            {/* Credencial / Tarjeta de usuario */}
+            <rect x="1" y="1" width="14" height="14" rx="1.5" fill="#ffffff" stroke="#1e293b" strokeWidth="1" />
+            {/* Banda superior azul Windows XP */}
+            <rect x="2" y="2" width="12" height="3" fill="#0055ea" />
+            {/* Clip superior */}
+            <rect x="6" y="1" width="4" height="1" fill="#475569" />
+            <rect x="7" y="2" width="2" height="1" fill="#94a3b8" />
+            {/* Avatar de usuario */}
+            <rect x="3" y="6" width="3" height="3" fill="#0284c7" />
+            <path d="M2 11 Q2 9 4.5 9 Q7 9 7 11 Z" fill="#0284c7" />
+            {/* Líneas de campos de registro */}
+            <rect x="8" y="7" width="5" height="1" fill="#64748b" />
+            <rect x="8" y="9" width="4" height="1" fill="#94a3b8" />
+            {/* Insignia verde de registro verificado en esquina inferior */}
+            <rect x="9" y="10" width="6" height="5" rx="1" fill="#15803d" stroke="#14532d" strokeWidth="0.5" />
+            <path d="M10.5 12.5 L12 14 L14 11" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          </svg>
+        );
+
       default:
         return (
           <svg
             width={size}
             height={size}
             viewBox="0 0 16 16"
-            fill="#0055ea"
+            fill="none"
+            style={{ shapeRendering: 'crispEdges' }}
             className={className}
           >
-            <rect x="2" y="2" width="12" height="12" />
+            <polygon points="2,1 11,1 14,4 14,15 2,15" fill="#ffffff" stroke="#334155" strokeWidth="1" />
+            <polygon points="11,1 11,4 14,4" fill="#cbd5e1" stroke="#334155" strokeWidth="1" />
+            <rect x="4" y="6" width="8" height="1.5" fill="#0055ea" />
+            <rect x="4" y="9" width="8" height="1" fill="#64748b" />
+            <rect x="4" y="11" width="5" height="1" fill="#94a3b8" />
           </svg>
         );
     }
