@@ -10,6 +10,9 @@ interface AuthContextType {
   register: (name: string, email: string, pass?: string) => Promise<boolean>;
   loginWithGoogle: () => Promise<boolean>;
   logout: () => void;
+  updateProfile: (data: Partial<User>) => void;
+  addLoyaltyPoints: (amount: number) => void;
+  deductLoyaltyPoints: (amount: number) => boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isSuperAdmin: boolean;
@@ -98,6 +101,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(INITIAL_USERS[0]); // Reset to guest
   };
 
+  const updateProfile = (data: Partial<User>) => {
+    setCurrentUser((prev) => {
+      const newFirstName = data.firstName !== undefined ? data.firstName : prev.firstName;
+      const newLastName = data.lastName !== undefined ? data.lastName : prev.lastName;
+      const computedName = (newFirstName || newLastName)
+        ? `${newFirstName || ''} ${newLastName || ''}`.trim()
+        : (data.name || prev.name);
+
+      const updated: User = {
+        ...prev,
+        ...data,
+        name: computedName
+      };
+      localStorage.setItem('nolimits_auth_user', JSON.stringify(updated));
+
+      // Sincronizar datos de titular con la pasarela de compra (Checkout)
+      try {
+        const checkoutInfo = JSON.parse(localStorage.getItem('nolimits_checkout_info') || '{}');
+        const updatedCheckout = {
+          ...checkoutInfo,
+          customerName: computedName || checkoutInfo.customerName,
+          customerRut: data.rut || prev.rut || checkoutInfo.customerRut,
+          customerPhone: data.phone || prev.phone || checkoutInfo.customerPhone,
+          customerEmail: data.email || prev.email || checkoutInfo.customerEmail,
+          customerFirstName: newFirstName || checkoutInfo.customerFirstName,
+          customerLastName: newLastName || checkoutInfo.customerLastName
+        };
+        localStorage.setItem('nolimits_checkout_info', JSON.stringify(updatedCheckout));
+      } catch {
+        // ignore
+      }
+
+      return updated;
+    });
+  };
+
+  const addLoyaltyPoints = (amount: number) => {
+    setCurrentUser((prev) => {
+      const updated = {
+        ...prev,
+        loyaltyPoints: (prev.loyaltyPoints || 0) + amount,
+      };
+      return updated;
+    });
+  };
+
+  const deductLoyaltyPoints = (amount: number): boolean => {
+    if ((currentUser.loyaltyPoints || 0) < amount) return false;
+    setCurrentUser((prev) => {
+      const updated = {
+        ...prev,
+        loyaltyPoints: Math.max(0, (prev.loyaltyPoints || 0) - amount),
+      };
+      return updated;
+    });
+    return true;
+  };
+
   const isAuthenticated = currentUser.role !== 'guest';
   const isAdmin = currentUser.role === 'branch_admin' || currentUser.role === 'super_admin';
   const isSuperAdmin = currentUser.role === 'super_admin';
@@ -112,6 +173,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         loginWithGoogle,
         logout,
+        updateProfile,
+        addLoyaltyPoints,
+        deductLoyaltyPoints,
         isAuthenticated,
         isAdmin,
         isSuperAdmin

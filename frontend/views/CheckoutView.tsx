@@ -12,7 +12,9 @@ import {
   Phone,
   CheckCircle2,
   AlertCircle,
-  FileText
+  FileText,
+  User,
+  ShoppingBag
 } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { useCart } from '../context/CartContext';
@@ -51,27 +53,50 @@ export const CheckoutView: React.FC = () => {
 
   // Carga de datos del titular y despacho guardados en el Carrito
   const [checkoutData] = useState<CheckoutCustomerData>(() => {
+    let defaultAddr: any = null;
+    const defaultAddrSaved = localStorage.getItem('nolimits_default_address');
+    if (defaultAddrSaved) {
+      try {
+        defaultAddr = JSON.parse(defaultAddrSaved);
+      } catch {
+        // ignore
+      }
+    }
+
     const saved = localStorage.getItem('nolimits_checkout_info');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (!parsed.customerRut) {
+          parsed.customerRut = '19.876.543-2';
+        }
+        if (defaultAddr) {
+          if (!parsed.shippingStreet) parsed.shippingStreet = defaultAddr.street;
+          if (!parsed.shippingNumber) parsed.shippingNumber = defaultAddr.number;
+          if (!parsed.shippingApartment) parsed.shippingApartment = defaultAddr.apartment || '';
+          if (!parsed.shippingComuna) parsed.shippingComuna = defaultAddr.comuna;
+          if (!parsed.shippingCity) parsed.shippingCity = defaultAddr.city;
+          if (!parsed.shippingAddress) parsed.shippingAddress = `${defaultAddr.street} ${defaultAddr.number}${defaultAddr.apartment ? ', ' + defaultAddr.apartment : ''}`;
+        }
+        return parsed;
       } catch {
         // ignore
       }
     }
     return {
-      customerName: currentUser.name || 'Valeria Gallardo',
-      customerPhone: '+56 9 9123 4567',
+      customerName: defaultAddr?.recipientName || currentUser.name || 'Valeria Gallardo',
+      customerRut: '19.876.543-2',
+      customerPhone: defaultAddr?.phone || '+56 9 9123 4567',
       customerEmail: currentUser.email || 'cliente@nolimits.cl',
       deliveryMethod: 'pickup',
       selectedBranchId: 'vina_del_mar',
       shippingCountry: 'Chile',
-      shippingComuna: 'Viña del Mar',
-      shippingStreet: 'Av. Libertad',
-      shippingNumber: '1400',
+      shippingComuna: defaultAddr?.comuna || 'Viña del Mar',
+      shippingStreet: defaultAddr?.street || 'Av. Libertad',
+      shippingNumber: defaultAddr?.number || '1400',
       shippingCourier: 'Starken',
-      shippingAddress: 'Av. Libertad 1400, Depto 402',
-      shippingCity: 'Viña del Mar',
+      shippingAddress: defaultAddr ? `${defaultAddr.street} ${defaultAddr.number}${defaultAddr.apartment ? ', ' + defaultAddr.apartment : ''}` : 'Av. Libertad 1400, Depto 402',
+      shippingCity: defaultAddr?.city || 'Viña del Mar',
     };
   });
 
@@ -93,6 +118,38 @@ export const CheckoutView: React.FC = () => {
     setIsProcessing(true);
     setTimeout(() => {
       const orderNumber = `NL-${Math.floor(1000 + Math.random() * 9000)}`;
+      
+      const newOrder = {
+        id: `ord_${Date.now()}`,
+        orderNumber,
+        date: new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }),
+        items: items.map(item => ({
+          productId: item.productId,
+          title: item.product.title,
+          size: item.selectedSize,
+          color: item.selectedColor.name,
+          quantity: item.quantity,
+          price: item.product.price,
+          image: item.product.images[0]
+        })),
+        total: finalTotal,
+        deliveryMethod: checkoutData.deliveryMethod,
+        branchName: selectedBranch.name,
+        branchId: selectedBranch.id,
+        shippingAddress: checkoutData.deliveryMethod === 'shipping' 
+          ? `${checkoutData.shippingStreet || checkoutData.shippingAddress || 'Av. Libertad 1400'}, ${checkoutData.shippingComuna || checkoutData.shippingCity || 'Viña del Mar'}`
+          : undefined,
+        courier: checkoutData.shippingCourier || 'Starken',
+        status: 'Solicitud recibida'
+      };
+
+      try {
+        const existing = JSON.parse(localStorage.getItem('nolimits_user_orders') || '[]');
+        localStorage.setItem('nolimits_user_orders', JSON.stringify([newOrder, ...existing]));
+      } catch {
+        // ignore
+      }
+
       setConfirmedOrderId(orderNumber);
       setIsProcessing(false);
       clearCart();
@@ -337,12 +394,6 @@ export const CheckoutView: React.FC = () => {
                   <FileText className="w-4 h-4 text-blue-700" />
                   <span>PRENDAS INCLUIDAS EN LA ORDEN ({items.length})</span>
                 </span>
-                <Link
-                  to="/cart"
-                  className="text-[11px] text-blue-700 hover:underline font-normal flex items-center gap-0.5"
-                >
-                  Modificar en carrito
-                </Link>
               </div>
 
               <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
@@ -404,28 +455,24 @@ export const CheckoutView: React.FC = () => {
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
                   <span>DATOS DEL COMPRADOR Y ENTREGA CONFIRMADOS</span>
                 </span>
-                <Link
-                  to="/cart"
-                  className="text-[11px] text-blue-700 hover:underline flex items-center gap-0.5"
-                >
-                  Editar datos
-                </Link>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {/* Datos del Titular */}
                 <div className="bg-gray-50 border border-gray-300 p-2 space-y-1">
-                  <div className="font-bold text-gray-800 border-b border-gray-200 pb-0.5">
-                    Titular de la Compra:
+                  <div className="font-bold text-gray-800 border-b border-gray-200 pb-0.5 flex items-center gap-1">
+                    <User className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Titular de la Compra:</span>
                   </div>
                   <div>
                     <strong>Nombre:</strong> {checkoutData.customerName}
                   </div>
-                  {checkoutData.customerRut && (
-                    <div>
-                      <strong>RUT:</strong> <span className="font-mono">{checkoutData.customerRut}</span>
-                    </div>
-                  )}
+                  <div>
+                    <strong>RUT:</strong>{' '}
+                    <span className="font-mono font-bold text-gray-900">
+                      {checkoutData.customerRut || '19.876.543-2'}
+                    </span>
+                  </div>
                   <div>
                     <strong>Teléfono:</strong> {checkoutData.customerPhone}
                   </div>
@@ -631,14 +678,18 @@ export const CheckoutView: React.FC = () => {
               </p>
             </div>
 
-            {/* Enlace para volver al carrito */}
-            <div className="pt-1 text-center">
-              <Link
-                to="/cart"
-                className="text-xs text-blue-800 hover:underline inline-flex items-center gap-1 font-semibold"
-              >
-                <ArrowLeft className="w-3 h-3" />
-                <span>Modificar prendas o datos en el Carrito</span>
+            {/* Botón para volver al carrito estilizado y mejorado */}
+            <div className="pt-2">
+              <Link to="/cart" className="block w-full">
+                <button
+                  type="button"
+                  className="winxp-button text-xs py-2 px-3 w-full font-bold text-blue-900 flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:bg-blue-50/80 transition-all rounded-xs hover:border-blue-700 active:scale-[0.99]"
+                  title="Volver al Carrito de Compras para modificar prendas, cantidades o datos de entrega"
+                >
+                  <ArrowLeft className="w-4 h-4 text-blue-700 shrink-0" />
+                  <span className="tracking-wide">Modificar prendas o datos en el Carrito</span>
+                  <ShoppingBag className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                </button>
               </Link>
             </div>
           </div>

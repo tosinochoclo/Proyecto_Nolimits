@@ -71,37 +71,50 @@ export const CartView: React.FC = () => {
   const { currentUser } = useAuth();
   const { branches, activeBranchId, setActiveBranchId } = useBranch();
 
-  // Carga inicial o lectura desde localStorage
+  // Carga inicial o lectura desde localStorage (inyectando dirección predeterminada si existe)
   const [initialData] = useState<CheckoutCustomerData>(() => {
+    let base: any = {};
     const saved = localStorage.getItem('nolimits_checkout_info');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        base = JSON.parse(saved);
       } catch {
         // ignore
       }
     }
+
+    // Inyección de la dirección predeterminada configurada en el perfil
+    let defaultAddr: any = null;
+    const defaultAddrSaved = localStorage.getItem('nolimits_default_address');
+    if (defaultAddrSaved) {
+      try {
+        defaultAddr = JSON.parse(defaultAddrSaved);
+      } catch {
+        // ignore
+      }
+    }
+
     return {
-      customerFirstName: 'Valeria',
-      customerLastName: 'Gallardo',
-      customerName: currentUser.name || 'Valeria Gallardo',
-      customerRut: '198765432',
-      customerPhone: '9123 4567',
-      customerEmail: currentUser.email?.toLowerCase().endsWith('@gmail.com') ? currentUser.email : 'cliente@gmail.com',
-      deliveryMethod: 'pickup',
+      customerFirstName: base.customerFirstName || 'Valeria',
+      customerLastName: base.customerLastName || 'Gallardo',
+      customerName: base.customerName || defaultAddr?.recipientName || currentUser.name || 'Valeria Gallardo',
+      customerRut: base.customerRut || '198765432',
+      customerPhone: base.customerPhone || defaultAddr?.phone?.replace('+56 ', '') || '9123 4567',
+      customerEmail: base.customerEmail || (currentUser.email?.toLowerCase().endsWith('@gmail.com') ? currentUser.email : 'cliente@gmail.com'),
+      deliveryMethod: base.deliveryMethod || 'pickup',
       selectedBranchId:
-        activeBranchId !== 'all' ? activeBranchId : branches[0]?.id || 'vina_del_mar',
+        base.selectedBranchId || (activeBranchId !== 'all' ? activeBranchId : branches[0]?.id || 'vina_del_mar'),
       shippingCountry: 'Chile',
-      shippingComuna: 'Viña del Mar',
-      shippingStreet: 'Av. Libertad',
-      shippingNumber: '1400',
-      shippingNoNumber: false,
-      shippingApartment: 'Depto 402',
-      shippingPostalCode: '2520000',
-      shippingNotes: '',
-      shippingCourier: 'Starken',
-      shippingAddress: 'Av. Libertad 1400, Depto 402',
-      shippingCity: 'Viña del Mar',
+      shippingComuna: defaultAddr?.comuna || base.shippingComuna || 'Viña del Mar',
+      shippingStreet: defaultAddr?.street || base.shippingStreet || 'Av. Libertad',
+      shippingNumber: defaultAddr?.number || base.shippingNumber || '1400',
+      shippingNoNumber: base.shippingNoNumber || false,
+      shippingApartment: defaultAddr?.apartment ?? base.shippingApartment ?? 'Depto 402',
+      shippingPostalCode: defaultAddr?.postalCode || base.shippingPostalCode || '2520000',
+      shippingNotes: defaultAddr?.notes ?? base.shippingNotes ?? '',
+      shippingCourier: base.shippingCourier || 'Starken',
+      shippingAddress: defaultAddr ? `${defaultAddr.street} ${defaultAddr.number}${defaultAddr.apartment ? ', ' + defaultAddr.apartment : ''}` : (base.shippingAddress || 'Av. Libertad 1400, Depto 402'),
+      shippingCity: defaultAddr?.city || base.shippingCity || 'Viña del Mar',
     };
   });
 
