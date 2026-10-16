@@ -28,7 +28,8 @@ import {
   Calendar,
   User as UserIcon,
   Save,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Lock
 } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { useAuth } from '../context/AuthContext';
@@ -81,6 +82,7 @@ export interface ReturnRequest {
   rejectionReason?: string;
   rejectionDate?: string;
   adminInspector?: string;
+  photos?: string[];
 }
 
 /**
@@ -822,11 +824,146 @@ export const ProfileView: React.FC = () => {
 
   const [returnSuccessMessage, setReturnSuccessMessage] = useState<string | null>(null);
   const [isNewReturnModalOpen, setIsNewReturnModalOpen] = useState(false);
+  const [returnModalStep, setReturnModalStep] = useState<'confirm' | 'form'>('confirm');
   const [selectedReturnOrder, setSelectedReturnOrder] = useState<string>('');
   const [selectedReturnItem, setSelectedReturnItem] = useState<string>('');
   const [selectedReturnReason, setSelectedReturnReason] = useState<ReturnRequest['reason']>('Cambio de Talla');
+  const [selectedReturnMethod, setSelectedReturnMethod] = useState<'branch' | 'shipping'>('branch');
   const [selectedReturnBranch, setSelectedReturnBranch] = useState<string>('vina_del_mar');
   const [selectedReturnNotes, setSelectedReturnNotes] = useState<string>('');
+  const [returnPhotos, setReturnPhotos] = useState<string[]>([]);
+  const [returnTargetOrder, setReturnTargetOrder] = useState<PurchaseOrder | null>(null);
+  const [returnTargetItem, setReturnTargetItem] = useState<{ productId: string; title: string; size: string; color: string; image: string; price: number } | null>(null);
+  const [rejectionModalReturn, setRejectionModalReturn] = useState<ReturnRequest | null>(null);
+
+  /**
+   * Helper para calcular la antigüedad de una compra y si está dentro de los 7 días de garantía para devolución
+   */
+  const getReturnEligibility = (orderDateStr: string) => {
+    if (!orderDateStr || orderDateStr.toLowerCase().includes('reciente')) {
+      return {
+        isEligible: true,
+        daysElapsed: 0,
+        daysLeft: 7,
+        statusLabel: '7 días restantes'
+      };
+    }
+
+    let orderDate: Date | null = null;
+    const spanishMonths: Record<string, number> = {
+      enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+      julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11
+    };
+
+    const match = orderDateStr.toLowerCase().match(/(\d{1,2})\s+de\s+([a-záéíóúñ]+)\s+(\d{4})/);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const monthName = match[2].normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const year = parseInt(match[3], 10);
+      if (spanishMonths[monthName] !== undefined) {
+        orderDate = new Date(year, spanishMonths[monthName], day);
+      }
+    } else {
+      const direct = new Date(orderDateStr);
+      if (!isNaN(direct.getTime())) orderDate = direct;
+    }
+
+    if (!orderDate) {
+      return {
+        isEligible: true,
+        daysElapsed: 1,
+        daysLeft: 6,
+        statusLabel: '6 días restantes'
+      };
+    }
+
+    const now = new Date();
+    const diffTime = Math.max(0, now.getTime() - orderDate.getTime());
+    const daysElapsed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const isEligible = daysElapsed <= 7;
+    const daysLeft = Math.max(0, 7 - daysElapsed);
+
+    return {
+      isEligible,
+      daysElapsed,
+      daysLeft,
+      statusLabel: isEligible
+        ? (daysLeft === 0 ? 'Último día disponible' : `${daysLeft} día${daysLeft > 1 ? 's' : ''} restante${daysLeft > 1 ? 's' : ''}`)
+        : `Plazo de 7 días expirado (+${daysElapsed} días)`
+    };
+  };
+
+  /**
+   * Abrir modal de devolución iniciando con la pestaña "¿Está seguro?" y pre-seleccionando orden y prenda
+   */
+  const handleOpenDirectReturnModal = (
+    order: PurchaseOrder,
+    item: { productId: string; title: string; size: string; color: string; image: string; price: number }
+  ) => {
+    setSelectedReturnOrder(order.orderNumber);
+    setSelectedReturnItem(item.productId);
+    setSelectedReturnReason('Cambio de Talla');
+    setSelectedReturnMethod(order.deliveryMethod === 'shipping' ? 'shipping' : 'branch');
+    setSelectedReturnBranch(order.branchId || 'vina_del_mar');
+    setSelectedReturnNotes('');
+    setReturnPhotos([]);
+    setReturnTargetOrder(order);
+    setReturnTargetItem(item);
+    setReturnModalStep('confirm'); // Inicia con "¿Está seguro?"
+    setIsNewReturnModalOpen(true);
+  };
+
+  /**
+   * Subida de hasta 6 fotos para la devolución
+   */
+  const handleReturnPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const remainingSlots = 6 - returnPhotos.length;
+    if (remainingSlots <= 0) {
+      alert('Has alcanzado el límite máximo permitido de 6 fotos.');
+      return;
+    }
+
+    const filesToRead = files.slice(0, remainingSlots);
+    filesToRead.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setReturnPhotos(prev => {
+            if (prev.length >= 6) return prev;
+            return [...prev, event.target!.result as string];
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleRemoveReturnPhoto = (index: number) => {
+    setReturnPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  /**
+   * Agregar foto de muestra rápida para devolución (máximo 6 fotos)
+   */
+  const handleAddSampleReturnPhoto = () => {
+    if (returnPhotos.length >= 6) {
+      alert('Has alcanzado el límite máximo permitido de 6 fotos.');
+      return;
+    }
+    const sampleReturnPhotos = [
+      'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=500&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=500&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=500&auto=format&fit=crop&q=80'
+    ];
+    const nextPhoto = sampleReturnPhotos[returnPhotos.length % sampleReturnPhotos.length];
+    setReturnPhotos(prev => [...prev, nextPhoto]);
+  };
 
   /**
    * Crear nueva solicitud de devolución
@@ -842,6 +979,10 @@ export const ProfileView: React.FC = () => {
     const itemObj = orderObj?.items.find(it => it.productId === selectedReturnItem);
     const branchObj = BRANCH_PHYSICAL_SCHEDULES.find(b => b.id === selectedReturnBranch) || BRANCH_PHYSICAL_SCHEDULES[0];
 
+    const targetBranchName = selectedReturnMethod === 'shipping'
+      ? 'Cambio o Retiro por Envío (Starken / Blue Express a Domicilio)'
+      : branchObj.name;
+
     const randomTicketNumber = `DEV-${Math.floor(1000 + Math.random() * 9000)}`;
     const newCase: ReturnRequest = {
       id: `ret_${Date.now()}`,
@@ -852,19 +993,24 @@ export const ProfileView: React.FC = () => {
       productSize: itemObj?.size || 'M',
       productImage: itemObj?.image || INITIAL_PRODUCTS[0]?.images[0],
       reason: selectedReturnReason,
-      returnMethod: 'branch_dropoff',
-      targetBranchId: branchObj.id,
-      targetBranchName: branchObj.name,
+      returnMethod: selectedReturnMethod === 'shipping' ? 'courier_shipping' : 'branch_dropoff',
+      targetBranchId: selectedReturnMethod === 'shipping' ? 'shipping_courier' : branchObj.id,
+      targetBranchName: targetBranchName,
       requestDate: new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }),
       currentStatus: 'Solicitud recibida',
-      notes: selectedReturnNotes.trim() || 'Solicitud generada por el cliente. Esperando evaluación del equipo.'
+      notes: selectedReturnNotes.trim() || 'Solicitud generada por el cliente. Esperando evaluación del equipo.',
+      photos: returnPhotos
     };
 
     setReturnRequests(prev => [newCase, ...prev]);
     setIsNewReturnModalOpen(false);
     setSelectedReturnNotes('');
-    setReturnSuccessMessage(`✓ Solicitud ${randomTicketNumber} ingresada con éxito. Estado: Solicitud recibida.`);
-    setTimeout(() => setReturnSuccessMessage(null), 4000);
+    setReturnPhotos([]);
+    setReturnSuccessMessage(`✓ Solicitud ${randomTicketNumber} ingresada con éxito. Redirigiendo a Devoluciones...`);
+    setTimeout(() => {
+      setReturnSuccessMessage(null);
+      setActiveTab('returns');
+    }, 1200);
   };
 
   /**
@@ -892,6 +1038,48 @@ export const ProfileView: React.FC = () => {
 
   // Lista de órdenes iniciales con los estados obligatorios solicitados
   const initialPurchaseOrders: PurchaseOrder[] = [
+    {
+      id: 'ord_demo_05',
+      orderNumber: 'NL-9550',
+      date: '14 de Octubre 2026',
+      total: 42990,
+      deliveryMethod: 'shipping',
+      courier: 'Blue Express',
+      shippingAddress: 'Av. Álvarez 680, Depto 901, Viña del Mar',
+      currentStatus: 'Entregado',
+      items: [
+        {
+          productId: 'prod_chaqueta_biker_10',
+          title: 'Chaqueta Biker Cyber-Goth Cuero Vegano con Cierres Y2K',
+          size: 'L',
+          color: 'Obsidian Black',
+          quantity: 1,
+          price: 42990,
+          image: INITIAL_PRODUCTS[9]?.images[0] || 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=300'
+        }
+      ]
+    },
+    {
+      id: 'ord_demo_06',
+      orderNumber: 'NL-8320',
+      date: '13 de Octubre 2026',
+      total: 24990,
+      deliveryMethod: 'pickup',
+      branchName: 'Valparaíso',
+      branchId: 'valparaiso',
+      currentStatus: 'Retirado',
+      items: [
+        {
+          productId: 'prod_vintage_tee_03',
+          title: 'Windows XP Glitch 2000 Graphic Tee',
+          size: 'M',
+          color: 'Acid Washed Black',
+          quantity: 1,
+          price: 24990,
+          image: INITIAL_PRODUCTS[2]?.images[0] || 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=300'
+        }
+      ]
+    },
     {
       id: 'ord_demo_01',
       orderNumber: 'NL-8842',
@@ -1015,7 +1203,10 @@ export const ProfileView: React.FC = () => {
               image: it.image || INITIAL_PRODUCTS[0]?.images[0]
             }))
           }));
-          return [...formatted, ...initialPurchaseOrders];
+          const userOnly = formatted.filter(
+            (f: any) => !initialPurchaseOrders.some(init => init.orderNumber === f.orderNumber || init.id === f.id)
+          );
+          return [...userOnly, ...initialPurchaseOrders];
         }
       }
     } catch {
@@ -1677,49 +1868,128 @@ export const ProfileView: React.FC = () => {
                                     </div>
                                   </div>
 
-                                  {/* Botón para Dejar Reseña con Fotos (Solo disponible si el pedido fue Retirado o Entregado) */}
+                                  {/* Botón de Solicitud de Devolución con regla de 7 días */}
                                   <div className="shrink-0 sm:text-right">
-                                    {isReviewed ? (
-                                      <div
-                                        className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 border rounded-xs"
-                                        style={{
-                                          backgroundColor: '#f0fdf4',
-                                          borderColor: '#22c55e',
-                                          color: '#15803d'
-                                        }}
-                                      >
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600 shrink-0" />
-                                        <span>Reseña con fotos enviada (+100 Pts)</span>
-                                      </div>
-                                    ) : isDeliveredOrPickedUp ? (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleOpenReviewModal(item, order.orderNumber)}
-                                        className="winxp-button winxp-button-primary text-xs py-1.5 px-3 font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
-                                        style={{
-                                          backgroundColor: '#fffbeb',
-                                          borderColor: '#f59e0b',
-                                          color: '#92400e'
-                                        }}
-                                        title="Sube fotos reales de esta prenda para acreditar +100 Puntos NoLimits"
-                                      >
-                                        <Camera className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                                        <span className="font-bold text-amber-900">Dejar Reseña con Fotos (+100 Pts)</span>
-                                      </button>
-                                    ) : (
-                                      <div
-                                        className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 border rounded-xs select-none"
-                                        style={{
-                                          backgroundColor: '#f8fafc',
-                                          borderColor: '#cbd5e1',
-                                          color: '#64748b'
-                                        }}
-                                        title="La opción para dejar reseña y ganar +100 puntos se desbloquea una vez entregada o retirada la compra"
-                                      >
-                                        <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                                        <span>Reseña disponible tras entrega o retiro</span>
-                                      </div>
-                                    )}
+                                    {(() => {
+                                      const isDeliveredOrPickedUp =
+                                        order.currentStatus === 'Entregado' || order.currentStatus === 'Retirado';
+                                      const existingReturn = returnRequests.find(
+                                        r => r.orderNumber === order.orderNumber && r.productId === item.productId
+                                      );
+
+                                      // Caso 1: Ya existe una devolución registrada para este producto
+                                      if (existingReturn) {
+                                        const isRejected = existingReturn.currentStatus === 'Rechazada' || !!existingReturn.rejectionReason;
+                                        if (isRejected) {
+                                          return (
+                                            <div className="flex flex-col items-start sm:items-end gap-1">
+                                              <button
+                                                type="button"
+                                                onClick={() => setRejectionModalReturn(existingReturn)}
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 hover:bg-red-200 border border-red-500 text-red-900 rounded-xs text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                                                title="Hacer clic para ver el motivo del rechazo en una ventanita"
+                                              >
+                                                <AlertCircle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                                                <span>Devolución rechazada</span>
+                                                <span className="text-[10px] text-red-700 underline font-semibold ml-0.5">(Ver motivo)</span>
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() => setRejectionModalReturn(existingReturn)}
+                                                className="winxp-button text-[11px] py-0.5 px-2.5 font-bold text-red-800 hover:bg-red-50 border-red-400 flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+                                                title="Ver ventanita con el motivo del rechazo de la devolución"
+                                              >
+                                                <span>Ver motivo del rechazo</span>
+                                                <span className="text-[10px]">🔍</span>
+                                              </button>
+                                            </div>
+                                          );
+                                        }
+
+                                        // Devolución aprobada o en proceso: sólo mostrar que ya se hizo la devolución y que está aprobada, sin el ticket ni el enlace redundante a Devoluciones
+                                        const isApproved = existingReturn.currentStatus === 'Aprobada';
+                                        return (
+                                          <div className="flex flex-col items-start sm:items-end gap-1">
+                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 border border-emerald-500 text-emerald-900 rounded-xs text-xs font-bold shadow-xs">
+                                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                                              <span>Ya se hizo la devolución</span>
+                                            </div>
+                                            <span className="text-[10px] text-emerald-700 font-semibold">
+                                              {isApproved ? 'Devolución Aprobada' : `Estado: ${existingReturn.currentStatus}`}
+                                            </span>
+                                          </div>
+                                        );
+                                      }
+
+                                      // Caso 2: El pedido aún NO ha sido Retirado ni Entregado -> NO se puede devolver
+                                      if (!isDeliveredOrPickedUp) {
+                                        return (
+                                          <div className="flex flex-col items-start sm:items-end gap-1">
+                                            <button
+                                              type="button"
+                                              disabled
+                                              className="winxp-button text-xs py-1.5 px-3 font-medium flex items-center gap-1.5 cursor-not-allowed opacity-60 bg-gray-100 text-gray-500 border-gray-300 select-none"
+                                              title="La solicitud de devolución sólo está disponible cuando la prenda ha sido Entregada o Retirada"
+                                            >
+                                              <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                              <span>Disponible tras entrega o retiro</span>
+                                            </button>
+                                            <span className="text-[10px] text-gray-500 font-medium flex items-center gap-1">
+                                              <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                                              Disponible solo al ser Retirado o Entregado
+                                            </span>
+                                          </div>
+                                        );
+                                      }
+
+                                      // Caso 3: El pedido fue Entregado o Retirado -> se verifica la garantía de 7 días
+                                      const returnEligibility = getReturnEligibility(order.date);
+
+                                      if (returnEligibility.isEligible) {
+                                        return (
+                                          <div className="flex flex-col items-start sm:items-end gap-1">
+                                            <button
+                                              type="button"
+                                              onClick={() => handleOpenDirectReturnModal(order, item)}
+                                              className="winxp-button winxp-button-primary text-xs py-1.5 px-3 font-bold flex items-center gap-1.5 cursor-pointer shadow-xs bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-600"
+                                              title="Iniciar solicitud de cambio o devolución pre-seleccionando esta prenda"
+                                            >
+                                              <RotateCcw className="w-3.5 h-3.5 text-blue-700 shrink-0" />
+                                              <span className="font-bold">Solicitud de Devolución</span>
+                                              <span
+                                                data-force-white
+                                                style={{ color: '#ffffff' }}
+                                                className="bg-blue-700 !text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold ml-1 inline-flex items-center shadow-xs"
+                                              >
+                                                {returnEligibility.daysLeft} {returnEligibility.daysLeft === 1 ? 'día rest.' : 'días rest.'}
+                                              </span>
+                                            </button>
+                                            <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                                              <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                              Garantía de 7 días activa ({returnEligibility.statusLabel})
+                                            </span>
+                                          </div>
+                                        );
+                                      }
+
+                                      return (
+                                        <div className="flex flex-col items-start sm:items-end gap-1">
+                                          <button
+                                            type="button"
+                                            disabled
+                                            className="winxp-button text-xs py-1.5 px-3 font-medium flex items-center gap-1.5 cursor-not-allowed opacity-60 bg-gray-100 text-gray-500 border-gray-300 select-none"
+                                            title="La opción se bloqueó porque han transcurrido más de 7 días desde la compra"
+                                          >
+                                            <Lock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                            <span>Solicitud de Devolución Bloqueada</span>
+                                          </button>
+                                          <span className="text-[10px] text-red-600 font-medium flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3 text-red-500 shrink-0" />
+                                            Plazo de 7 días expirado (+{returnEligibility.daysElapsed} días desde la compra)
+                                          </span>
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
                                 </div>
                               );
@@ -2612,7 +2882,20 @@ export const ProfileView: React.FC = () => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setIsNewReturnModalOpen(true)}
+                    onClick={() => {
+                      const eligibleOrder =
+                        orders.find(
+                          o => (o.currentStatus === 'Entregado' || o.currentStatus === 'Retirado') && o.items.length > 0
+                        ) || orders[0];
+                      if (eligibleOrder && eligibleOrder.items.length > 0) {
+                        setSelectedReturnOrder(eligibleOrder.orderNumber);
+                        setSelectedReturnItem(eligibleOrder.items[0].productId);
+                        setReturnTargetOrder(eligibleOrder);
+                        setReturnTargetItem(eligibleOrder.items[0]);
+                      }
+                      setReturnModalStep('confirm');
+                      setIsNewReturnModalOpen(true);
+                    }}
                     className="winxp-button winxp-button-primary text-xs py-1.5 px-3.5 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto shadow-xs"
                   >
                     <Plus className="w-3.5 h-3.5 text-blue-700" />
@@ -3040,6 +3323,26 @@ export const ProfileView: React.FC = () => {
                             <span className="text-[10px] uppercase font-bold bg-amber-200 text-amber-900 px-2 py-0.5 border border-amber-400 shrink-0">
                               Atención Habilitada
                             </span>
+                          </div>
+                        )}
+
+                        {/* Fotos Adjuntas de Respaldo */}
+                        {ret.photos && ret.photos.length > 0 && (
+                          <div className="p-2 bg-gray-50 border border-gray-200 rounded-xs space-y-1">
+                            <div className="text-[10px] font-bold text-gray-700 flex items-center gap-1">
+                              <Camera className="w-3 h-3 text-blue-700" />
+                              <span>Fotos de respaldo adjuntadas ({ret.photos.length}/6):</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {ret.photos.map((ph, pIdx) => (
+                                <img
+                                  key={pIdx}
+                                  src={ph}
+                                  alt={`Foto respaldo ${pIdx + 1}`}
+                                  className="w-12 h-12 object-cover border border-gray-300 rounded-xs shadow-xs"
+                                />
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -3644,145 +3947,468 @@ export const ProfileView: React.FC = () => {
             <div className="winxp-titlebar flex items-center justify-between px-2 py-1 select-none">
               <div className="winxp-titlebar-title flex items-center gap-1.5 text-xs text-white font-bold">
                 <RotateCcw className="w-3.5 h-3.5 text-yellow-300" />
-                <span>Solicitud_de_Devolucion.exe - [Garantía Oficial NoLimits]</span>
+                <span>
+                  {returnModalStep === 'confirm'
+                    ? 'Solicitud_de_Devolucion.exe - [¿Está seguro?]'
+                    : 'Solicitud_de_Devolucion.exe - [Formulario de Solicitud]'}
+                </span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsNewReturnModalOpen(false)}
-                className="winxp-btn-ctrl winxp-btn-close w-4 h-4 text-[10px] font-bold text-white flex items-center justify-center"
+                className="winxp-btn-ctrl winxp-btn-close w-4 h-4 text-[10px] font-bold text-white flex items-center justify-center cursor-pointer"
               >
                 ×
               </button>
             </div>
 
-            {/* Contenido del Formulario de Devolución */}
-            <form onSubmit={handleCreateReturnSubmit} className="p-4 space-y-3.5 bg-white text-xs text-gray-800">
-              <div className="p-2.5 bg-blue-50 border border-blue-300 text-xs text-blue-950 space-y-1">
-                <div className="font-bold flex items-center gap-1.5">
-                  <RotateCcw className="w-3.5 h-3.5 text-blue-700" />
-                  <span>Flujo de Devolución Oficial en 4 Etapas:</span>
+            {/* PASO 1: PESTAÑA / VISTA "¿ESTÁ SEGURO?" */}
+            {returnModalStep === 'confirm' && (
+              <div className="p-4 space-y-4 bg-white text-xs text-gray-800">
+                <div className="flex items-start gap-3 p-3 bg-amber-50 border-2 border-amber-400 rounded-xs winxp-bevel-in">
+                  <div className="p-2 bg-amber-100 border border-amber-300 rounded-full shrink-0">
+                    <HelpCircle className="w-6 h-6 text-amber-700" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm text-amber-950">
+                      ¿Está seguro que desea solicitar una devolución o cambio?
+                    </h4>
+                    <p className="text-xs text-amber-900 leading-relaxed">
+                      Estás a punto de iniciar una solicitud oficial de devolución o cambio para tu compra. Por favor verifica los detalles de la prenda y las condiciones de garantía antes de continuar.
+                    </p>
+                  </div>
                 </div>
-                <div className="text-[11px] text-gray-600">
-                  Solicitud recibida → Revisión de equipo → Aprobada → Envió a punto/sucursal.
+
+                {/* Previsualización del Producto Seleccionado */}
+                {(() => {
+                  const targetOrder = orders.find(o => o.orderNumber === selectedReturnOrder) || orders[0];
+                  const targetItem = targetOrder?.items.find(i => i.productId === selectedReturnItem) || targetOrder?.items[0];
+                  if (!targetItem) return null;
+
+                  return (
+                    <div className="border border-gray-300 p-3 bg-[#fbfaf5] rounded-xs space-y-2 winxp-bevel-out">
+                      <div className="text-[11px] font-bold text-gray-700 flex items-center justify-between border-b border-gray-200 pb-1">
+                        <span>Prenda sujeta a devolución:</span>
+                        <span className="font-mono text-blue-900 font-bold">Orden #{targetOrder?.orderNumber}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={targetItem.image}
+                          alt={targetItem.title}
+                          className="w-16 h-16 object-cover border border-gray-400 bg-white p-0.5 rounded-xs shrink-0"
+                        />
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <h5 className="font-bold text-gray-900 text-xs truncate">{targetItem.title}</h5>
+                          <div className="text-[11px] text-gray-600 flex flex-wrap gap-2">
+                            <span>Talla: <strong>{targetItem.size}</strong></span>
+                            <span>Color: <strong>{targetItem.color}</strong></span>
+                            <span>Precio: <strong>${targetItem.price.toLocaleString('es-CL')} CLP</strong></span>
+                          </div>
+                          <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                            Garantía válida de 7 días activa
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Condiciones clave */}
+                <div className="p-2.5 bg-blue-50 border border-blue-200 text-blue-950 text-[11px] space-y-1.5">
+                  <div className="font-bold flex items-center gap-1.5 text-blue-900">
+                    <AlertCircle className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Requisitos para que tu solicitud sea aprobada:</span>
+                  </div>
+                  <ul className="list-disc pl-4 space-y-0.5 text-gray-700">
+                    <li>La prenda debe encontrarse sin uso, sin lavar y con etiquetas originales.</li>
+                    <li>Podrás elegir si prefieres cambio físico en sucursal o solicitar el cambio por envío a domicilio.</li>
+                    <li>Podrás redactar observaciones y adjuntar hasta 6 fotos de la prenda.</li>
+                  </ul>
+                </div>
+
+                {/* Botones de Confirmación "¿Está seguro?" */}
+                <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-gray-300">
+                  <button
+                    type="button"
+                    onClick={() => setIsNewReturnModalOpen(false)}
+                    className="winxp-button text-xs py-1.5 px-4 text-gray-800 font-bold flex items-center gap-1.5 cursor-pointer hover:bg-gray-200"
+                  >
+                    <X className="w-3.5 h-3.5 text-red-600" />
+                    <span>Rechazar</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReturnModalStep('form')}
+                    className="winxp-button winxp-button-primary text-xs py-1.5 px-5 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  >
+                    <Check className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Aceptar y Continuar →</span>
+                  </button>
                 </div>
               </div>
+            )}
 
-              {/* Selector de Orden de Compra */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  1. Selecciona la Orden de Compra:
-                </label>
-                <select
-                  required
-                  value={selectedReturnOrder}
-                  onChange={(e) => {
-                    setSelectedReturnOrder(e.target.value);
-                    const selectedO = orders.find(o => o.orderNumber === e.target.value);
-                    if (selectedO && selectedO.items.length > 0) {
-                      setSelectedReturnItem(selectedO.items[0].productId);
-                    }
-                  }}
-                  className="winxp-input w-full text-xs py-1 bg-white"
-                >
-                  <option value="">-- Selecciona una orden de compra --</option>
-                  {orders.map((o) => (
-                    <option key={o.id} value={o.orderNumber}>
-                      Orden #{o.orderNumber} ({o.date}) - Total: ${o.total.toLocaleString('es-CL')} CLP
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* PASO 2: FORMULARIO CON CAMPOS REQUERIDOS */}
+            {returnModalStep === 'form' && (
+              <form onSubmit={handleCreateReturnSubmit} className="p-4 space-y-3.5 bg-white text-xs text-gray-800 max-h-[85vh] overflow-y-auto">
+                {/* Cabecera / Pestaña indicadora */}
+                <div className="flex items-center justify-between pb-2 border-b border-gray-300">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-blue-900 text-white font-bold text-[10px] px-2 py-0.5 rounded-full font-mono">
+                      Paso 2 de 2
+                    </span>
+                    <span className="font-bold text-xs text-blue-950">
+                      Rellena los campos de la Solicitud:
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setReturnModalStep('confirm')}
+                    className="text-[11px] text-blue-700 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                  >
+                    ← Volver a "¿Está seguro?"
+                  </button>
+                </div>
 
-              {/* Selector de Prenda */}
-              {selectedReturnOrder && (
+                {/* Prenda seleccionada */}
+                {selectedReturnOrder && selectedReturnItem && (
+                  <div className="p-2.5 bg-blue-50 border border-blue-300 text-xs text-blue-950 flex items-center justify-between winxp-bevel-in">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-blue-700 shrink-0" />
+                      <div>
+                        <span className="font-bold">Prenda Seleccionada:</span>
+                        <div className="text-[11px] text-blue-900 font-semibold truncate max-w-[280px]">
+                          {orders.find(o => o.orderNumber === selectedReturnOrder)?.items.find(i => i.productId === selectedReturnItem)?.title || 'Prenda seleccionada'}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold bg-blue-700 text-white px-2 py-0.5 rounded-full shrink-0">
+                      Orden #{selectedReturnOrder}
+                    </span>
+                  </div>
+                )}
+
+                {/* 1. Motivo de la Solicitud */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    2. Selecciona la Prenda a Devolver o Cambiar:
+                  <label className="block text-xs font-bold text-gray-800 mb-1">
+                    Motivo de la Solicitud: <span className="text-red-600">*</span>
                   </label>
                   <select
+                    value={selectedReturnReason}
+                    onChange={(e) => setSelectedReturnReason(e.target.value as any)}
+                    className="winxp-input w-full text-xs py-1.5 bg-white font-medium"
                     required
-                    value={selectedReturnItem}
-                    onChange={(e) => setSelectedReturnItem(e.target.value)}
-                    className="winxp-input w-full text-xs py-1 bg-white"
                   >
-                    {orders
-                      .find((o) => o.orderNumber === selectedReturnOrder)
-                      ?.items.map((it) => (
-                        <option key={it.productId} value={it.productId}>
-                          {it.title} (Talla: {it.size} · Color: {it.color})
-                        </option>
-                      ))}
+                    <option value="Cambio de Talla">Cambio de Talla (Ajuste de calce / fit)</option>
+                    <option value="Falla de Fábrica">Falla de Fábrica / Detalle en costura</option>
+                    <option value="Drop Insatisfecho">Drop Insatisfecho (Cambio por otro producto)</option>
+                    <option value="Garantía Legal">Garantía Legal 6 meses (Ley 19.496)</option>
                   </select>
                 </div>
-              )}
 
-              {/* Motivo de la Devolución */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  3. Motivo de la Solicitud:
-                </label>
-                <select
-                  value={selectedReturnReason}
-                  onChange={(e) => setSelectedReturnReason(e.target.value as any)}
-                  className="winxp-input w-full text-xs py-1 bg-white"
-                >
-                  <option value="Cambio de Talla">Cambio de Talla (Ajuste de calce / fit)</option>
-                  <option value="Falla de Fábrica">Falla de Fábrica / Detalle en costura</option>
-                  <option value="Drop Insatisfecho">Drop Insatisfecho (Cambio de modelo)</option>
-                  <option value="Garantía Legal">Garantía Legal 6 meses</option>
-                </select>
+                {/* 2. Sucursal Física para Entrega o Cambio: (en caso de la persona se la cambien en la sucursal o solicite el cambio por envío) */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-800">
+                    Sucursal Física para Entrega o Cambio: <span className="text-red-600">*</span>
+                  </label>
+                  <div className="text-[11px] text-gray-500 mb-1">
+                    Elige si realizarás la entrega/cambio presencial en una sucursal física o solicitas el cambio por envío:
+                  </div>
+
+                  {/* Selector de Modalidad: Sucursal Física vs Envío */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedReturnMethod('branch')}
+                      className={`p-2 border rounded-xs text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                        selectedReturnMethod === 'branch'
+                          ? 'winxp-button-primary bg-blue-100 border-blue-700 text-blue-950 font-bold shadow-xs'
+                          : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <Store className="w-3.5 h-3.5 text-blue-700" />
+                      <span>Sucursal Física (Presencial)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedReturnMethod('shipping')}
+                      className={`p-2 border rounded-xs text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                        selectedReturnMethod === 'shipping'
+                          ? 'winxp-button-primary bg-blue-100 border-blue-700 text-blue-950 font-bold shadow-xs'
+                          : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <Truck className="w-3.5 h-3.5 text-blue-700" />
+                      <span>Cambio por Envío (Courier)</span>
+                    </button>
+                  </div>
+
+                  {/* Desplegable de Sucursales Físicas si se eligió Sucursal */}
+                  {selectedReturnMethod === 'branch' ? (
+                    <div className="p-2.5 bg-blue-50/70 border border-blue-300 rounded-xs space-y-1.5 mt-2">
+                      <label className="block text-[11px] font-bold text-blue-950">
+                        Selecciona la Sucursal Física para Entrega o Cambio:
+                      </label>
+                      <select
+                        value={selectedReturnBranch}
+                        onChange={(e) => setSelectedReturnBranch(e.target.value)}
+                        className="winxp-input w-full text-xs py-1.5 bg-white font-medium"
+                      >
+                        {BRANCH_PHYSICAL_SCHEDULES.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.name} — ({b.city}: {b.address}) · {b.scheduleWeekdays}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="text-[10px] text-gray-600 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-gray-500 shrink-0" />
+                        <span>Podrás acudir directamente una vez aprobada tu solicitud en los horarios informados.</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 bg-amber-50 border border-amber-300 rounded-xs space-y-1 mt-2">
+                      <div className="font-bold text-amber-950 text-xs flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5 text-amber-700" />
+                        <span>Solicitud de Cambio o Devolución por Envío:</span>
+                      </div>
+                      <p className="text-[11px] text-amber-900 leading-relaxed">
+                        Una vez aprobada tu solicitud, te enviaremos una orden de retiro o etiqueta prepagada de courier (Starken / Blue Express) a tu dirección registrada sin costo adicional.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Observaciones adicionales */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 mb-1">
+                    . Observaciones adicionales:
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={selectedReturnNotes}
+                    onChange={(e) => setSelectedReturnNotes(e.target.value)}
+                    placeholder="Escribe la razón de la devolución, descripción de motivos o talla requerida..."
+                    className="winxp-input w-full text-xs p-2 resize-none font-sans"
+                  />
+                  <div className="text-[10px] text-gray-500 mt-0.5">
+                    Describe la razón de la devolución para agilizar la revisión del equipo NoLimits.
+                  </div>
+                </div>
+
+                {/* 4. Fotos de Respaldo (Máximo 6 Fotos) */}
+                <div className="space-y-2 pt-1 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                      <Camera className="w-3.5 h-3.5 text-blue-700" />
+                      <span>Subir Fotos de Respaldo (Máximo 6 fotos):</span>
+                    </label>
+                    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full ${
+                      returnPhotos.length >= 6 ? 'bg-amber-600 text-white' : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      {returnPhotos.length} / 6 fotos máximo
+                    </span>
+                  </div>
+
+                  {/* Botones de Carga */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className={`winxp-button text-xs py-1 px-3 flex items-center gap-1.5 ${
+                      returnPhotos.length >= 6 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'
+                    }`}>
+                      <Upload className="w-3.5 h-3.5 text-blue-700" />
+                      <span>Examinar equipo...</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        disabled={returnPhotos.length >= 6}
+                        onChange={handleReturnPhotoUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      disabled={returnPhotos.length >= 6}
+                      onClick={handleAddSampleReturnPhoto}
+                      className="winxp-button text-xs py-1 px-3 flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 text-blue-900"
+                      title="Agregar una foto de muestra rápida para probar"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-blue-700" />
+                      <span>+ Foto de muestra rápida</span>
+                    </button>
+
+                    {returnPhotos.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setReturnPhotos([])}
+                        className="text-[11px] text-red-600 hover:underline font-semibold ml-auto cursor-pointer"
+                      >
+                        Limpiar fotos
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Grid de Fotos Subidas (Hasta 6) */}
+                  {returnPhotos.length > 0 && (
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-1">
+                      {returnPhotos.map((photo, idx) => (
+                        <div
+                          key={idx}
+                          className="relative aspect-square border-2 border-gray-400 bg-black/5 overflow-hidden rounded-xs group winxp-bevel-out"
+                        >
+                          <img
+                            src={photo}
+                            alt={`Foto devolución ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveReturnPhoto(idx)}
+                            className="absolute top-0.5 right-0.5 bg-red-600 hover:bg-red-700 text-white w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center shadow-xs cursor-pointer"
+                            title="Eliminar foto"
+                          >
+                            ×
+                          </button>
+                          <span className="absolute bottom-0.5 left-0.5 bg-black/70 text-white text-[9px] font-mono px-1 rounded-xs">
+                            #{idx + 1}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-[10px] text-gray-500 italic">
+                    Puedes adjuntar fotos de la prenda completa, etiquetas y cualquier detalle o defecto (máx 6 fotos).
+                  </p>
+                </div>
+
+                {/* Botones de Acción del Formulario */}
+                <div className="pt-3 flex items-center justify-between border-t border-gray-300">
+                  <button
+                    type="button"
+                    onClick={() => setReturnModalStep('confirm')}
+                    className="winxp-button text-xs py-1.5 px-3.5 text-gray-800 font-bold flex items-center gap-1.5 cursor-pointer hover:bg-gray-200"
+                  >
+                    <X className="w-3.5 h-3.5 text-red-600" />
+                    <span>Rechazar / Volver</span>
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="winxp-button winxp-button-primary text-xs py-1.5 px-5 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  >
+                    <Check className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Ingresar Solicitud de Devolución</span>
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+      {/* =========================================================================
+          VENTANITA MODAL CON EL MOTIVO DEL RECHAZO DE LA DEVOLUCIÓN
+          ========================================================================= */}
+      {rejectionModalReturn && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 animate-in fade-in">
+          <div className="w-full max-w-md bg-[#ece9d8] border-2 border-red-900 shadow-2xl winxp-bevel-out">
+            {/* Barra de Título Windows XP en tono de Advertencia/Error */}
+            <div
+              style={{
+                background: 'linear-gradient(180deg, #dc2626 0%, #b91c1c 45%, #991b1b 50%, #7f1d1d 100%)'
+              }}
+              className="winxp-titlebar flex items-center justify-between px-2 py-1 select-none text-white"
+            >
+              <div className="winxp-titlebar-title flex items-center gap-1.5 text-xs text-white font-bold">
+                <AlertCircle className="w-3.5 h-3.5 text-yellow-300" />
+                <span>Motivo_Rechazo_Devolucion.exe - [Ticket #{rejectionModalReturn.ticketNumber}]</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRejectionModalReturn(null)}
+                className="winxp-btn-ctrl winxp-btn-close w-4 h-4 text-[10px] font-bold text-white flex items-center justify-center cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Contenido de la Ventanita con Motivo Oficial */}
+            <div className="p-4 space-y-3.5 bg-white text-xs text-gray-800">
+              {/* Alerta Destacada */}
+              <div className="p-3 bg-red-50 border-2 border-red-400 rounded-xs flex items-start gap-3 winxp-bevel-in">
+                <div className="p-1.5 bg-red-100 border border-red-300 rounded-full shrink-0">
+                  <X className="w-5 h-5 text-red-600 stroke-[3]" />
+                </div>
+                <div>
+                  <div className="font-bold text-red-950 text-xs uppercase tracking-wide">
+                    Dictamen Oficial: Devolución Rechazada
+                  </div>
+                  <div className="text-[11px] text-red-900 mt-0.5">
+                    Ticket: <strong>#{rejectionModalReturn.ticketNumber}</strong> · Orden #{rejectionModalReturn.orderNumber}
+                  </div>
+                  {rejectionModalReturn.rejectionDate && (
+                    <div className="text-[10px] text-gray-500 font-mono mt-0.5">
+                      Fecha de dictamen: {rejectionModalReturn.rejectionDate}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Sucursal Destino para Entrega / Retiro Presencial */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  4. Sucursal Física para Entrega o Cambio:
-                </label>
-                <select
-                  value={selectedReturnBranch}
-                  onChange={(e) => setSelectedReturnBranch(e.target.value)}
-                  className="winxp-input w-full text-xs py-1 bg-white"
-                >
-                  {BRANCH_PHYSICAL_SCHEDULES.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.city} - {b.scheduleWeekdays})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Notas y Talla Solicitada */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  5. Observaciones adicionales o Talla Deseada:
-                </label>
-                <textarea
-                  rows={2}
-                  value={selectedReturnNotes}
-                  onChange={(e) => setSelectedReturnNotes(e.target.value)}
-                  placeholder="Ej. Solicito cambio por talla L, la prenda está nueva con su etiqueta original..."
-                  className="winxp-input w-full text-xs py-1 resize-none"
+              {/* Prenda Involucrada */}
+              <div className="flex items-center gap-3 p-2 bg-[#f8fafc] border border-gray-300 rounded-xs winxp-bevel-out">
+                <img
+                  src={rejectionModalReturn.productImage}
+                  alt={rejectionModalReturn.productTitle}
+                  className="w-12 h-12 object-cover border border-gray-400 rounded-xs shrink-0"
                 />
+                <div className="min-w-0 flex-1">
+                  <h5 className="font-bold text-xs text-gray-900 truncate">
+                    {rejectionModalReturn.productTitle}
+                  </h5>
+                  <div className="text-[11px] text-gray-600">
+                    Talla: <strong>{rejectionModalReturn.productSize}</strong> · Motivo indicado:{' '}
+                    <strong>{rejectionModalReturn.reason}</strong>
+                  </div>
+                </div>
               </div>
 
-              {/* Botones de Acción */}
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-300">
+              {/* Motivo del Rechazo escrito por el Administrador */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-red-950 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 text-red-600" />
+                  <span>Motivo y Justificación del Rechazo:</span>
+                </label>
+                <div className="p-3 bg-red-50/70 border border-red-300 rounded-xs text-gray-800 text-xs leading-relaxed italic winxp-bevel-in shadow-inner">
+                  "{rejectionModalReturn.rejectionReason ||
+                    'La pieza presenta manipulación forzada y signos evidentes de impacto exterior posterior a la entrega. El sello holográfico de autenticidad del drop fue removido. De acuerdo al Artículo 21 de la Ley 19.496 y la política NoLimits OS, la garantía legal cubre exclusivamente fallas de fábrica preexistentes.'}"
+                </div>
+                {rejectionModalReturn.adminInspector && (
+                  <div className="text-[10px] text-gray-500 font-mono text-right">
+                    Inspeccionado por: <strong>{rejectionModalReturn.adminInspector}</strong>
+                  </div>
+                )}
+              </div>
+
+              {/* Protocolo de Garantía */}
+              <div className="p-2.5 bg-gray-50 border border-gray-300 rounded-xs text-[11px] text-gray-600 space-y-1">
+                <div className="font-bold text-gray-800">Política de Garantía y Ley del Consumidor:</div>
+                <p>
+                  Las devoluciones aplican exclusivamente para prendas sin uso con sus etiquetas y sellos originales intactos, o fallas de confección preexistentes.
+                </p>
+              </div>
+
+              {/* Botón de Cierre */}
+              <div className="pt-2 flex items-center justify-end border-t border-gray-300">
                 <button
                   type="button"
-                  onClick={() => setIsNewReturnModalOpen(false)}
-                  className="winxp-button text-xs py-1 px-3 text-gray-700 cursor-pointer"
+                  onClick={() => setRejectionModalReturn(null)}
+                  className="winxp-button winxp-button-primary text-xs py-1.5 px-5 font-bold text-blue-900 cursor-pointer shadow-sm"
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="winxp-button winxp-button-primary text-xs py-1 px-4 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer shadow-sm"
-                >
-                  <Check className="w-3.5 h-3.5 text-blue-700" />
-                  <span>Ingresar Solicitud de Devolución</span>
+                  Entendido / Cerrar Ventana
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
