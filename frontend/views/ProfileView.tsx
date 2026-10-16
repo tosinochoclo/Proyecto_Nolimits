@@ -1356,35 +1356,55 @@ export const ProfileView: React.FC = () => {
   };
 
   /**
-   * Adjuntar foto de prueba rápida con 1 clic
+   * Manejador del título de la reseña: máximo 100 caracteres y sin saltos de línea
    */
-  const handleAddSampleStreetwearPhoto = () => {
-    const samplePhotos = [
-      'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=500&auto=format&fit=crop&q=80'
-    ];
-    const nextPhoto = samplePhotos[reviewPhotos.length % samplePhotos.length];
-    setReviewPhotos(prev => [...prev, nextPhoto]);
+  const handleReviewTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const clean = e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 100);
+    setReviewTitle(clean);
   };
 
   /**
-   * Subir foto desde explorador de archivos local
+   * Manejador del comentario: máximo 600 caracteres y sin saltos de línea
+   */
+  const handleReviewCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const clean = e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 600);
+    setReviewComment(clean);
+  };
+
+  /**
+   * Subir foto desde explorador de archivos local (máximo 10 fotos en total)
    */
   const handlePhotoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    const remainingSlots = 10 - reviewPhotos.length;
+    if (remainingSlots <= 0) {
+      alert('Has alcanzado el límite máximo de 10 imágenes para tu reseña.');
+      e.target.value = '';
+      return;
+    }
+
+    const filesArray = Array.from(files);
+    if (filesArray.length > remainingSlots) {
+      alert(`Has seleccionado ${filesArray.length} fotos, pero solo puedes adjuntar hasta 10 en total. Se cargarán las primeras ${remainingSlots} imagen(es).`);
+    }
+
+    const filesToLoad = filesArray.slice(0, remainingSlots);
+    filesToLoad.forEach(file => {
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          setReviewPhotos(prev => [...prev, event.target!.result as string]);
+          setReviewPhotos(prev => {
+            if (prev.length >= 10) return prev;
+            return [...prev, event.target!.result as string];
+          });
         }
       };
       reader.readAsDataURL(file);
-    }
+    });
+
+    e.target.value = '';
   };
 
   /**
@@ -3944,42 +3964,66 @@ export const ProfileView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Título de la Reseña */}
+                  {/* Título de la Reseña (Máximo 100 caracteres, sin saltos de línea) */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Título de la Reseña:
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-bold text-gray-700">
+                        Título de la Reseña: <span className="text-red-600">*</span>
+                      </label>
+                      <span className={`text-[10px] font-mono ${reviewTitle.length >= 100 ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                        {reviewTitle.length}/100 caracteres
+                      </span>
+                    </div>
                     <input
                       type="text"
                       required
+                      maxLength={100}
                       value={reviewTitle}
-                      onChange={(e) => setReviewTitle(e.target.value)}
-                      placeholder="Ej. Excelente confección y detalles Y2K nítidos"
+                      onChange={handleReviewTitleChange}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') e.preventDefault();
+                      }}
+                      placeholder="Ej. Excelente confección y detalles Y2K nítidos (máx. 100 caracteres)"
                       className="winxp-input w-full text-xs py-1"
                     />
+                    <div className="text-[10px] text-gray-500 mt-0.5">
+                      Máximo 100 caracteres continuos sin saltos de línea.
+                    </div>
                   </div>
 
-                  {/* Comentario */}
+                  {/* Comentario (Máximo 600 caracteres, sin saltos de línea) */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Comentario sobre el Calce y Experiencia:
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-bold text-gray-700">
+                        Comentario sobre el Calce y Experiencia: <span className="text-red-600">*</span>
+                      </label>
+                      <span className={`text-[10px] font-mono ${reviewComment.length >= 600 ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                        {reviewComment.length}/600 caracteres
+                      </span>
+                    </div>
                     <textarea
                       required
                       rows={3}
+                      maxLength={600}
                       value={reviewComment}
-                      onChange={(e) => setReviewComment(e.target.value)}
-                      placeholder="Cuéntanos cómo te queda la talla, cómo se siente la tela y cómo combina con tu estilo..."
-                      className="winxp-input w-full text-xs py-1 resize-none"
+                      onChange={handleReviewCommentChange}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') e.preventDefault();
+                      }}
+                      placeholder="Cuéntanos cómo te queda la talla, cómo se siente la tela y cómo combina con tu estilo (máximo 600 caracteres continuos, sin saltos de línea)..."
+                      className="winxp-input w-full text-xs py-1.5 resize-none leading-relaxed"
                     />
+                    <div className="text-[10px] text-gray-500 mt-0.5">
+                      Máximo 600 caracteres (no se permiten saltos de línea).
+                    </div>
                   </div>
 
-                  {/* Subida de Fotos Reales (Requisito para los 100 Puntos) */}
+                  {/* Subida de Fotos Reales (Límite máximo de 10 Fotos) */}
                   <div className="p-2.5 bg-[#f8fafc] border border-gray-300 space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
                         <Camera className="w-3.5 h-3.5 text-blue-700" />
-                        <span>Subir Fotos Reales (Obligatorio para los +100 Pts):</span>
+                        <span>Subir Fotos Reales (Límite: 10 fotos máximo):</span>
                       </label>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 border rounded-xs ${
@@ -3989,33 +4033,39 @@ export const ProfileView: React.FC = () => {
                         }`}
                       >
                         {reviewPhotos.length > 0
-                          ? `✓ Bono +100 Pts Activado (${reviewPhotos.length} fotos)`
-                          : '⚠️ Sin fotos = solo +20 pts'}
+                          ? `✓ Bono +100 Pts Activado (${reviewPhotos.length}/10 fotos)`
+                          : '⚠️ Sin fotos = solo +20 pts (0/10 fotos)'}
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <label className="winxp-button text-xs py-1 px-3 cursor-pointer flex items-center gap-1.5 font-bold text-gray-800">
+                    <div className="flex items-center gap-2">
+                      <label
+                        className={`winxp-button text-xs py-1 px-3 flex items-center gap-1.5 font-bold text-gray-800 ${
+                          reviewPhotos.length >= 10
+                            ? 'opacity-50 cursor-not-allowed bg-gray-200'
+                            : 'cursor-pointer hover:bg-gray-100'
+                        }`}
+                      >
                         <Upload className="w-3.5 h-3.5 text-blue-700" />
-                        <span>Seleccionar Foto Local</span>
+                        <span>
+                          {reviewPhotos.length >= 10
+                            ? 'Límite alcanzado (10 fotos)'
+                            : 'Seleccionar Foto Local'}
+                        </span>
                         <input
                           type="file"
                           accept="image/*"
                           multiple
+                          disabled={reviewPhotos.length >= 10}
                           onChange={handlePhotoFileUpload}
                           className="hidden"
                         />
                       </label>
-
-                      <button
-                        type="button"
-                        onClick={handleAddSampleStreetwearPhoto}
-                        className="winxp-button text-xs py-1 px-3 text-purple-900 font-bold flex items-center gap-1 cursor-pointer bg-purple-50 hover:bg-purple-100"
-                        title="Adjunta foto real demostrativa para probar el sistema de puntos de inmediato"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-purple-700" />
-                        <span>Adjuntar Foto de Muestra</span>
-                      </button>
+                      <span className="text-[11px] text-gray-500 font-medium">
+                        {reviewPhotos.length >= 10
+                          ? 'Has alcanzado el límite máximo de 10 imágenes.'
+                          : `Límite: ${reviewPhotos.length}/10 fotos (puedes subir ${10 - reviewPhotos.length} más).`}
+                      </span>
                     </div>
 
                     {/* Previsualización de Fotos Adjuntadas */}

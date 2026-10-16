@@ -177,24 +177,36 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
     return true;
   });
 
-  // Manejo de carga de archivos reales del cliente (conversión a base64 Data URL)
+  // Manejo de carga de archivos reales del cliente (máximo 10 fotos)
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+
+    const remainingSlots = 10 - uploadedPhotos.length;
+    if (remainingSlots <= 0) {
+      alert('Has alcanzado el límite máximo permitido de 10 fotografías.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const filesArray = Array.from(files).slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      alert(`Solo puedes adjuntar hasta 10 fotos en total. Se cargarán las primeras ${remainingSlots} imagen(es).`);
+    }
 
     setIsUploading(true);
     const newPhotosArray: string[] = [];
     let filesProcessed = 0;
 
-    Array.from(files).forEach((file) => {
+    filesArray.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
           newPhotosArray.push(event.target.result as string);
         }
         filesProcessed += 1;
-        if (filesProcessed === files.length) {
-          setUploadedPhotos((prev) => [...prev, ...newPhotosArray]);
+        if (filesProcessed === filesArray.length) {
+          setUploadedPhotos((prev) => [...prev, ...newPhotosArray].slice(0, 10));
           setIsUploading(false);
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -346,7 +358,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                     }`}
                   >
                     <span>
-                      {filterKey === 'all' ? 'Todas las Valoraciones' : `${filterKey} estrella`}
+                      {filterKey === 'all' ? 'All ratings' : `${filterKey} estrella`}
                     </span>
                     {filterKey !== 'all' && (
                       <span className="text-[10px] text-gray-400">
@@ -498,17 +510,23 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
 
               {/* Título de la reseña */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-800 block">
-                  Título de la Opinión:
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-800 block">
+                    Título de la Opinión:
+                  </label>
+                  <span className={`text-[10px] font-mono ${newTitle.length >= 100 ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                    {newTitle.length}/100 caracteres
+                  </span>
+                </div>
                 <input
                   type="text"
+                  maxLength={100}
                   value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value.replace(/[\r\n]+/g, ' '))}
+                  onChange={(e) => setNewTitle(e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 100))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') e.preventDefault();
                   }}
-                  placeholder="Ej. Calce perfecto y excelente peso del algodón"
+                  placeholder="Ej. Calce perfecto y excelente peso del algodón (máx. 100 caracteres)"
                   className="winxp-input w-full text-xs py-1 px-2"
                   required
                 />
