@@ -34,7 +34,6 @@ import {
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
-import { useCart } from '../context/CartContext';
 import { PixelIcon } from '../components/common/PixelIcon';
 import { INITIAL_PRODUCTS } from '../services/mockData';
 import { Link } from 'react-router-dom';
@@ -69,7 +68,7 @@ export interface ReturnRequest {
   productTitle: string;
   productSize: string;
   productImage: string;
-  reason: 'Cambio de Talla' | 'Falla de Fábrica' | 'Drop Insatisfecho' | 'Garantía Legal';
+  reason: 'Cambio de Talla' | 'Falla de Fábrica' | 'Drop Insatisfecho' | 'Garantía Legal' | 'Otros...';
   requestedSize?: string;
   returnMethod: 'branch_dropoff' | 'courier_shipping';
   targetBranchId: string;
@@ -284,7 +283,6 @@ export const PRESET_AVATARS = [
 export const ProfileView: React.FC = () => {
   const { currentUser, logout, updateProfile, addLoyaltyPoints, deductLoyaltyPoints } = useAuth();
   const { wishlist, removeFromWishlist, wishlistCount } = useWishlist();
-  const { addToCart } = useCart();
 
   // Helper para formatear RUT con puntos y guion automáticos (ej: 19.876.543-2)
   const formatRutWithDotsAndDash = (raw: string): string => {
@@ -480,7 +478,8 @@ export const ProfileView: React.FC = () => {
   >('orders');
 
   // Filtro para el historial de compras
-  const [ordersFilter, setOrdersFilter] = useState<'all' | 'in_progress' | 'pickup' | 'delivered'>('all');
+  const [ordersFilter, setOrdersFilter] = useState<'all' | 'solicitud' | 'preparation_transit' | 'pickup' | 'delivered'>('all');
+  const [ordersSort, setOrdersSort] = useState<'newest' | 'oldest'>('newest');
 
   // Modal para dejar reseña con fotos
   const [reviewModalProduct, setReviewModalProduct] = useState<{
@@ -829,9 +828,10 @@ export const ProfileView: React.FC = () => {
 
   const [returnSuccessMessage, setReturnSuccessMessage] = useState<string | null>(null);
   const [isNewReturnModalOpen, setIsNewReturnModalOpen] = useState(false);
-  const [returnModalStep, setReturnModalStep] = useState<'confirm' | 'form'>('confirm');
+  const [returnModalStep, setReturnModalStep] = useState<'select_product' | 'confirm' | 'form'>('confirm');
   const [selectedReturnOrder, setSelectedReturnOrder] = useState<string>('');
   const [selectedReturnItem, setSelectedReturnItem] = useState<string>('');
+  const [selectedReturnItems, setSelectedReturnItems] = useState<string[]>([]);
   const [selectedReturnReason, setSelectedReturnReason] = useState<ReturnRequest['reason']>('Cambio de Talla');
   const [selectedReturnMethod, setSelectedReturnMethod] = useState<'branch' | 'shipping'>('branch');
   const [selectedReturnBranch, setSelectedReturnBranch] = useState<string>('vina_del_mar');
@@ -899,6 +899,46 @@ export const ProfileView: React.FC = () => {
   };
 
   /**
+   * Abrir modal de devolución desde la cabecera de la orden.
+   * Si la orden tiene más de 1 producto, primero se abre la vista de selección de productos ('select_product')
+   * permitiendo seleccionar una, varias o todas las prendas.
+   * Luego pasa a la advertencia de "¿Está seguro?" ('confirm').
+   * Si la orden tiene sólo 1 producto, salta directamente a la advertencia "¿Está seguro?" ('confirm').
+   */
+  const handleOpenOrderReturn = (order: PurchaseOrder) => {
+    setSelectedReturnOrder(order.orderNumber);
+    setReturnTargetOrder(order);
+    setSelectedReturnReason('Cambio de Talla');
+    setSelectedReturnMethod(order.deliveryMethod === 'shipping' ? 'shipping' : 'branch');
+    setSelectedReturnBranch(order.branchId || 'vina_del_mar');
+    setSelectedReturnNotes('');
+    setReturnPhotos([]);
+
+    // Prendas elegibles que no hayan sido aprobadas previamente
+    const eligibleItems = order.items.filter(i => {
+      const ret = returnRequests.find(r => r.orderNumber === order.orderNumber && r.productId === i.productId);
+      return !ret || ret.currentStatus === 'Rechazada';
+    });
+
+    if (order.items.length > 1) {
+      // Orden con más de 1 producto: pre-seleccionar la primera prenda pero permitir marcar varias o todas
+      const firstEligible = eligibleItems[0] || order.items[0];
+      setSelectedReturnItem(firstEligible.productId);
+      setSelectedReturnItems([firstEligible.productId]);
+      setReturnTargetItem(firstEligible);
+      setReturnModalStep('select_product');
+    } else {
+      // 1 solo producto: salta directamente a "¿Está seguro?"
+      const single = order.items[0];
+      setSelectedReturnItem(single.productId);
+      setSelectedReturnItems([single.productId]);
+      setReturnTargetItem(single);
+      setReturnModalStep('confirm');
+    }
+    setIsNewReturnModalOpen(true);
+  };
+
+  /**
    * Abrir modal de devolución iniciando con la pestaña "¿Está seguro?" y pre-seleccionando orden y prenda
    */
   const handleOpenDirectReturnModal = (
@@ -907,6 +947,7 @@ export const ProfileView: React.FC = () => {
   ) => {
     setSelectedReturnOrder(order.orderNumber);
     setSelectedReturnItem(item.productId);
+    setSelectedReturnItems([item.productId]);
     setSelectedReturnReason('Cambio de Talla');
     setSelectedReturnMethod(order.deliveryMethod === 'shipping' ? 'shipping' : 'branch');
     setSelectedReturnBranch(order.branchId || 'vina_del_mar');
@@ -919,15 +960,15 @@ export const ProfileView: React.FC = () => {
   };
 
   /**
-   * Subida de hasta 6 fotos para la devolución
+   * Subida de hasta 10 fotos para la devolución
    */
   const handleReturnPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    const remainingSlots = 6 - returnPhotos.length;
+    const remainingSlots = 10 - returnPhotos.length;
     if (remainingSlots <= 0) {
-      alert('Has alcanzado el límite máximo permitido de 6 fotos.');
+      alert('Has alcanzado el límite máximo permitido de 10 fotos.');
       return;
     }
 
@@ -937,7 +978,7 @@ export const ProfileView: React.FC = () => {
       reader.onload = (event) => {
         if (event.target?.result) {
           setReturnPhotos(prev => {
-            if (prev.length >= 6) return prev;
+            if (prev.length >= 10) return prev;
             return [...prev, event.target!.result as string];
           });
         }
@@ -951,37 +992,20 @@ export const ProfileView: React.FC = () => {
   };
 
   /**
-   * Agregar foto de muestra rápida para devolución (máximo 6 fotos)
-   */
-  const handleAddSampleReturnPhoto = () => {
-    if (returnPhotos.length >= 6) {
-      alert('Has alcanzado el límite máximo permitido de 6 fotos.');
-      return;
-    }
-    const sampleReturnPhotos = [
-      'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=500&auto=format&fit=crop&q=80'
-    ];
-    const nextPhoto = sampleReturnPhotos[returnPhotos.length % sampleReturnPhotos.length];
-    setReturnPhotos(prev => [...prev, nextPhoto]);
-  };
-
-  /**
-   * Crear nueva solicitud de devolución
+   * Crear nueva solicitud de devolución para una o varias prendas seleccionadas
    */
   const handleCreateReturnSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedReturnOrder || !selectedReturnItem) {
-      alert('Por favor selecciona la compra y la prenda que deseas devolver.');
+    const itemsToReturn = selectedReturnItems.length > 0
+      ? selectedReturnItems
+      : selectedReturnItem ? [selectedReturnItem] : [];
+
+    if (!selectedReturnOrder || itemsToReturn.length === 0) {
+      alert('Por favor selecciona al menos una prenda que deseas devolver.');
       return;
     }
 
     const orderObj = orders.find(o => o.orderNumber === selectedReturnOrder);
-    const itemObj = orderObj?.items.find(it => it.productId === selectedReturnItem);
     const branchObj = BRANCH_PHYSICAL_SCHEDULES.find(b => b.id === selectedReturnBranch) || BRANCH_PHYSICAL_SCHEDULES[0];
 
     const targetBranchName = selectedReturnMethod === 'shipping'
@@ -989,29 +1013,38 @@ export const ProfileView: React.FC = () => {
       : branchObj.name;
 
     const randomTicketNumber = `DEV-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newCase: ReturnRequest = {
-      id: `ret_${Date.now()}`,
-      ticketNumber: randomTicketNumber,
-      orderNumber: selectedReturnOrder,
-      productId: selectedReturnItem,
-      productTitle: itemObj?.title || 'Prenda NoLimits Drop',
-      productSize: itemObj?.size || 'M',
-      productImage: itemObj?.image || INITIAL_PRODUCTS[0]?.images[0],
-      reason: selectedReturnReason,
-      returnMethod: selectedReturnMethod === 'shipping' ? 'courier_shipping' : 'branch_dropoff',
-      targetBranchId: selectedReturnMethod === 'shipping' ? 'shipping_courier' : branchObj.id,
-      targetBranchName: targetBranchName,
-      requestDate: new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }),
-      currentStatus: 'Solicitud recibida',
-      notes: selectedReturnNotes.trim() || 'Solicitud generada por el cliente. Esperando evaluación del equipo.',
-      photos: returnPhotos
-    };
 
-    setReturnRequests(prev => [newCase, ...prev]);
+    const newCases: ReturnRequest[] = itemsToReturn.map((prodId, idx) => {
+      const itemObj = orderObj?.items.find(it => it.productId === prodId);
+      return {
+        id: `ret_${Date.now()}_${idx}`,
+        ticketNumber: itemsToReturn.length > 1 ? `${randomTicketNumber}-${idx + 1}` : randomTicketNumber,
+        orderNumber: selectedReturnOrder,
+        productId: prodId,
+        productTitle: itemObj?.title || 'Prenda NoLimits Drop',
+        productSize: itemObj?.size || 'M',
+        productImage: itemObj?.image || INITIAL_PRODUCTS[0]?.images[0],
+        reason: selectedReturnReason,
+        returnMethod: selectedReturnMethod === 'shipping' ? 'courier_shipping' : 'branch_dropoff',
+        targetBranchId: selectedReturnMethod === 'shipping' ? 'shipping_courier' : branchObj.id,
+        targetBranchName: targetBranchName,
+        requestDate: new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }),
+        currentStatus: 'Solicitud recibida',
+        notes: selectedReturnNotes.trim() || 'Solicitud generada por el cliente. Esperando evaluación del equipo.',
+        photos: returnPhotos
+      };
+    });
+
+    setReturnRequests(prev => [...newCases, ...prev]);
     setIsNewReturnModalOpen(false);
     setSelectedReturnNotes('');
     setReturnPhotos([]);
-    setReturnSuccessMessage(`✓ Solicitud ${randomTicketNumber} ingresada con éxito. Redirigiendo a Devoluciones...`);
+    setSelectedReturnItems([]);
+    setReturnSuccessMessage(
+      itemsToReturn.length > 1
+        ? `✓ Solicitud ${randomTicketNumber} (${itemsToReturn.length} prendas) ingresada con éxito. Redirigiendo a Devoluciones...`
+        : `✓ Solicitud ${randomTicketNumber} ingresada con éxito. Redirigiendo a Devoluciones...`
+    );
     setTimeout(() => {
       setReturnSuccessMessage(null);
       setActiveTab('returns');
@@ -1043,6 +1076,45 @@ export const ProfileView: React.FC = () => {
 
   // Lista de órdenes iniciales con los estados obligatorios solicitados
   const initialPurchaseOrders: PurchaseOrder[] = [
+    {
+      id: 'ord_demo_07',
+      orderNumber: 'NL-9870',
+      date: '15 de Octubre 2026',
+      total: 93970,
+      deliveryMethod: 'shipping',
+      courier: 'Starken',
+      shippingAddress: 'Calle Quillota 450, Depto 302, Viña del Mar',
+      currentStatus: 'Entregado',
+      items: [
+        {
+          productId: 'prod_cyber_hoodie_01',
+          title: 'Cyber-Tribal Overkill Zip Hoodie',
+          size: 'M',
+          color: 'Void Black',
+          quantity: 1,
+          price: 38990,
+          image: INITIAL_PRODUCTS[0]?.images[0] || 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=300'
+        },
+        {
+          productId: 'prod_gothic_cargo_02',
+          title: 'Gothic Parachute Multipocket Cargo',
+          size: 'L',
+          color: 'Shadow Grey',
+          quantity: 1,
+          price: 35990,
+          image: INITIAL_PRODUCTS[1]?.images[0] || 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=300'
+        },
+        {
+          productId: 'prod_collar_chain_04',
+          title: 'Cybernetic Chrome Spiked Collar & Chain',
+          size: 'Talla estándar',
+          color: 'Chrome Silver',
+          quantity: 1,
+          price: 18990,
+          image: INITIAL_PRODUCTS[3]?.images[0] || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300'
+        }
+      ]
+    },
     {
       id: 'ord_demo_05',
       orderNumber: 'NL-9550',
@@ -1175,6 +1247,48 @@ export const ProfileView: React.FC = () => {
           quantity: 1,
           price: 31990,
           image: INITIAL_PRODUCTS[4]?.images[0] || 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=300'
+        }
+      ]
+    },
+    {
+      id: 'ord_demo_08',
+      orderNumber: 'NL-9940',
+      date: '16 de Octubre 2026',
+      total: 32990,
+      deliveryMethod: 'shipping',
+      courier: 'Starken',
+      shippingAddress: 'Av. Libertad 1250, Depto 402, Viña del Mar',
+      currentStatus: 'Solicitud recibida',
+      items: [
+        {
+          productId: 'prod_cartera_holographic_05',
+          title: 'Cartera Y2K Holographic Cyber Mirror',
+          size: 'Talla estándar',
+          color: 'Liquid Silver',
+          quantity: 1,
+          price: 32990,
+          image: INITIAL_PRODUCTS[4]?.images[0] || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300'
+        }
+      ]
+    },
+    {
+      id: 'ord_demo_09',
+      orderNumber: 'NL-9350',
+      date: '15 de Octubre 2026',
+      total: 18990,
+      deliveryMethod: 'shipping',
+      courier: 'Blue Express',
+      shippingAddress: 'Calle Quillota 450, Depto 302, Viña del Mar',
+      currentStatus: 'En transito',
+      items: [
+        {
+          productId: 'prod_metal_choker_04',
+          title: 'Cybernetic Chrome Spiked Collar & Chain',
+          size: 'Talla estándar',
+          color: 'Chrome Silver',
+          quantity: 1,
+          price: 18990,
+          image: INITIAL_PRODUCTS[3]?.images[0] || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300'
         }
       ]
     }
@@ -1479,19 +1593,55 @@ export const ProfileView: React.FC = () => {
     }, 800);
   };
 
-  // Filtrado de compras
-  const filteredOrders = orders.filter(o => {
-    if (ordersFilter === 'in_progress') {
-      return o.currentStatus !== 'Entregado' && o.currentStatus !== 'Retirado';
+  // Helper para convertir fechas en español a timestamp para ordenamiento cronológico
+  const parseOrderDate = (orderDateStr: string): number => {
+    if (!orderDateStr) return 0;
+    if (orderDateStr.toLowerCase().includes('reciente')) return Date.now();
+    const spanishMonths: Record<string, number> = {
+      enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+      julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11
+    };
+    const match = orderDateStr.toLowerCase().match(/(\d{1,2})\s+de\s+([a-záéíóúñ]+)\s+(\d{4})/);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const monthName = match[2].normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const year = parseInt(match[3], 10);
+      if (spanishMonths[monthName] !== undefined) {
+        return new Date(year, spanishMonths[monthName], day).getTime();
+      }
     }
-    if (ordersFilter === 'pickup') {
-      return o.deliveryMethod === 'pickup';
-    }
-    if (ordersFilter === 'delivered') {
-      return o.currentStatus === 'Entregado' || o.currentStatus === 'Retirado';
-    }
-    return true;
-  });
+    const direct = new Date(orderDateStr);
+    if (!isNaN(direct.getTime())) return direct.getTime();
+    return 0;
+  };
+
+  // Filtrado y ordenamiento de compras (Ordenes mas Nuevas vs Ordenes mas Viejas)
+  const filteredOrders = orders
+    .filter(o => {
+      if (ordersFilter === 'solicitud') {
+        return o.currentStatus === 'Solicitud recibida';
+      }
+      if (ordersFilter === 'preparation_transit') {
+        return o.currentStatus === 'En Preparación' || o.currentStatus === 'En transito';
+      }
+      if (ordersFilter === 'pickup') {
+        return o.currentStatus === 'Listo para el retiro de sucursal';
+      }
+      if (ordersFilter === 'delivered') {
+        return o.currentStatus === 'Entregado' || o.currentStatus === 'Retirado';
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const timeA = parseOrderDate(a.date);
+      const timeB = parseOrderDate(b.date);
+      if (timeA !== timeB) {
+        return ordersSort === 'oldest' ? timeA - timeB : timeB - timeA;
+      }
+      return ordersSort === 'oldest'
+        ? a.orderNumber.localeCompare(b.orderNumber)
+        : b.orderNumber.localeCompare(a.orderNumber);
+    });
 
   return (
     <div className="space-y-4 font-sans">
@@ -1633,44 +1783,80 @@ export const ProfileView: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Filtros de Compras */}
-                <div className="flex flex-wrap gap-1 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setOrdersFilter('all')}
-                    className={`winxp-button text-[11px] py-1 px-2.5 ${
-                      ordersFilter === 'all' ? 'winxp-button-primary font-bold' : ''
-                    }`}
-                  >
-                    Todas ({orders.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOrdersFilter('in_progress')}
-                    className={`winxp-button text-[11px] py-1 px-2.5 ${
-                      ordersFilter === 'in_progress' ? 'winxp-button-primary font-bold' : ''
-                    }`}
-                  >
-                    En Proceso / Tránsito
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOrdersFilter('pickup')}
-                    className={`winxp-button text-[11px] py-1 px-2.5 ${
-                      ordersFilter === 'pickup' ? 'winxp-button-primary font-bold' : ''
-                    }`}
-                  >
-                    Retiro en Sucursal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOrdersFilter('delivered')}
-                    className={`winxp-button text-[11px] py-1 px-2.5 ${
-                      ordersFilter === 'delivered' ? 'winxp-button-primary font-bold' : ''
-                    }`}
-                  >
-                    Entregados / Retirados
-                  </button>
+                {/* Filtros de Compras y Ordenamiento Cronológico */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                  {/* Filtros por Estado */}
+                  <div className="flex flex-wrap gap-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setOrdersFilter('all')}
+                      className={`winxp-button text-[11px] py-1 px-2.5 cursor-pointer ${
+                        ordersFilter === 'all' ? 'winxp-button-primary font-bold' : ''
+                      }`}
+                    >
+                      Todas ({orders.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOrdersFilter('solicitud')}
+                      className={`winxp-button text-[11px] py-1 px-2.5 cursor-pointer ${
+                        ordersFilter === 'solicitud' ? 'winxp-button-primary font-bold' : ''
+                      }`}
+                    >
+                      Solicitud
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOrdersFilter('preparation_transit')}
+                      className={`winxp-button text-[11px] py-1 px-2.5 cursor-pointer ${
+                        ordersFilter === 'preparation_transit' ? 'winxp-button-primary font-bold' : ''
+                      }`}
+                    >
+                      En Preparación / Transito
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOrdersFilter('pickup')}
+                      className={`winxp-button text-[11px] py-1 px-2.5 cursor-pointer ${
+                        ordersFilter === 'pickup' ? 'winxp-button-primary font-bold' : ''
+                      }`}
+                    >
+                      Retiro en Sucursal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOrdersFilter('delivered')}
+                      className={`winxp-button text-[11px] py-1 px-2.5 cursor-pointer ${
+                        ordersFilter === 'delivered' ? 'winxp-button-primary font-bold' : ''
+                      }`}
+                    >
+                      Entregados / Retirados
+                    </button>
+                  </div>
+
+                  {/* Filtros de Orden Cronológico: Ordenes mas Nuevas / Ordenes mas Viejas */}
+                  <div className="flex items-center gap-1 text-xs shrink-0 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setOrdersSort('newest')}
+                      className={`winxp-button text-[11px] py-1 px-2.5 cursor-pointer ${
+                        ordersSort === 'newest' ? 'winxp-button-primary font-bold shadow-inner' : ''
+                      }`}
+                      title="Mostrar desde las órdenes más nuevas hasta las más viejas"
+                    >
+                      Ordenes mas Nuevas
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOrdersSort('oldest')}
+                      className={`winxp-button text-[11px] py-1 px-2.5 cursor-pointer ${
+                        ordersSort === 'oldest' ? 'winxp-button-primary font-bold shadow-inner' : ''
+                      }`}
+                      title="Mostrar desde las órdenes más viejas hasta las más nuevas"
+                    >
+                      Ordenes mas Viejas
+                    </button>
+                  </div>
                 </div>
 
                 {/* Listado de Órdenes */}
@@ -1689,10 +1875,10 @@ export const ProfileView: React.FC = () => {
                           key={order.id}
                           className="bg-[#fafbfc] border border-gray-400 p-3.5 space-y-3 winxp-bevel-out shadow-xs"
                         >
-                          {/* Fila Superior: Número de Orden, Fecha y Estado Actual */}
+                          {/* Fila Superior: Número de Orden, Tipo de Entrega, Botón de Solicitud de Devolución y Estado Actual */}
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-300 pb-2">
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-bold text-sm text-blue-900 font-mono">
                                   Orden #{order.orderNumber}
                                 </span>
@@ -1705,9 +1891,94 @@ export const ProfileView: React.FC = () => {
                                 >
                                   {isPickup ? `🏪 Retiro en ${order.branchName}` : `🚚 Envío ${order.courier}`}
                                 </span>
+
+                                {/* UBICACIÓN EXACTA: Cuadro rojo indicado por el usuario para el botón "Solicitud de Devolución" */}
+                                {(() => {
+                                  const isDeliveredOrPickedUp =
+                                    order.currentStatus === 'Entregado' || order.currentStatus === 'Retirado';
+                                  const returnEligibility = getReturnEligibility(order.date);
+
+                                  // Verificar si todas las prendas de la orden ya tienen devolución aprobada
+                                  const allItemsCompletedReturn =
+                                    order.items.length > 0 &&
+                                    order.items.every(it => {
+                                      const ret = returnRequests.find(
+                                        r => r.orderNumber === order.orderNumber && r.productId === it.productId
+                                      );
+                                      return ret && (ret.currentStatus === 'Aprobada' || ret.currentStatus === 'Envió a punto/sucursal');
+                                    });
+
+                                  if (allItemsCompletedReturn) {
+                                    return (
+                                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-100 border border-emerald-500 text-emerald-900 rounded-xs text-xs font-bold shadow-xs">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                                        <span>Ya se hizo la devolución (Aprobada)</span>
+                                      </div>
+                                    );
+                                  }
+
+                                  // Si la orden aún no está Retirada ni Entregada
+                                  if (!isDeliveredOrPickedUp) {
+                                    return (
+                                      <button
+                                        type="button"
+                                        disabled
+                                        className="winxp-button text-xs py-0.5 px-2.5 font-medium flex items-center gap-1.5 cursor-not-allowed opacity-60 bg-gray-100 text-gray-500 border-gray-300 select-none"
+                                        title="La solicitud de devolución sólo está disponible cuando la orden esté Retirada o Entregada"
+                                      >
+                                        <Clock className="w-3 h-3 text-gray-400 shrink-0" />
+                                        <span>Disponible tras entrega o retiro</span>
+                                      </button>
+                                    );
+                                  }
+
+                                  // Si pasaron más de 7 días
+                                  if (!returnEligibility.isEligible) {
+                                    return (
+                                      <button
+                                        type="button"
+                                        disabled
+                                        className="winxp-button text-xs py-0.5 px-2.5 font-medium flex items-center gap-1.5 cursor-not-allowed opacity-60 bg-gray-100 text-gray-500 border-gray-300 select-none"
+                                        title="Plazo de garantía de 7 días expirado"
+                                      >
+                                        <Lock className="w-3 h-3 text-gray-400 shrink-0" />
+                                        <span>Plazo de 7 días expirado</span>
+                                      </button>
+                                    );
+                                  }
+
+                                  // Orden Retirada o Entregada y dentro de plazo -> Botón Habilitado
+                                  return (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenOrderReturn(order)}
+                                      className="winxp-button winxp-button-primary text-xs py-1 px-3 font-bold flex items-center gap-1.5 cursor-pointer shadow-xs bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-600 transition-colors"
+                                      title={
+                                        order.items.length > 1
+                                          ? `Esta orden tiene ${order.items.length} productos. Haz clic para seleccionar cuál devolver`
+                                          : 'Iniciar solicitud de cambio o devolución'
+                                      }
+                                    >
+                                      <RotateCcw className="w-3.5 h-3.5 text-blue-700 shrink-0" />
+                                      <span className="font-bold">Solicitud de Devolución</span>
+                                      <span
+                                        data-force-white
+                                        style={{ color: '#ffffff' }}
+                                        className="bg-blue-700 !text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold ml-0.5 inline-flex items-center shadow-xs"
+                                      >
+                                        {returnEligibility.daysLeft} {returnEligibility.daysLeft === 1 ? 'día rest.' : 'días rest.'}
+                                      </span>
+                                    </button>
+                                  );
+                                })()}
                               </div>
-                              <div className="text-[11px] text-gray-500 mt-0.5">
-                                Fecha de compra: {order.date} · Total: ${order.total.toLocaleString('es-CL')} CLP
+                              <div className="text-[11px] text-gray-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                                <span>Fecha de compra: {order.date} · Total: ${order.total.toLocaleString('es-CL')} CLP</span>
+                                {order.items.length > 1 && (
+                                  <span className="text-[10px] text-blue-800 font-semibold bg-blue-50 px-1.5 py-0.2 border border-blue-200 rounded-xs">
+                                    {order.items.length} prendas en esta compra
+                                  </span>
+                                )}
                               </div>
                             </div>
 
@@ -1892,8 +2163,7 @@ export const ProfileView: React.FC = () => {
                                     <div>
                                       <h5 className="font-bold text-xs text-gray-900">{item.title}</h5>
                                       <div className="text-[11px] text-gray-500">
-                                        Talla: <strong className="text-gray-700">{item.size}</strong> · Color:{' '}
-                                        <strong className="text-gray-700">{item.color}</strong> · Cantidad:{' '}
+                                        Talla: <strong className="text-gray-700">{item.size}</strong> · Cantidad:{' '}
                                         <strong className="text-gray-700">{item.quantity}</strong>
                                       </div>
                                       <div className="text-[11px] font-bold text-red-700">
@@ -1902,7 +2172,7 @@ export const ProfileView: React.FC = () => {
                                     </div>
                                   </div>
 
-                                  {/* Botón de Solicitud de Devolución con regla de 7 días */}
+                                  {/* Estado de Devolución a Nivel de Prenda */}
                                   <div className="shrink-0 sm:text-right">
                                     {(() => {
                                       const isDeliveredOrPickedUp =
@@ -1940,7 +2210,7 @@ export const ProfileView: React.FC = () => {
                                           );
                                         }
 
-                                        // Devolución aprobada o en proceso: sólo mostrar que ya se hizo la devolución y que está aprobada, sin el ticket ni el enlace redundante a Devoluciones
+                                        // Devolución aprobada o en proceso: sólo mostrar que ya se hizo la devolución y que está aprobada
                                         const isApproved = existingReturn.currentStatus === 'Aprobada';
                                         return (
                                           <div className="flex flex-col items-start sm:items-end gap-1">
@@ -1955,73 +2225,32 @@ export const ProfileView: React.FC = () => {
                                         );
                                       }
 
-                                      // Caso 2: El pedido aún NO ha sido Retirado ni Entregado -> NO se puede devolver
+                                      // Caso 2: El pedido aún NO ha sido Retirado ni Entregado
                                       if (!isDeliveredOrPickedUp) {
                                         return (
-                                          <div className="flex flex-col items-start sm:items-end gap-1">
-                                            <button
-                                              type="button"
-                                              disabled
-                                              className="winxp-button text-xs py-1.5 px-3 font-medium flex items-center gap-1.5 cursor-not-allowed opacity-60 bg-gray-100 text-gray-500 border-gray-300 select-none"
-                                              title="La solicitud de devolución sólo está disponible cuando la prenda ha sido Entregada o Retirada"
-                                            >
-                                              <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                                              <span>Disponible tras entrega o retiro</span>
-                                            </button>
-                                            <span className="text-[10px] text-gray-500 font-medium flex items-center gap-1">
-                                              <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
-                                              Disponible solo al ser Retirado o Entregado
-                                            </span>
-                                          </div>
+                                          <span className="text-[10px] text-gray-500 font-medium flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                                            Disponible solo al ser Retirado o Entregado
+                                          </span>
                                         );
                                       }
 
-                                      // Caso 3: El pedido fue Entregado o Retirado -> se verifica la garantía de 7 días
+                                      // Caso 3: El pedido fue Entregado o Retirado (el botón de solicitud está en la cabecera de la orden)
                                       const returnEligibility = getReturnEligibility(order.date);
-
                                       if (returnEligibility.isEligible) {
                                         return (
-                                          <div className="flex flex-col items-start sm:items-end gap-1">
-                                            <button
-                                              type="button"
-                                              onClick={() => handleOpenDirectReturnModal(order, item)}
-                                              className="winxp-button winxp-button-primary text-xs py-1.5 px-3 font-bold flex items-center gap-1.5 cursor-pointer shadow-xs bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-600"
-                                              title="Iniciar solicitud de cambio o devolución pre-seleccionando esta prenda"
-                                            >
-                                              <RotateCcw className="w-3.5 h-3.5 text-blue-700 shrink-0" />
-                                              <span className="font-bold">Solicitud de Devolución</span>
-                                              <span
-                                                data-force-white
-                                                style={{ color: '#ffffff' }}
-                                                className="bg-blue-700 !text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold ml-1 inline-flex items-center shadow-xs"
-                                              >
-                                                {returnEligibility.daysLeft} {returnEligibility.daysLeft === 1 ? 'día rest.' : 'días rest.'}
-                                              </span>
-                                            </button>
-                                            <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                                              <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                                              Garantía de 7 días activa ({returnEligibility.statusLabel})
-                                            </span>
-                                          </div>
+                                          <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                            Garantía de 7 días activa ({returnEligibility.statusLabel})
+                                          </span>
                                         );
                                       }
 
                                       return (
-                                        <div className="flex flex-col items-start sm:items-end gap-1">
-                                          <button
-                                            type="button"
-                                            disabled
-                                            className="winxp-button text-xs py-1.5 px-3 font-medium flex items-center gap-1.5 cursor-not-allowed opacity-60 bg-gray-100 text-gray-500 border-gray-300 select-none"
-                                            title="La opción se bloqueó porque han transcurrido más de 7 días desde la compra"
-                                          >
-                                            <Lock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                                            <span>Solicitud de Devolución Bloqueada</span>
-                                          </button>
-                                          <span className="text-[10px] text-red-600 font-medium flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3 text-red-500 shrink-0" />
-                                            Plazo de 7 días expirado (+{returnEligibility.daysElapsed} días desde la compra)
-                                          </span>
-                                        </div>
+                                        <span className="text-[10px] text-red-600 font-medium flex items-center gap-1">
+                                          <AlertCircle className="w-3 h-3 text-red-500 shrink-0" />
+                                          Plazo de 7 días expirado (+{returnEligibility.daysElapsed} días desde la compra)
+                                        </span>
                                       );
                                     })()}
                                   </div>
@@ -2454,8 +2683,6 @@ export const ProfileView: React.FC = () => {
                                 </h5>
                                 <div className="text-[11px] text-gray-600 flex items-center gap-2">
                                   <span>Talla: <strong className="text-gray-800">{item.size}</strong></span>
-                                  <span>·</span>
-                                  <span>Color: <strong className="text-gray-800">{item.color}</strong></span>
                                 </div>
                               </div>
                             </div>
@@ -2598,7 +2825,7 @@ export const ProfileView: React.FC = () => {
                       Prendas Guardadas en Lista de Deseos
                     </h4>
                     <p className="text-[11px] text-gray-500">
-                      Gestiona tus artículos favoritos guardados con el botón de corazón y agrégalos al carrito cuando desees.
+                      Gestiona tus artículos favoritos guardados con el botón de corazón y accede al detalle de cada prenda.
                     </p>
                   </div>
                   <span className="text-xs bg-rose-50 text-rose-800 font-bold px-2.5 py-1 border border-rose-300 rounded-xs self-start sm:self-auto shadow-xs">
@@ -2628,6 +2855,9 @@ export const ProfileView: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {wishlist.map((item) => {
                       const isSoldOut = item.totalStock <= 0;
+                      const discountPercent = item.discountPercent || (item.salePrice && item.salePrice < item.price ? Math.round(((item.price - item.salePrice) / item.price) * 100) : null);
+                      const hasDiscount = Boolean(discountPercent);
+
                       return (
                         <div
                           key={item.id}
@@ -2640,13 +2870,19 @@ export const ProfileView: React.FC = () => {
                                 alt={item.title}
                                 className="w-full h-full object-cover"
                               />
-                              {item.discountPercent && !isSoldOut && (
-                                <span className="absolute top-1.5 left-1.5 bg-green-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded-xs border border-green-800 shadow-xs">
-                                  -{item.discountPercent}% OFF
+                              {hasDiscount && !isSoldOut && (
+                                <span
+                                  className="absolute top-1.5 left-1.5 bg-[#15803d] font-bold text-[10px] px-1.5 py-0.5 rounded-xs border border-[#166534] shadow-xs select-none z-10 !text-white"
+                                  style={{ color: '#ffffff', backgroundColor: '#15803d' }}
+                                >
+                                  -{discountPercent}% OFF
                                 </span>
                               )}
                               {isSoldOut && (
-                                <span className="absolute top-1.5 right-1.5 bg-red-800 text-white font-bold text-[10px] px-1.5 py-0.5 rounded-xs border border-red-900 shadow-xs">
+                                <span
+                                  className="absolute top-1.5 right-1.5 bg-red-800 font-bold text-[10px] px-1.5 py-0.5 rounded-xs border border-red-900 shadow-xs select-none z-10 !text-white"
+                                  style={{ color: '#ffffff', backgroundColor: '#991b1b' }}
+                                >
                                   Agotado
                                 </span>
                               )}
@@ -2670,34 +2906,13 @@ export const ProfileView: React.FC = () => {
                             </div>
                           </div>
 
-                          <div className="space-y-1.5 pt-1 border-t border-gray-200">
-                            <div className="grid grid-cols-2 gap-1.5">
-                              <Link
-                                to={`/product/${item.id}`}
-                                className="winxp-button text-[11px] py-1 px-2 font-bold text-gray-800 text-center flex items-center justify-center cursor-pointer"
-                              >
-                                Ver Detalle
-                              </Link>
-                              <button
-                                type="button"
-                                disabled={isSoldOut}
-                                onClick={() => {
-                                  addToCart(
-                                    item,
-                                    item.sizes[0] === 'Única (Ajustable)' ? 'Talla estándar' : item.sizes[0] || 'Talla estándar',
-                                    item.colors[0] || { name: 'Void Black', hex: '#000000' },
-                                    undefined,
-                                    1
-                                  );
-                                }}
-                                className={`winxp-button winxp-button-primary text-[11px] py-1 px-2 font-bold text-blue-900 text-center flex items-center justify-center gap-1 ${
-                                  isSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                                }`}
-                              >
-                                <PixelIcon name="cart" size={12} />
-                                <span>{isSoldOut ? 'Sin Stock' : 'Al Carro'}</span>
-                              </button>
-                            </div>
+                          <div className="space-y-1.5 pt-1.5 border-t border-gray-200">
+                            <Link
+                              to={`/product/${item.id}`}
+                              className="winxp-button winxp-button-primary text-[11px] py-1.5 px-3 font-bold text-blue-900 text-center flex items-center justify-center gap-1 cursor-pointer w-full shadow-xs"
+                            >
+                              <span>Ver Detalle de la Prenda →</span>
+                            </Link>
 
                             <button
                               type="button"
@@ -4123,14 +4338,16 @@ export const ProfileView: React.FC = () => {
           MODAL PARA INICIAR NUEVA SOLICITUD DE DEVOLUCIÓN
           ========================================================================= */}
       {isNewReturnModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 animate-in fade-in">
-          <div className="w-full max-w-lg bg-[#ece9d8] border-2 border-blue-900 shadow-2xl winxp-bevel-out">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2 sm:p-4 overflow-hidden animate-in fade-in">
+          <div className="w-full max-w-lg bg-[#ece9d8] border-2 border-blue-900 shadow-2xl winxp-bevel-out flex flex-col h-[580px] max-h-[88vh] overflow-hidden">
             {/* Barra de Título Windows XP */}
-            <div className="winxp-titlebar flex items-center justify-between px-2 py-1 select-none">
+            <div className="winxp-titlebar flex items-center justify-between px-2 py-1 select-none shrink-0">
               <div className="winxp-titlebar-title flex items-center gap-1.5 text-xs text-white font-bold">
                 <RotateCcw className="w-3.5 h-3.5 text-yellow-300" />
                 <span>
-                  {returnModalStep === 'confirm'
+                  {returnModalStep === 'select_product'
+                    ? 'Solicitud_de_Devolucion.exe - [Paso 1: Seleccionar Prenda]'
+                    : returnModalStep === 'confirm'
                     ? 'Solicitud_de_Devolucion.exe - [¿Está seguro?]'
                     : 'Solicitud_de_Devolucion.exe - [Formulario de Solicitud]'}
                 </span>
@@ -4144,9 +4361,197 @@ export const ProfileView: React.FC = () => {
               </button>
             </div>
 
-            {/* PASO 1: PESTAÑA / VISTA "¿ESTÁ SEGURO?" */}
+            {/* PASO 1 (CUANDO LA ORDEN TIENE MÁS DE 1 PRODUCTO): SELECCIONAR PRENDAS (SOPORTE DE MULTI-SELECCIÓN) */}
+            {returnModalStep === 'select_product' && (
+              <div className="flex flex-col flex-1 min-h-0 bg-white">
+                <div className="p-4 space-y-3.5 text-xs text-gray-800 flex-1 overflow-y-auto min-h-0">
+                <div className="flex items-start gap-3 p-3 bg-blue-50 border-2 border-blue-400 rounded-xs winxp-bevel-in">
+                  <div className="p-2 bg-blue-100 border border-blue-300 rounded-full shrink-0">
+                    <Package className="w-6 h-6 text-blue-700" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm text-blue-950">
+                      Paso 1: Selecciona las prendas que deseas devolver o cambiar
+                    </h4>
+                    <p className="text-xs text-blue-900 leading-relaxed">
+                      Esta orden contiene <strong>{orders.find(o => o.orderNumber === selectedReturnOrder)?.items.length || 0} productos</strong>. Puedes seleccionar uno, dos o todos los productos marcando las casillas:
+                    </p>
+                  </div>
+                </div>
+
+                {/* Barra de Controles Rápidos: Seleccionar Todo / Deseleccionar Todo */}
+                {(() => {
+                  const currentOrder = orders.find(o => o.orderNumber === selectedReturnOrder);
+                  const eligibleProds = (currentOrder?.items || []).filter(it => {
+                    const ret = returnRequests.find(r => r.orderNumber === currentOrder?.orderNumber && r.productId === it.productId);
+                    return ret?.currentStatus !== 'Aprobada';
+                  });
+
+                  return (
+                    <div className="flex items-center justify-between gap-2 px-1 text-xs border-b border-gray-200 pb-1.5">
+                      <span className="font-bold text-gray-700">
+                        {selectedReturnItems.length} de {eligibleProds.length} prendas seleccionadas para devolver
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const allIds = eligibleProds.map(it => it.productId);
+                            setSelectedReturnItems(allIds);
+                            if (allIds.length > 0) setSelectedReturnItem(allIds[0]);
+                          }}
+                          className="winxp-button text-[11px] py-1 px-2.5 font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 border-blue-500 shadow-xs cursor-pointer transition-colors"
+                          title="Marcar todas las prendas de esta orden"
+                        >
+                          Seleccionar todo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedReturnItems([]);
+                          }}
+                          disabled={selectedReturnItems.length === 0}
+                          className="winxp-button text-[11px] py-1 px-2.5 font-bold text-gray-700 hover:bg-gray-100 border-gray-400 shadow-xs cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Desmarcar todas las prendas"
+                        >
+                          Deseleccionar todo
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Lista de Prendas para Seleccionar (Casillas Múltiples) */}
+                <div className="space-y-2 max-h-[48vh] overflow-y-auto pr-1">
+                  {(() => {
+                    const currentOrder = orders.find(o => o.orderNumber === selectedReturnOrder);
+                    return (currentOrder?.items || []).map((it, idx) => {
+                      const isSelected = selectedReturnItems.includes(it.productId);
+                      const existingItemReturn = returnRequests.find(
+                        r => r.orderNumber === currentOrder?.orderNumber && r.productId === it.productId
+                      );
+                      const isApproved = existingItemReturn?.currentStatus === 'Aprobada';
+                      const isRejected = existingItemReturn?.currentStatus === 'Rechazada' || !!existingItemReturn?.rejectionReason;
+
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            if (!isApproved) {
+                              setSelectedReturnItems(prev => {
+                                const exists = prev.includes(it.productId);
+                                const updated = exists
+                                  ? prev.filter(id => id !== it.productId)
+                                  : [...prev, it.productId];
+                                if (updated.length > 0) setSelectedReturnItem(updated[0]);
+                                return updated;
+                              });
+                            }
+                          }}
+                          className={`p-3 border rounded-xs transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                            isSelected
+                              ? 'bg-blue-50/90 border-blue-600 ring-2 ring-blue-400 shadow-sm'
+                              : 'bg-[#fafbfc] border-gray-300 hover:bg-gray-50 hover:border-gray-400'
+                          } ${isApproved ? 'opacity-60 cursor-not-allowed' : ''}`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            {/* Checkbox visual estilo Windows XP */}
+                            <div
+                              className={`w-4 h-4 rounded-xs border flex items-center justify-center shrink-0 ${
+                                isSelected
+                                  ? 'border-blue-700 bg-blue-600 text-white shadow-xs'
+                                  : 'border-gray-400 bg-white'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                            </div>
+
+                            <img
+                              src={it.image}
+                              alt={it.title}
+                              className="w-13 h-13 object-cover border border-gray-400 shrink-0 bg-white"
+                            />
+
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold text-xs text-gray-900 truncate">
+                                {it.title}
+                              </div>
+                              <div className="text-[11px] text-gray-500 mt-0.5">
+                                Talla: <strong className="text-gray-700">{it.size}</strong> · Cant.:{' '}
+                                <strong className="text-gray-700">{it.quantity}</strong>
+                              </div>
+                              <div className="text-[11px] font-bold text-red-700 mt-0.5">
+                                ${it.price.toLocaleString('es-CL')} CLP
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Tag de Estado o Acción */}
+                          <div className="shrink-0 text-right">
+                            {isApproved ? (
+                              <span className="inline-block px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-400 rounded-xs">
+                                Ya Devuelto (Aprobada)
+                              </span>
+                            ) : isRejected ? (
+                              <span className="inline-block px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-800 border border-red-400 rounded-xs">
+                                Rechazada previa
+                              </span>
+                            ) : isSelected ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold bg-blue-600 text-white border border-blue-800 rounded-xs shadow-xs">
+                                <Check className="w-3 h-3 text-white stroke-[3]" />
+                                Prenda Seleccionada
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-blue-700 font-semibold underline">
+                                Marcar para devolver
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+
+                </div>
+
+                {/* Botones de Navegación del Selector */}
+                <div className="p-2.5 px-4 bg-[#ece9d8] border-t border-gray-300 flex items-center justify-between shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsNewReturnModalOpen(false)}
+                    className="winxp-button text-xs py-1.5 px-4 text-gray-800 font-bold flex items-center gap-1.5 cursor-pointer hover:bg-gray-200"
+                  >
+                    <X className="w-3.5 h-3.5 text-gray-600" />
+                    <span>Cancelar</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={selectedReturnItems.length === 0}
+                    onClick={() => {
+                      const currentOrder = orders.find(o => o.orderNumber === selectedReturnOrder);
+                      const chosen = currentOrder?.items.find(i => selectedReturnItems.includes(i.productId));
+                      if (chosen) setReturnTargetItem(chosen);
+                      setReturnModalStep('confirm'); // Avanza a la advertencia "¿Está seguro?"
+                    }}
+                    className="winxp-button winxp-button-primary text-xs py-1.5 px-5 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span>
+                      {selectedReturnItems.length > 1
+                        ? `Continuar con ${selectedReturnItems.length} prendas seleccionadas →`
+                        : 'Continuar a Confirmación →'}
+                    </span>
+                    <ChevronRight className="w-3.5 h-3.5 text-blue-700" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* PASO "¿ESTÁ SEGURO?" (ADVERTENCIA CON TODAS LAS PRENDAS SELECCIONADAS) */}
             {returnModalStep === 'confirm' && (
-              <div className="p-4 space-y-4 bg-white text-xs text-gray-800">
+              <div className="flex flex-col flex-1 min-h-0 bg-white">
+                <div className="p-4 space-y-4 text-xs text-gray-800 flex-1 overflow-y-auto min-h-0">
                 <div className="flex items-start gap-3 p-3 bg-amber-50 border-2 border-amber-400 rounded-xs winxp-bevel-in">
                   <div className="p-2 bg-amber-100 border border-amber-300 rounded-full shrink-0">
                     <HelpCircle className="w-6 h-6 text-amber-700" />
@@ -4156,41 +4561,60 @@ export const ProfileView: React.FC = () => {
                       ¿Está seguro que desea solicitar una devolución o cambio?
                     </h4>
                     <p className="text-xs text-amber-900 leading-relaxed">
-                      Estás a punto de iniciar una solicitud oficial de devolución o cambio para tu compra. Por favor verifica los detalles de la prenda y las condiciones de garantía antes de continuar.
+                      Estás a punto de iniciar una solicitud oficial de devolución o cambio para tu compra. Por favor verifica las prendas seleccionadas y las condiciones de garantía antes de continuar:
                     </p>
                   </div>
                 </div>
 
-                {/* Previsualización del Producto Seleccionado */}
+                {/* Previsualización de la(s) Prenda(s) Seleccionada(s) */}
                 {(() => {
                   const targetOrder = orders.find(o => o.orderNumber === selectedReturnOrder) || orders[0];
-                  const targetItem = targetOrder?.items.find(i => i.productId === selectedReturnItem) || targetOrder?.items[0];
-                  if (!targetItem) return null;
+                  const chosenItems = (targetOrder?.items || []).filter(i =>
+                    selectedReturnItems.length > 0 ? selectedReturnItems.includes(i.productId) : i.productId === selectedReturnItem
+                  );
 
                   return (
                     <div className="border border-gray-300 p-3 bg-[#fbfaf5] rounded-xs space-y-2 winxp-bevel-out">
                       <div className="text-[11px] font-bold text-gray-700 flex items-center justify-between border-b border-gray-200 pb-1">
-                        <span>Prenda sujeta a devolución:</span>
-                        <span className="font-mono text-blue-900 font-bold">Orden #{targetOrder?.orderNumber}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={targetItem.image}
-                          alt={targetItem.title}
-                          className="w-16 h-16 object-cover border border-gray-400 bg-white p-0.5 rounded-xs shrink-0"
-                        />
-                        <div className="space-y-1 min-w-0 flex-1">
-                          <h5 className="font-bold text-gray-900 text-xs truncate">{targetItem.title}</h5>
-                          <div className="text-[11px] text-gray-600 flex flex-wrap gap-2">
-                            <span>Talla: <strong>{targetItem.size}</strong></span>
-                            <span>Color: <strong>{targetItem.color}</strong></span>
-                            <span>Precio: <strong>${targetItem.price.toLocaleString('es-CL')} CLP</strong></span>
-                          </div>
-                          <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                            Garantía válida de 7 días activa
-                          </div>
+                        <span>
+                          Prendas sujetas a devolución ({chosenItems.length} {chosenItems.length === 1 ? 'prenda' : 'prendas'}):
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-blue-900 font-bold">Orden #{targetOrder?.orderNumber}</span>
+                          {targetOrder && targetOrder.items.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setReturnModalStep('select_product')}
+                              className="text-[10px] text-blue-700 underline font-semibold hover:text-blue-900 cursor-pointer"
+                            >
+                              (Modificar prendas)
+                            </button>
+                          )}
                         </div>
+                      </div>
+
+                      <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-1">
+                        {chosenItems.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-3 p-2 bg-white border border-gray-200 rounded-xs">
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-14 h-14 object-cover border border-gray-400 bg-white p-0.5 rounded-xs shrink-0"
+                            />
+                            <div className="space-y-0.5 min-w-0 flex-1">
+                              <h5 className="font-bold text-gray-900 text-xs truncate">{item.title}</h5>
+                              <div className="text-[11px] text-gray-600 flex flex-wrap gap-2">
+                                <span>Talla: <strong>{item.size}</strong></span>
+                                <span>Cantidad: <strong>{item.quantity}</strong></span>
+                                <span>Precio: <strong>${item.price.toLocaleString('es-CL')} CLP</strong></span>
+                              </div>
+                              <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                Garantía válida de 7 días activa
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   );
@@ -4203,71 +4627,105 @@ export const ProfileView: React.FC = () => {
                     <span>Requisitos para que tu solicitud sea aprobada:</span>
                   </div>
                   <ul className="list-disc pl-4 space-y-0.5 text-gray-700">
-                    <li>La prenda debe encontrarse sin uso, sin lavar y con etiquetas originales.</li>
+                    <li>Las prendas deben encontrarse sin uso, sin lavar y con etiquetas originales.</li>
                     <li>Podrás elegir si prefieres cambio físico en sucursal o solicitar el cambio por envío a domicilio.</li>
-                    <li>Podrás redactar observaciones y adjuntar hasta 6 fotos de la prenda.</li>
+                    <li>Podrás redactar observaciones y adjuntar hasta 10 fotos de las prendas.</li>
                   </ul>
                 </div>
 
+                </div>
+
                 {/* Botones de Confirmación "¿Está seguro?" */}
-                <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-gray-300">
-                  <button
-                    type="button"
-                    onClick={() => setIsNewReturnModalOpen(false)}
-                    className="winxp-button text-xs py-1.5 px-4 text-gray-800 font-bold flex items-center gap-1.5 cursor-pointer hover:bg-gray-200"
-                  >
-                    <X className="w-3.5 h-3.5 text-red-600" />
-                    <span>Rechazar</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setReturnModalStep('form')}
-                    className="winxp-button winxp-button-primary text-xs py-1.5 px-5 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer shadow-sm"
-                  >
-                    <Check className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Aceptar y Continuar →</span>
-                  </button>
+                <div className="p-2.5 px-4 bg-[#ece9d8] border-t border-gray-300 flex items-center justify-between shrink-0">
+                  {(() => {
+                    const targetOrder = orders.find(o => o.orderNumber === selectedReturnOrder);
+                    if (targetOrder && targetOrder.items.length > 1) {
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => setReturnModalStep('select_product')}
+                          className="winxp-button text-xs py-1.5 px-3 text-gray-700 font-medium flex items-center gap-1 cursor-pointer hover:bg-gray-200"
+                        >
+                          <span>← Volver a Selección de Prendas</span>
+                        </button>
+                      );
+                    }
+                    return <div />;
+                  })()}
+
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsNewReturnModalOpen(false)}
+                      className="winxp-button text-xs py-1.5 px-4 text-gray-800 font-bold flex items-center gap-1.5 cursor-pointer hover:bg-gray-200"
+                    >
+                      <X className="w-3.5 h-3.5 text-red-600" />
+                      <span>Rechazar</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReturnModalStep('form')}
+                      className="winxp-button winxp-button-primary text-xs py-1.5 px-5 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    >
+                      <Check className="w-3.5 h-3.5 text-blue-700" />
+                      <span>Aceptar y Continuar →</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* PASO 2: FORMULARIO CON CAMPOS REQUERIDOS */}
+            {/* PASO: FORMULARIO CON CAMPOS REQUERIDOS */}
             {returnModalStep === 'form' && (
-              <form onSubmit={handleCreateReturnSubmit} className="p-4 space-y-3.5 bg-white text-xs text-gray-800 max-h-[85vh] overflow-y-auto">
-                {/* Cabecera / Pestaña indicadora */}
-                <div className="flex items-center justify-between pb-2 border-b border-gray-300">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-blue-900 text-white font-bold text-[10px] px-2 py-0.5 rounded-full font-mono">
-                      Paso 2 de 2
-                    </span>
-                    <span className="font-bold text-xs text-blue-950">
-                      Rellena los campos de la Solicitud:
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setReturnModalStep('confirm')}
-                    className="text-[11px] text-blue-700 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
-                  >
-                    ← Volver a "¿Está seguro?"
-                  </button>
-                </div>
-
-                {/* Prenda seleccionada */}
-                {selectedReturnOrder && selectedReturnItem && (
-                  <div className="p-2.5 bg-blue-50 border border-blue-300 text-xs text-blue-950 flex items-center justify-between winxp-bevel-in">
+              <form onSubmit={handleCreateReturnSubmit} className="flex flex-col flex-1 min-h-0 bg-white">
+                <div className="p-4 space-y-3.5 text-xs text-gray-800 flex-1 overflow-y-auto min-h-0">
+                  {/* Cabecera / Pestaña indicadora */}
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-300 shrink-0">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-blue-700 shrink-0" />
-                      <div>
-                        <span className="font-bold">Prenda Seleccionada:</span>
-                        <div className="text-[11px] text-blue-900 font-semibold truncate max-w-[280px]">
-                          {orders.find(o => o.orderNumber === selectedReturnOrder)?.items.find(i => i.productId === selectedReturnItem)?.title || 'Prenda seleccionada'}
-                        </div>
-                      </div>
+                      <span className="bg-blue-900 text-white font-bold text-[10px] px-2 py-0.5 rounded-full font-mono">
+                        {(() => {
+                          const targetOrder = orders.find(o => o.orderNumber === selectedReturnOrder);
+                          return targetOrder && targetOrder.items.length > 1 ? 'Paso 3 de 3' : 'Paso 2 de 2';
+                        })()}
+                      </span>
+                      <span className="font-bold text-xs text-blue-950">
+                        Rellena los campos de la Solicitud:
+                      </span>
                     </div>
-                    <span className="text-[10px] font-mono font-bold bg-blue-700 text-white px-2 py-0.5 rounded-full shrink-0">
-                      Orden #{selectedReturnOrder}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setReturnModalStep('confirm')}
+                      className="text-[11px] text-blue-700 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                    >
+                      ← Volver a "¿Está seguro?"
+                    </button>
+                  </div>
+
+                  {/* Prendas seleccionadas para devolver */}
+                  {selectedReturnOrder && (
+                    <div className="p-2.5 bg-blue-50 border border-blue-300 text-xs text-blue-950 space-y-1.5 winxp-bevel-in shrink-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <CheckCircle2 className="w-4 h-4 text-blue-700 shrink-0" />
+                        <span>Prendas a Devolver ({selectedReturnItems.length > 0 ? selectedReturnItems.length : 1}):</span>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold bg-blue-700 text-white px-2 py-0.5 rounded-full shrink-0">
+                        Orden #{selectedReturnOrder}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-0.5 max-h-28 overflow-y-auto pr-0.5">
+                      {(selectedReturnItems.length > 0 ? selectedReturnItems : [selectedReturnItem]).map((prodId) => {
+                        const it = orders.find(o => o.orderNumber === selectedReturnOrder)?.items.find(i => i.productId === prodId);
+                        if (!it) return null;
+                        return (
+                          <div key={prodId} className="flex items-center gap-1.5 px-2 py-1 bg-white border border-blue-200 rounded-xs text-[11px] shadow-xs">
+                            <img src={it.image} alt="" className="w-5 h-5 object-cover rounded-xs border border-gray-300" />
+                            <span className="font-bold text-gray-900 truncate max-w-[200px]">{it.title}</span>
+                            <span className="text-gray-500 font-medium">({it.size})</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -4285,7 +4743,7 @@ export const ProfileView: React.FC = () => {
                     <option value="Cambio de Talla">Cambio de Talla (Ajuste de calce / fit)</option>
                     <option value="Falla de Fábrica">Falla de Fábrica / Detalle en costura</option>
                     <option value="Drop Insatisfecho">Drop Insatisfecho (Cambio por otro producto)</option>
-                    <option value="Garantía Legal">Garantía Legal 6 meses (Ley 19.496)</option>
+                    <option value="Otros...">Otros...</option>
                   </select>
                 </div>
 
@@ -4323,7 +4781,7 @@ export const ProfileView: React.FC = () => {
                       }`}
                     >
                       <Truck className="w-3.5 h-3.5 text-blue-700" />
-                      <span>Cambio por Envío (Courier)</span>
+                      <span>Cambio por Envío</span>
                     </button>
                   </div>
 
@@ -4364,39 +4822,55 @@ export const ProfileView: React.FC = () => {
 
                 {/* 3. Observaciones adicionales */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-800 mb-1">
-                    . Observaciones adicionales:
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-gray-800">
+                      . Observaciones adicionales:
+                    </label>
+                    <span className={`text-[10px] font-mono ${
+                      selectedReturnNotes.length >= 600 ? 'text-red-600 font-bold' : 'text-gray-500'
+                    }`}>
+                      {selectedReturnNotes.length} / 600 caracteres
+                    </span>
+                  </div>
                   <textarea
                     rows={3}
+                    maxLength={600}
                     value={selectedReturnNotes}
-                    onChange={(e) => setSelectedReturnNotes(e.target.value)}
+                    onChange={(e) => {
+                      const singleLine = e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 600);
+                      setSelectedReturnNotes(singleLine);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                      }
+                    }}
                     placeholder="Escribe la razón de la devolución, descripción de motivos o talla requerida..."
                     className="winxp-input w-full text-xs p-2 resize-none font-sans"
                   />
                   <div className="text-[10px] text-gray-500 mt-0.5">
-                    Describe la razón de la devolución para agilizar la revisión del equipo NoLimits.
+                    Describe la razón de la devolución para agilizar la revisión del equipo NoLimits (máx. 600 caracteres, sin saltos de línea).
                   </div>
                 </div>
 
-                {/* 4. Fotos de Respaldo (Máximo 6 Fotos) */}
+                {/* 4. Fotos de Respaldo (Máximo 10 Fotos) */}
                 <div className="space-y-2 pt-1 border-t border-gray-200">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
                       <Camera className="w-3.5 h-3.5 text-blue-700" />
-                      <span>Subir Fotos de Respaldo (Máximo 6 fotos):</span>
+                      <span>Subir Fotos de Respaldo (Máximo 10 fotos):</span>
                     </label>
                     <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full ${
-                      returnPhotos.length >= 6 ? 'bg-amber-600 text-white' : 'bg-gray-200 text-gray-700'
+                      returnPhotos.length >= 10 ? 'bg-amber-600 text-white' : 'bg-gray-200 text-gray-700'
                     }`}>
-                      {returnPhotos.length} / 6 fotos máximo
+                      {returnPhotos.length} / 10 fotos máximo
                     </span>
                   </div>
 
                   {/* Botones de Carga */}
                   <div className="flex flex-wrap items-center gap-2">
                     <label className={`winxp-button text-xs py-1 px-3 flex items-center gap-1.5 ${
-                      returnPhotos.length >= 6 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'
+                      returnPhotos.length >= 10 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'
                     }`}>
                       <Upload className="w-3.5 h-3.5 text-blue-700" />
                       <span>Examinar equipo...</span>
@@ -4404,22 +4878,11 @@ export const ProfileView: React.FC = () => {
                         type="file"
                         multiple
                         accept="image/*"
-                        disabled={returnPhotos.length >= 6}
+                        disabled={returnPhotos.length >= 10}
                         onChange={handleReturnPhotoUpload}
                         className="hidden"
                       />
                     </label>
-
-                    <button
-                      type="button"
-                      disabled={returnPhotos.length >= 6}
-                      onClick={handleAddSampleReturnPhoto}
-                      className="winxp-button text-xs py-1 px-3 flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 text-blue-900"
-                      title="Agregar una foto de muestra rápida para probar"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-blue-700" />
-                      <span>+ Foto de muestra rápida</span>
-                    </button>
 
                     {returnPhotos.length > 0 && (
                       <button
@@ -4432,9 +4895,9 @@ export const ProfileView: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Grid de Fotos Subidas (Hasta 6) */}
+                  {/* Grid de Fotos Subidas (Hasta 10) */}
                   {returnPhotos.length > 0 && (
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-1">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-1">
                       {returnPhotos.map((photo, idx) => (
                         <div
                           key={idx}
@@ -4461,12 +4924,14 @@ export const ProfileView: React.FC = () => {
                     </div>
                   )}
                   <p className="text-[10px] text-gray-500 italic">
-                    Puedes adjuntar fotos de la prenda completa, etiquetas y cualquier detalle o defecto (máx 6 fotos).
+                    Puedes adjuntar fotos de la prenda completa, etiquetas y cualquier detalle o defecto (máx 10 fotos).
                   </p>
                 </div>
 
+                </div>
+
                 {/* Botones de Acción del Formulario */}
-                <div className="pt-3 flex items-center justify-between border-t border-gray-300">
+                <div className="p-2.5 px-4 bg-[#ece9d8] border-t border-gray-300 flex items-center justify-between shrink-0">
                   <button
                     type="button"
                     onClick={() => setReturnModalStep('confirm')}
