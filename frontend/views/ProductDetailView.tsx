@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import {
   ShieldCheck,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Info
+  Info,
+  Heart,
+  Lock
 } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { INITIAL_PRODUCTS, INITIAL_REVIEWS } from '../services/mockData';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 import { PixelIcon } from '../components/common/PixelIcon';
 import { SoldOutDetailBanner } from '../components/common/SoldOutState';
 import { ProductReviewsSection } from '../components/product/ProductReviewsSection';
@@ -18,6 +22,12 @@ export const ProductDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const product = INITIAL_PRODUCTS.find((p) => p.id === id) || INITIAL_PRODUCTS[0];
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
+  const isWishlisted = isInWishlist(product.id);
+
+  const [wishlistAlert, setWishlistAlert] = useState<{ message: string; type: 'added' | 'removed' } | null>(null);
+  const [showAuthRequiredModal, setShowAuthRequiredModal] = useState(false);
 
   // Función para determinar si la categoría corresponde a ropa que utiliza tallas
   const isApparelCategory = (categoryName: string) => {
@@ -56,6 +66,23 @@ export const ProductDetailView: React.FC = () => {
     setTimeout(() => setAddedAlert(false), 3000);
   };
 
+  const handleToggleWishlist = () => {
+    const result = toggleWishlist(product);
+    if (result.requiresAuth) {
+      setShowAuthRequiredModal(true);
+      return;
+    }
+
+    if (result.isAdded) {
+      setWishlistAlert({ message: '¡Prenda guardada con éxito en tu Lista de Deseos!', type: 'added' });
+    } else {
+      setWishlistAlert({ message: 'Prenda removida de tu Lista de Deseos.', type: 'removed' });
+    }
+    setTimeout(() => {
+      setWishlistAlert(null);
+    }, 3500);
+  };
+
   return (
     <div className="space-y-4 font-sans">
       {/* Ventana de Detalles de Producto estilo Windows XP */}
@@ -73,6 +100,31 @@ export const ProductDetailView: React.FC = () => {
                 alt={product.title}
                 className="w-full h-full object-cover"
               />
+
+              {/* Botón flotante de un corazón para Lista de Deseos sobre la imagen */}
+              <button
+                type="button"
+                onClick={handleToggleWishlist}
+                className={`absolute top-2.5 right-2.5 p-2 rounded-full border shadow-md z-20 cursor-pointer transition-all active:scale-95 ${
+                  isWishlisted
+                    ? 'bg-rose-50 border-rose-500 text-rose-600 hover:bg-rose-100'
+                    : 'bg-white/95 hover:bg-white border-gray-400 text-gray-700 hover:text-rose-600'
+                }`}
+                title={
+                  !isAuthenticated
+                    ? 'Añadir a Lista de Deseos (Exclusivo para usuarios registrados)'
+                    : isWishlisted
+                    ? 'Quitar de mi Lista de Deseos'
+                    : 'Añadir a mi Lista de Deseos'
+                }
+                aria-label="Botón de corazón para lista de deseos"
+              >
+                <Heart
+                  className={`w-4 h-4 transition-transform ${
+                    isWishlisted ? 'text-rose-600 fill-rose-600' : 'text-gray-700 hover:text-rose-600'
+                  }`}
+                />
+              </button>
 
               {/* Etiqueta de descuento oficial sobre la imagen */}
               {product.discountPercent && !isSoldOut && (
@@ -176,9 +228,65 @@ export const ProductDetailView: React.FC = () => {
               </div>
             </div>
 
-            {/* Si el producto está agotado: Renderizar componente específico de Sin Stock */}
+            {/* Si el producto está agotado: Renderizar componente específico de Sin Stock y opción de Lista de Deseos */}
             {isSoldOut ? (
-              <SoldOutDetailBanner productTitle={product.title} sku={product.sku} />
+              <div className="space-y-3">
+                <SoldOutDetailBanner productTitle={product.title} sku={product.sku} />
+                <button
+                  type="button"
+                  onClick={handleToggleWishlist}
+                  className={`winxp-button text-xs py-2 px-4 w-full font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all ${
+                    isWishlisted
+                      ? 'bg-rose-50 border-rose-500 text-rose-800 hover:bg-rose-100 winxp-button-active'
+                      : 'text-gray-800 hover:bg-gray-100 hover:text-rose-700'
+                  }`}
+                  title={
+                    !isAuthenticated
+                      ? 'Añadir a Lista de Deseos (Exclusivo para usuarios registrados)'
+                      : isWishlisted
+                      ? 'Quitar de mi Lista de Deseos'
+                      : 'Añadir a mi Lista de Deseos'
+                  }
+                >
+                  <Heart
+                    className={`w-4 h-4 transition-transform active:scale-125 ${
+                      isWishlisted ? 'text-rose-600 fill-rose-600' : 'text-rose-600'
+                    }`}
+                  />
+                  <span>
+                    {isWishlisted
+                      ? 'En tu Lista de Deseos (Te avisaremos cuando vuelva a haber stock)'
+                      : 'Guardar en Lista de Deseos para Alertas de Reposición'}
+                  </span>
+                </button>
+
+                {wishlistAlert && (
+                  <div
+                    className={`p-2 border text-xs flex items-center justify-between gap-2 rounded-xs animate-in fade-in ${
+                      wishlistAlert.type === 'added'
+                        ? 'bg-rose-50 border-rose-400 text-rose-950'
+                        : 'bg-gray-100 border-gray-400 text-gray-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Heart
+                        className={`w-4 h-4 shrink-0 ${
+                          wishlistAlert.type === 'added' ? 'text-rose-600 fill-rose-600' : 'text-gray-500'
+                        }`}
+                      />
+                      <span className="font-bold">{wishlistAlert.message}</span>
+                    </div>
+                    {wishlistAlert.type === 'added' && (
+                      <Link
+                        to="/profile"
+                        className="text-[11px] font-bold text-rose-700 hover:text-rose-900 underline shrink-0 cursor-pointer"
+                      >
+                        Ver en Mi Perfil →
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
             ) : (
               <>
                 {/* Selección de Talla (SOLO para ropa: polerones, chaquetas, pantalones, poleras) */}
@@ -207,21 +315,78 @@ export const ProductDetailView: React.FC = () => {
                   </div>
                 )}
 
-                {/* Botón de Agregar al Carrito */}
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={handleAddToCart}
-                    className="winxp-button winxp-button-primary text-sm py-2 px-6 w-full font-bold text-blue-900 shadow-sm"
-                  >
-                    <PixelIcon name="cart" size={16} />
-                    <span>AÑADIR AL CARRITO</span>
-                  </button>
+                {/* Botón de Agregar al Carrito y Botón de un Corazón (Lista de Deseos) */}
+                <div className="pt-2 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddToCart}
+                      className="winxp-button winxp-button-primary text-sm py-2 px-5 flex-1 font-bold text-blue-900 shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <PixelIcon name="cart" size={16} />
+                      <span>AÑADIR AL CARRITO</span>
+                    </button>
+
+                    {/* Botón de un corazón para la Lista de Deseos */}
+                    <button
+                      type="button"
+                      onClick={handleToggleWishlist}
+                      className={`winxp-button text-sm py-2 px-3.5 sm:px-4 font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-all ${
+                        isWishlisted
+                          ? 'bg-rose-50 border-rose-500 text-rose-800 hover:bg-rose-100 winxp-button-active'
+                          : 'text-gray-800 hover:bg-gray-100 hover:text-rose-700'
+                      }`}
+                      title={
+                        !isAuthenticated
+                          ? 'Añadir a Lista de Deseos (Exclusivo para usuarios registrados)'
+                          : isWishlisted
+                          ? 'Quitar de mi Lista de Deseos'
+                          : 'Añadir a mi Lista de Deseos'
+                      }
+                      aria-label="Botón de corazón para añadir a la lista de deseos"
+                    >
+                      <Heart
+                        className={`w-4 h-4 transition-transform active:scale-125 ${
+                          isWishlisted ? 'text-rose-600 fill-rose-600' : 'text-rose-600'
+                        }`}
+                      />
+                      <span className="hidden sm:inline">
+                        {isWishlisted ? 'En Lista de Deseos' : 'Lista de Deseos'}
+                      </span>
+                    </button>
+                  </div>
 
                   {addedAlert && (
-                    <div className="mt-2 p-2 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2">
+                    <div className="mt-2 p-2 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2 animate-in fade-in">
                       <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
                       <span>¡Prenda añadida al carrito con éxito! Ya puedes completar la compra en caja.</span>
+                    </div>
+                  )}
+
+                  {wishlistAlert && (
+                    <div
+                      className={`mt-2 p-2 border text-xs flex items-center justify-between gap-2 rounded-xs animate-in fade-in ${
+                        wishlistAlert.type === 'added'
+                          ? 'bg-rose-50 border-rose-400 text-rose-950'
+                          : 'bg-gray-100 border-gray-400 text-gray-800'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Heart
+                          className={`w-4 h-4 shrink-0 ${
+                            wishlistAlert.type === 'added' ? 'text-rose-600 fill-rose-600' : 'text-gray-500'
+                          }`}
+                        />
+                        <span className="font-bold">{wishlistAlert.message}</span>
+                      </div>
+                      {wishlistAlert.type === 'added' && (
+                        <Link
+                          to="/profile"
+                          className="text-[11px] font-bold text-rose-700 hover:text-rose-900 underline shrink-0 cursor-pointer"
+                        >
+                          Ver en Mi Perfil →
+                        </Link>
+                      )}
                     </div>
                   )}
                 </div>
@@ -257,6 +422,73 @@ export const ProductDetailView: React.FC = () => {
           initialReviews={productReviews}
         />
       </WindowFrame>
+
+      {/* =========================================================================
+          MODAL ESTILO WINDOWS XP: ACCESO EXCLUSIVO PARA USUARIOS REGISTRADOS
+          ========================================================================= */}
+      {showAuthRequiredModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 animate-in fade-in">
+          <div className="w-full max-w-md bg-[#ece9d8] border-2 border-blue-900 shadow-2xl winxp-bevel-out">
+            {/* Barra de Título Windows XP */}
+            <div className="winxp-titlebar flex items-center justify-between px-2 py-1 select-none text-white">
+              <div className="winxp-titlebar-title flex items-center gap-1.5 text-xs text-white font-bold">
+                <Heart className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300" />
+                <span>Lista_de_Deseos.exe - [Usuario No Registrado]</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAuthRequiredModal(false)}
+                className="winxp-btn-ctrl winxp-btn-close w-4 h-4 text-[10px] font-bold text-white flex items-center justify-center cursor-pointer"
+                title="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Contenido Windows XP */}
+            <div className="p-4 space-y-3.5 bg-white text-xs text-gray-800">
+              <div className="flex items-start gap-3 p-3 bg-amber-50 border-2 border-amber-400 rounded-xs winxp-bevel-in">
+                <div className="p-2 bg-amber-100 border border-amber-300 rounded-full shrink-0">
+                  <Lock className="w-5 h-5 text-amber-700" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-bold text-xs text-amber-950 uppercase">
+                    Función Exclusiva para Clientes Registrados
+                  </h4>
+                  <p className="text-xs text-amber-900 leading-relaxed">
+                    Para añadir <strong>"{product.title}"</strong> a tu <strong>Lista de Deseos</strong> y guardar tus prendas favoritas con alertas de stock, debes contar con una cuenta registrada e iniciar sesión.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-blue-50 border border-blue-200 text-blue-950 text-[11px] space-y-1">
+                <div className="font-bold text-blue-900">¿Por qué registrarte en NoLimits?</div>
+                <ul className="list-disc pl-4 space-y-0.5 text-gray-700">
+                  <li>Guarda prendas sin límite y consúltalas en tu Perfil de Usuario.</li>
+                  <li>Recibe avisos inmediatos cuando repongamos stock en tiendas.</li>
+                  <li>Acumula Puntos NoLimits en tus compras y canjea cupones de descuento.</li>
+                </ul>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-300">
+                <button
+                  type="button"
+                  onClick={() => setShowAuthRequiredModal(false)}
+                  className="winxp-button text-xs py-1.5 px-3.5 text-gray-800 font-bold cursor-pointer"
+                >
+                  Continuar como Invitado
+                </button>
+                <Link
+                  to="/auth"
+                  className="winxp-button winxp-button-primary text-xs py-1.5 px-4 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer shadow-sm text-center"
+                >
+                  <span>Iniciar Sesión / Registrarme →</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

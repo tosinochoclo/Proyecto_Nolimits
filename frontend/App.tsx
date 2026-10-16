@@ -8,6 +8,7 @@ import { HashRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { BranchProvider } from './context/BranchContext';
 import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 import { AdminNotificationProvider } from './context/AdminNotificationContext';
 import { TopNavBar } from './components/layout/TopNavBar';
 import { OSDesktopTaskbar } from './components/layout/OSDesktopTaskbar';
@@ -19,9 +20,10 @@ export default function App() {
       <AuthProvider>
         <BranchProvider>
           <CartProvider>
-            <AdminNotificationProvider>
-              {/* Escritorio Windows XP con Tapiz Clásico "Bliss" (Colina verde, cielo azul y nubes) */}
-              <div className="min-h-screen winxp-bliss-background text-gray-900 flex flex-col selection:bg-[#316ac5] selection:text-white pb-14 font-sans">
+            <WishlistProvider>
+              <AdminNotificationProvider>
+                {/* Escritorio Windows XP con Tapiz Clásico "Bliss" (Colina verde, cielo azul y nubes) */}
+                <div className="min-h-screen winxp-bliss-background text-gray-900 flex flex-col selection:bg-[#316ac5] selection:text-white pb-14 font-sans">
                 {/* Barra de Navegación Estilo Internet Explorer 6 / Windows Explorer */}
                 <TopNavBar />
 
@@ -34,9 +36,10 @@ export default function App() {
                 <OSDesktopTaskbar />
               </div>
             </AdminNotificationProvider>
-          </CartProvider>
-        </BranchProvider>
-      </AuthProvider>
-    </HashRouter>
-  );
+          </WishlistProvider>
+        </CartProvider>
+      </BranchProvider>
+    </AuthProvider>
+  </HashRouter>
+);
 }

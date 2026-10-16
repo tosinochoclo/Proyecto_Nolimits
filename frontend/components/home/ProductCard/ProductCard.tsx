@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Info, XCircle } from 'lucide-react';
+import { Check, Info, XCircle, Heart } from 'lucide-react';
 import { Product } from '../../../types';
 import { PixelIcon } from '../../common/PixelIcon';
 import { SoldOutCardOverlay } from '../../common/SoldOutState';
+import { useWishlist } from '../../../context/WishlistContext';
+import { useAuth } from '../../../context/AuthContext';
 import './ProductCard.css';
 
 interface ProductCardProps {
@@ -28,6 +30,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onQuickAdd,
 }) => {
   const isSoldOut = currentStock <= 0;
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
+  const isWishlisted = isInWishlist(product.id);
 
   return (
     <div className={`product-card-xp ${isSoldOut ? 'opacity-95' : ''}`}>
@@ -39,6 +44,31 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           className={`product-card-xp-img ${isSoldOut ? 'grayscale-30 contrast-90' : ''}`}
           loading="lazy"
         />
+
+        {/* Botón rápido de Lista de Deseos */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(product);
+          }}
+          className={`absolute top-1.5 right-1.5 p-1 rounded-full border shadow-xs z-10 cursor-pointer transition-all active:scale-90 ${
+            isWishlisted
+              ? 'bg-rose-50 border-rose-500 text-rose-600'
+              : 'bg-white/85 hover:bg-white border-gray-400 text-gray-600 hover:text-rose-600'
+          }`}
+          title={
+            !isAuthenticated
+              ? 'Añadir a Lista de Deseos (Exclusivo para usuarios registrados)'
+              : isWishlisted
+              ? 'Quitar de mi Lista de Deseos'
+              : 'Añadir a mi Lista de Deseos'
+          }
+          aria-label="Lista de Deseos"
+        >
+          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'text-rose-600 fill-rose-600' : ''}`} />
+        </button>
 
         {/* Overlay oficial de Agotado */}
         {isSoldOut && <SoldOutCardOverlay />}

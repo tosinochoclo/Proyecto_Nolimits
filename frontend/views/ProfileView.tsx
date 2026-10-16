@@ -33,8 +33,11 @@ import {
 } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 import { PixelIcon } from '../components/common/PixelIcon';
 import { INITIAL_PRODUCTS } from '../services/mockData';
+import { Link } from 'react-router-dom';
 
 /**
  * Interfaz para las direcciones del usuario con soporte de predeterminada
@@ -280,6 +283,8 @@ export const PRESET_AVATARS = [
 
 export const ProfileView: React.FC = () => {
   const { currentUser, logout, updateProfile, addLoyaltyPoints, deductLoyaltyPoints } = useAuth();
+  const { wishlist, removeFromWishlist, wishlistCount } = useWishlist();
+  const { addToCart } = useCart();
 
   // Helper para formatear RUT con puntos y guion automáticos (ej: 19.876.543-2)
   const formatRutWithDotsAndDash = (raw: string): string => {
@@ -1562,6 +1567,15 @@ export const ProfileView: React.FC = () => {
                       {pendingReviewItems.length}
                     </span>
                   )}
+                  {tab.id === 'wishlist' && wishlistCount > 0 && (
+                    <span
+                      data-force-white
+                      style={{ color: '#ffffff' }}
+                      className="bg-rose-600 !text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 shadow-xs"
+                    >
+                      {wishlistCount}
+                    </span>
+                  )}
                   {tab.id === 'returns' && (
                     <span
                       data-force-white
@@ -2552,16 +2566,134 @@ export const ProfileView: React.FC = () => {
               </div>
             )}
 
-            {/* Resto de pestañas informativas */}
+            {/* =================================================================
+                4. PESTAÑA: LISTA DE DESEOS (Prendas Guardadas con Corazón)
+                ================================================================= */}
             {activeTab === 'wishlist' && (
-              <div className="space-y-3">
-                <h4 className="font-bold text-sm text-blue-900 border-b border-gray-300 pb-2 flex items-center gap-1.5">
-                  <Heart className="w-4 h-4 text-red-600" />
-                  Prendas Guardadas en Lista de Deseos
-                </h4>
-                <div className="text-xs text-gray-600">
-                  Actualmente tienes prendas reservadas para alertas de reposición de stock físico.
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-gray-300 gap-2">
+                  <div>
+                    <h4 className="font-bold text-sm text-blue-900 flex items-center gap-1.5">
+                      <Heart className="w-4 h-4 text-rose-600 fill-rose-600" />
+                      Prendas Guardadas en Lista de Deseos
+                    </h4>
+                    <p className="text-[11px] text-gray-500">
+                      Gestiona tus artículos favoritos guardados con el botón de corazón y agrégalos al carrito cuando desees.
+                    </p>
+                  </div>
+                  <span className="text-xs bg-rose-50 text-rose-800 font-bold px-2.5 py-1 border border-rose-300 rounded-xs self-start sm:self-auto shadow-xs">
+                    {wishlist.length} {wishlist.length === 1 ? 'prenda guardada' : 'prendas guardadas'}
+                  </span>
                 </div>
+
+                {wishlist.length === 0 ? (
+                  <div className="p-8 text-center bg-[#f8fafc] border border-gray-300 rounded-xs space-y-3 winxp-bevel-in">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-600 shadow-inner">
+                      <Heart className="w-6 h-6 text-rose-600" />
+                    </div>
+                    <div className="space-y-1">
+                      <h5 className="font-bold text-sm text-gray-900">Tu Lista de Deseos está vacía</h5>
+                      <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                        Ingresa a la página de detalle de cualquier producto del catálogo y presiona el botón de corazón para guardarlo en tu cuenta.
+                      </p>
+                    </div>
+                    <Link
+                      to="/catalog"
+                      className="winxp-button winxp-button-primary text-xs py-1.5 px-4 font-bold text-blue-900 inline-flex items-center gap-1.5 shadow-sm"
+                    >
+                      <span>Explorar Catálogo →</span>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {wishlist.map((item) => {
+                      const isSoldOut = item.totalStock <= 0;
+                      return (
+                        <div
+                          key={item.id}
+                          className="p-3 bg-[#fbfaf5] border border-gray-300 rounded-xs flex flex-col justify-between winxp-bevel-out gap-2.5 hover:border-gray-400 transition-colors"
+                        >
+                          <div className="space-y-2">
+                            <div className="relative aspect-square w-full overflow-hidden border border-gray-300 bg-white">
+                              <img
+                                src={item.images[0] || 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=300'}
+                                alt={item.title}
+                                className="w-full h-full object-cover"
+                              />
+                              {item.discountPercent && !isSoldOut && (
+                                <span className="absolute top-1.5 left-1.5 bg-green-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded-xs border border-green-800 shadow-xs">
+                                  -{item.discountPercent}% OFF
+                                </span>
+                              )}
+                              {isSoldOut && (
+                                <span className="absolute top-1.5 right-1.5 bg-red-800 text-white font-bold text-[10px] px-1.5 py-0.5 rounded-xs border border-red-900 shadow-xs">
+                                  Agotado
+                                </span>
+                              )}
+                            </div>
+
+                            <div>
+                              <div className="text-[10px] font-bold text-blue-700 uppercase">{item.category}</div>
+                              <h5 className="font-bold text-xs text-gray-900 line-clamp-1" title={item.title}>
+                                {item.title}
+                              </h5>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="font-bold text-xs text-red-700">
+                                  ${(item.salePrice ?? item.price).toLocaleString('es-CL')} CLP
+                                </span>
+                                {item.salePrice && (
+                                  <span className="text-[10px] text-gray-500 line-through">
+                                    ${item.price.toLocaleString('es-CL')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5 pt-1 border-t border-gray-200">
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <Link
+                                to={`/product/${item.id}`}
+                                className="winxp-button text-[11px] py-1 px-2 font-bold text-gray-800 text-center flex items-center justify-center cursor-pointer"
+                              >
+                                Ver Detalle
+                              </Link>
+                              <button
+                                type="button"
+                                disabled={isSoldOut}
+                                onClick={() => {
+                                  addToCart(
+                                    item,
+                                    item.sizes[0] === 'Única (Ajustable)' ? 'Talla estándar' : item.sizes[0] || 'Talla estándar',
+                                    item.colors[0] || { name: 'Void Black', hex: '#000000' },
+                                    undefined,
+                                    1
+                                  );
+                                }}
+                                className={`winxp-button winxp-button-primary text-[11px] py-1 px-2 font-bold text-blue-900 text-center flex items-center justify-center gap-1 ${
+                                  isSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                }`}
+                              >
+                                <PixelIcon name="cart" size={12} />
+                                <span>{isSoldOut ? 'Sin Stock' : 'Al Carro'}</span>
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => removeFromWishlist(item.id)}
+                              className="winxp-button text-[10px] py-0.5 px-2 w-full text-red-700 hover:text-red-900 flex items-center justify-center gap-1 cursor-pointer"
+                              title="Quitar de mi Lista de Deseos"
+                            >
+                              <Trash2 className="w-3 h-3 text-red-600" />
+                              <span>Quitar de la Lista</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
