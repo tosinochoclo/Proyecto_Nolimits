@@ -23,6 +23,7 @@ import {
   ExternalLink,
   ChevronRight,
   Plus,
+  Pencil,
   Phone,
   HelpCircle,
   Calendar,
@@ -43,7 +44,7 @@ import { Link } from 'react-router-dom';
  */
 export interface UserAddress {
   id: string;
-  alias: string;
+  alias?: string;
   recipientName: string;
   street: string;
   number: string;
@@ -52,7 +53,7 @@ export interface UserAddress {
   city: string;
   region: string;
   postalCode?: string;
-  phone: string;
+  phone?: string;
   notes?: string;
   isDefault: boolean;
 }
@@ -617,14 +618,18 @@ export const ProfileView: React.FC = () => {
 
   const [addressSuccessMessage, setAddressSuccessMessage] = useState<string | null>(null);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+
+  // Nombre o Alias de la Dirección (máx 30 caracteres)
   const [newAddrAlias, setNewAddrAlias] = useState('');
-  const [newAddrRecipient, setNewAddrRecipient] = useState(currentUser.name || '');
+
   const [newAddrStreet, setNewAddrStreet] = useState('');
   const [newAddrNumber, setNewAddrNumber] = useState('');
-  const [newAddrApt, setNewAddrApt] = useState('');
+  const [newAddrIsWithoutNumber, setNewAddrIsWithoutNumber] = useState(false); // Opción "Calle sin número" (S/N)
+  const [newAddrApt, setNewAddrApt] = useState(''); // Departamento / Oficina / Casa / etc. (máx 650)
   const [newAddrComuna, setNewAddrComuna] = useState('Viña del Mar');
-  const [newAddrPhone, setNewAddrPhone] = useState('+56 9 ');
-  const [newAddrNotes, setNewAddrNotes] = useState('');
+  const [newAddrPostalCode, setNewAddrPostalCode] = useState(''); // Código postal (numérico máx 7)
+  const [newAddrNotes, setNewAddrNotes] = useState(''); // Instrucciones (máx 650)
   const [newAddrIsDefault, setNewAddrIsDefault] = useState(false);
 
   // Sincronizar direcciones en localStorage y asegurar dirección predeterminada
@@ -635,6 +640,83 @@ export const ProfileView: React.FC = () => {
       localStorage.setItem('nolimits_default_address', JSON.stringify(defaultAddr));
     }
   }, [addresses]);
+
+  /**
+   * Cargar una dirección en el formulario para editarla
+   */
+  const handleStartEdit = (addr: UserAddress) => {
+    setEditingAddressId(addr.id);
+    setIsAddingAddress(false);
+
+    setNewAddrAlias(addr.alias || '');
+    setNewAddrStreet(addr.street || '');
+
+    const isSN =
+      (addr.number || '').trim().toUpperCase() === 'S/N' ||
+      (addr.number || '').toLowerCase().includes('sin n');
+
+    if (isSN) {
+      setNewAddrIsWithoutNumber(true);
+      setNewAddrNumber('S/N');
+    } else {
+      setNewAddrIsWithoutNumber(false);
+      setNewAddrNumber(addr.number || '');
+    }
+
+    setNewAddrApt(addr.apartment || '');
+    setNewAddrComuna(addr.comuna || 'Viña del Mar');
+    setNewAddrPostalCode(addr.postalCode || '');
+    setNewAddrNotes(addr.notes || '');
+    setNewAddrIsDefault(addr.isDefault);
+  };
+
+  /**
+   * Toggle del botón "Editar Dirección" en la cabecera
+   */
+  const handleToggleEditHeader = () => {
+    if (editingAddressId !== null) {
+      setEditingAddressId(null);
+      return;
+    }
+    if (addresses.length === 0) {
+      alert('No tienes direcciones registradas para editar. Por favor agrega una nueva dirección.');
+      return;
+    }
+    setIsAddingAddress(false);
+    const target = addresses.find(a => a.isDefault) || addresses[0];
+    handleStartEdit(target);
+  };
+
+  /**
+   * Toggle del botón "Agregar Nueva Dirección" en la cabecera
+   */
+  const handleToggleAddHeader = () => {
+    if (isAddingAddress) {
+      setIsAddingAddress(false);
+      return;
+    }
+    setEditingAddressId(null);
+    setNewAddrAlias('');
+    setNewAddrStreet('');
+    setNewAddrNumber('');
+    setNewAddrIsWithoutNumber(false);
+    setNewAddrApt('');
+    setNewAddrPostalCode('');
+    setNewAddrComuna('Viña del Mar');
+    setNewAddrNotes('');
+    setNewAddrIsDefault(false);
+    setIsAddingAddress(true);
+  };
+
+  /**
+   * Cancelar formulario
+   */
+  const handleCancelForm = () => {
+    setIsAddingAddress(false);
+    setEditingAddressId(null);
+    setNewAddrAlias('');
+    setNewAddrIsWithoutNumber(false);
+  };
 
   /**
    * Establecer una dirección como predeterminada e inyectarla al Checkout
@@ -672,7 +754,8 @@ export const ProfileView: React.FC = () => {
         // ignore
       }
 
-      setAddressSuccessMessage(`✓ "${selected.alias}" establecida como predeterminada e inyectada al Checkout.`);
+      const displayLabel = selected.alias || (selected.street ? `${selected.street} #${selected.number}` : 'Dirección');
+      setAddressSuccessMessage(`✓ "${displayLabel}" establecida como predeterminada e inyectada al Checkout.`);
       setTimeout(() => setAddressSuccessMessage(null), 3500);
     }
   };
@@ -687,8 +770,13 @@ export const ProfileView: React.FC = () => {
       alert('Debes conservar al menos una dirección registrada para despachos.');
       return;
     }
-    const confirmed = window.confirm(`¿Deseas eliminar la dirección "${addrToDelete.alias}"?`);
+    const displayLabel = addrToDelete.alias || (addrToDelete.street ? `${addrToDelete.street} #${addrToDelete.number}` : 'esta dirección');
+    const confirmed = window.confirm(`¿Deseas eliminar la dirección "${displayLabel}"?`);
     if (!confirmed) return;
+
+    if (editingAddressId === addressId) {
+      setEditingAddressId(null);
+    }
 
     let updated = addresses.filter(a => a.id !== addressId);
     // Si la eliminada era la predeterminada, asignar la primera disponible como predeterminada
@@ -700,28 +788,68 @@ export const ProfileView: React.FC = () => {
   };
 
   /**
-   * Guardar nueva dirección
+   * Guardar dirección (Nueva o Editada)
    */
-  const handleSaveNewAddress = (e: React.FormEvent) => {
+  const handleSaveAddress = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAddrStreet || !newAddrNumber || !newAddrComuna) {
-      alert('Por favor completa calle, número y comuna.');
+    if (!newAddrAlias.trim()) {
+      alert('Por favor ingresa el nombre o alias de la dirección (máx 30 caracteres).');
+      return;
+    }
+    if (!newAddrStreet.trim() || (!newAddrIsWithoutNumber && !newAddrNumber.trim()) || !newAddrComuna.trim()) {
+      alert('Por favor completa calle, número (o marca Calle sin número) y comuna.');
       return;
     }
 
+    const finalAlias = newAddrAlias.trim().slice(0, 30);
+    const finalNumber = newAddrIsWithoutNumber ? 'S/N' : newAddrNumber.trim();
+    const recipient = currentUser.name || 'Valeria Gallardo';
+
+    if (editingAddressId) {
+      // Modo Edición
+      const updated = addresses.map((addr) => {
+        if (addr.id === editingAddressId) {
+          return {
+            ...addr,
+            alias: finalAlias,
+            street: newAddrStreet.trim(),
+            number: finalNumber,
+            apartment: newAddrApt.trim() || undefined,
+            comuna: newAddrComuna.trim(),
+            city: newAddrComuna.trim(),
+            region: 'Región de Valparaíso',
+            postalCode: newAddrPostalCode.trim() || undefined,
+            notes: newAddrNotes.trim() || undefined,
+            isDefault: newAddrIsDefault ? true : addr.isDefault
+          };
+        }
+        return newAddrIsDefault ? { ...addr, isDefault: false } : addr;
+      });
+
+      setAddresses(updated);
+      if (newAddrIsDefault) {
+        handleSetDefaultAddress(editingAddressId);
+      }
+      setEditingAddressId(null);
+      setNewAddrAlias('');
+      setAddressSuccessMessage(`✓ Dirección "${finalAlias}" actualizada con éxito.`);
+      setTimeout(() => setAddressSuccessMessage(null), 3500);
+      return;
+    }
+
+    // Modo Agregar Nueva Dirección
     const newId = `addr_${Date.now()}`;
     const newAddress: UserAddress = {
       id: newId,
-      alias: newAddrAlias.trim() || 'Dirección Adicional',
-      recipientName: newAddrRecipient.trim() || currentUser.name || 'Cliente NoLimits',
+      alias: finalAlias,
+      recipientName: recipient,
       street: newAddrStreet.trim(),
-      number: newAddrNumber.trim(),
+      number: finalNumber,
       apartment: newAddrApt.trim() || undefined,
       comuna: newAddrComuna.trim(),
       city: newAddrComuna.trim(),
       region: 'Región de Valparaíso',
-      postalCode: '2520000',
-      phone: newAddrPhone.trim() || '+56 9 9123 4567',
+      postalCode: newAddrPostalCode.trim() || undefined,
       notes: newAddrNotes.trim() || undefined,
       isDefault: newAddrIsDefault || addresses.length === 0
     };
@@ -740,11 +868,13 @@ export const ProfileView: React.FC = () => {
     setNewAddrAlias('');
     setNewAddrStreet('');
     setNewAddrNumber('');
+    setNewAddrIsWithoutNumber(false);
     setNewAddrApt('');
+    setNewAddrPostalCode('');
     setNewAddrNotes('');
     setNewAddrIsDefault(false);
     setIsAddingAddress(false);
-    setAddressSuccessMessage(`✓ Nueva dirección "${newAddress.alias}" registrada con éxito.`);
+    setAddressSuccessMessage(`✓ Nueva dirección "${finalAlias}" registrada con éxito.`);
     setTimeout(() => setAddressSuccessMessage(null), 3500);
   };
 
@@ -757,7 +887,27 @@ export const ProfileView: React.FC = () => {
       const saved = localStorage.getItem('nolimits_return_requests');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Migración de seguridad: Una orden en "Listo para el retiro de sucursal" nunca fue retirada,
+          // por lo que no puede tener una devolución rechazada. Reasignar a una orden retirada (NL-8320).
+          return parsed.map((ret: ReturnRequest) => {
+            if (ret.orderNumber === 'NL-8842') {
+              return {
+                ...ret,
+                orderNumber: 'NL-8320',
+                productId: 'prod_vintage_tee_03',
+                productTitle: 'Windows XP Glitch 2000 Graphic Tee',
+                productSize: 'M',
+                productImage: INITIAL_PRODUCTS[2]?.images[0] || 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=300',
+                targetBranchId: 'valparaiso',
+                targetBranchName: 'Sucursal Valparaíso - Puerto Cyber Lab',
+                notes: 'Cliente solicitó cambio alegando daño estético posterior al retiro presencial en sucursal.',
+                rejectionReason: 'La prenda presenta signos de uso evidente tras el retiro en sucursal y la etiqueta original fue removida. De acuerdo al Artículo 21 de la Ley 19.496 y la política NoLimits OS, la garantía legal cubre exclusivamente fallas de fábrica preexistentes comprobables.'
+              };
+            }
+            return ret;
+          });
+        }
       }
     } catch {
       // ignore
@@ -799,20 +949,20 @@ export const ProfileView: React.FC = () => {
       {
         id: 'ret_case_03',
         ticketNumber: 'DEV-4019',
-        orderNumber: 'NL-8842',
-        productId: 'prod_collar_chain_04',
-        productTitle: 'Cybernetic Chrome Spiked Collar & Chain',
-        productSize: 'Talla estándar',
-        productImage: INITIAL_PRODUCTS[3]?.images[0] || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300',
+        orderNumber: 'NL-8320',
+        productId: 'prod_vintage_tee_03',
+        productTitle: 'Windows XP Glitch 2000 Graphic Tee',
+        productSize: 'M',
+        productImage: INITIAL_PRODUCTS[2]?.images[0] || 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=300',
         reason: 'Garantía Legal',
         returnMethod: 'branch_dropoff',
-        targetBranchId: 'vina_del_mar',
-        targetBranchName: 'Sucursal Viña del Mar - Mall Marina Studio',
-        requestDate: '11 de Octubre 2026',
+        targetBranchId: 'valparaiso',
+        targetBranchName: 'Sucursal Valparaíso - Puerto Cyber Lab',
+        requestDate: '14 de Octubre 2026',
         currentStatus: 'Rechazada',
-        notes: 'Cliente solicitó cambio alegando daño estético posterior a la entrega.',
-        rejectionReason: 'La pieza presenta manipulación forzada y signos evidentes de impacto exterior posterior al retiro. El sello holográfico de autenticidad del drop fue removido. De acuerdo al Artículo 21 de la Ley 19.496 y la política NoLimits OS, la garantía legal cubre exclusivamente fallas de fábrica preexistentes.',
-        rejectionDate: '13 de Octubre 2026',
+        notes: 'Cliente solicitó cambio alegando daño estético posterior al retiro en sucursal.',
+        rejectionReason: 'La prenda presenta signos evidentes de uso y la etiqueta original fue desprendida tras el retiro presencial. De acuerdo al Artículo 21 de la Ley 19.496 y la política NoLimits OS, la garantía legal cubre exclusivamente fallas de confección preexistentes comprobables tras el retiro presencial.',
+        rejectionDate: '15 de Octubre 2026',
         adminInspector: 'Administración de Control de Calidad NoLimits'
       }
     ];
@@ -906,6 +1056,22 @@ export const ProfileView: React.FC = () => {
    * Si la orden tiene sólo 1 producto, salta directamente a la advertencia "¿Está seguro?" ('confirm').
    */
   const handleOpenOrderReturn = (order: PurchaseOrder) => {
+    if (order.currentStatus !== 'Entregado' && order.currentStatus !== 'Retirado') {
+      alert('Una devolución no puede ser solicitada si la orden nunca fue retirada o entregada.');
+      return;
+    }
+
+    // Prendas elegibles que no hayan tenido ninguna solicitud previa (sea aprobada, en proceso o rechazada)
+    const eligibleItems = order.items.filter(i => {
+      const ret = returnRequests.find(r => r.orderNumber === order.orderNumber && r.productId === i.productId);
+      return !ret;
+    });
+
+    if (eligibleItems.length === 0) {
+      alert('Esta orden ya no tiene prendas disponibles para solicitar devolución o la devolución previa fue rechazada.');
+      return;
+    }
+
     setSelectedReturnOrder(order.orderNumber);
     setReturnTargetOrder(order);
     setSelectedReturnReason('Cambio de Talla');
@@ -914,22 +1080,16 @@ export const ProfileView: React.FC = () => {
     setSelectedReturnNotes('');
     setReturnPhotos([]);
 
-    // Prendas elegibles que no hayan sido aprobadas previamente
-    const eligibleItems = order.items.filter(i => {
-      const ret = returnRequests.find(r => r.orderNumber === order.orderNumber && r.productId === i.productId);
-      return !ret || ret.currentStatus === 'Rechazada';
-    });
-
     if (order.items.length > 1) {
-      // Orden con más de 1 producto: pre-seleccionar la primera prenda pero permitir marcar varias o todas
-      const firstEligible = eligibleItems[0] || order.items[0];
+      // Orden con más de 1 producto: pre-seleccionar la primera prenda elegible
+      const firstEligible = eligibleItems[0];
       setSelectedReturnItem(firstEligible.productId);
       setSelectedReturnItems([firstEligible.productId]);
       setReturnTargetItem(firstEligible);
       setReturnModalStep('select_product');
     } else {
-      // 1 solo producto: salta directamente a "¿Está seguro?"
-      const single = order.items[0];
+      // 1 solo producto elegible: salta directamente a "¿Está seguro?"
+      const single = eligibleItems[0];
       setSelectedReturnItem(single.productId);
       setSelectedReturnItems([single.productId]);
       setReturnTargetItem(single);
@@ -945,6 +1105,10 @@ export const ProfileView: React.FC = () => {
     order: PurchaseOrder,
     item: { productId: string; title: string; size: string; color: string; image: string; price: number }
   ) => {
+    if (order.currentStatus !== 'Entregado' && order.currentStatus !== 'Retirado') {
+      alert('Una devolución no puede ser solicitada si la orden nunca fue retirada o entregada.');
+      return;
+    }
     setSelectedReturnOrder(order.orderNumber);
     setSelectedReturnItem(item.productId);
     setSelectedReturnItems([item.productId]);
@@ -1919,15 +2083,88 @@ export const ProfileView: React.FC = () => {
 
                                   // Si la orden aún no está Retirada ni Entregada
                                   if (!isDeliveredOrPickedUp) {
+                                    const isReadyPickup = order.currentStatus === 'Listo para el retiro de sucursal';
                                     return (
                                       <button
                                         type="button"
                                         disabled
                                         className="winxp-button text-xs py-0.5 px-2.5 font-medium flex items-center gap-1.5 cursor-not-allowed opacity-60 bg-gray-100 text-gray-500 border-gray-300 select-none"
-                                        title="La solicitud de devolución sólo está disponible cuando la orden esté Retirada o Entregada"
+                                        title={
+                                          isReadyPickup
+                                            ? `Esta orden está lista pero aún no ha sido retirada de ${order.branchName || 'sucursal'}. No se pueden solicitar ni rechazar devoluciones sin haber retirado el producto.`
+                                            : "La solicitud de devolución sólo está disponible cuando la orden esté Retirada o Entregada"
+                                        }
                                       >
                                         <Clock className="w-3 h-3 text-gray-400 shrink-0" />
-                                        <span>Disponible tras entrega o retiro</span>
+                                        <span>
+                                          {isReadyPickup
+                                            ? 'No retirada aún (Disponible tras retiro)'
+                                            : 'Disponible tras entrega o retiro'}
+                                        </span>
+                                      </button>
+                                    );
+                                  }
+
+                                  // REGLA OBLIGATORIA:
+                                  // En el estado "Retirado" o "Entregado", si se hizo una devolución pero esta fue rechazada,
+                                  // se tiene que bloquear el botón de "Solicitud de Devolución".
+                                  const hasRejectedReturn = order.items.some(it => {
+                                    const ret = returnRequests.find(
+                                      r => r.orderNumber === order.orderNumber && r.productId === it.productId
+                                    );
+                                    return ret && (ret.currentStatus === 'Rechazada' || !!ret.rejectionReason);
+                                  });
+
+                                  // Prendas de la orden que aún no tienen ninguna solicitud de devolución registrada
+                                  const remainingItemsWithoutReturn = order.items.filter(it => {
+                                    const ret = returnRequests.find(
+                                      r => r.orderNumber === order.orderNumber && r.productId === it.productId
+                                    );
+                                    return !ret;
+                                  });
+
+                                  // Si se hizo una devolución y fue rechazada (y no quedan otras prendas pendientes sin devolución):
+                                  if (hasRejectedReturn && remainingItemsWithoutReturn.length === 0) {
+                                    return (
+                                      <button
+                                        type="button"
+                                        disabled
+                                        className="winxp-button text-xs py-1 px-3 font-bold flex items-center gap-1.5 cursor-not-allowed opacity-60 bg-gray-100 text-gray-500 border-gray-400 select-none shadow-xs"
+                                        title="La solicitud de devolución para esta orden fue rechazada por administración. El botón de solicitud está bloqueado."
+                                      >
+                                        <Lock className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                                        <span className="font-bold">Solicitud de Devolución</span>
+                                        <span
+                                          data-force-white
+                                          style={{ color: '#ffffff', backgroundColor: '#dc2626' }}
+                                          className="!text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold ml-0.5 inline-flex items-center shadow-xs"
+                                        >
+                                          Rechazada
+                                        </span>
+                                      </button>
+                                    );
+                                  }
+
+                                  // Si todas las prendas de la orden ya tienen solicitud en revisión o proceso
+                                  const allItemsInReview =
+                                    order.items.length > 0 &&
+                                    order.items.every(it => {
+                                      const ret = returnRequests.find(
+                                        r => r.orderNumber === order.orderNumber && r.productId === it.productId
+                                      );
+                                      return ret && (ret.currentStatus === 'Solicitud recibida' || ret.currentStatus === 'Revisión de equipo');
+                                    });
+
+                                  if (allItemsInReview) {
+                                    return (
+                                      <button
+                                        type="button"
+                                        disabled
+                                        className="winxp-button text-xs py-1 px-3 font-bold flex items-center gap-1.5 cursor-not-allowed opacity-75 bg-blue-50 text-blue-800 border-blue-300 select-none shadow-xs"
+                                        title="La solicitud de devolución para esta orden se encuentra actualmente en revisión por el equipo"
+                                      >
+                                        <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                        <span className="font-bold">Devolución en Revisión</span>
                                       </button>
                                     );
                                   }
@@ -1955,7 +2192,7 @@ export const ProfileView: React.FC = () => {
                                       className="winxp-button winxp-button-primary text-xs py-1 px-3 font-bold flex items-center gap-1.5 cursor-pointer shadow-xs bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-600 transition-colors"
                                       title={
                                         order.items.length > 1
-                                          ? `Esta orden tiene ${order.items.length} productos. Haz clic para seleccionar cuál devolver`
+                                          ? `Esta orden tiene ${order.items.length} productos (${remainingItemsWithoutReturn.length} disponibles). Haz clic para seleccionar cuál devolver`
                                           : 'Iniciar solicitud de cambio o devolución'
                                       }
                                     >
@@ -2177,11 +2414,41 @@ export const ProfileView: React.FC = () => {
                                     {(() => {
                                       const isDeliveredOrPickedUp =
                                         order.currentStatus === 'Entregado' || order.currentStatus === 'Retirado';
+
+                                      // REGLA OBLIGATORIA:
+                                      // En el estado "Listo para el retiro de sucursal" (o cualquier estado previo al retiro o entrega),
+                                      // una devolución NO puede ser rechazada si nunca fue retirada.
+                                      // Las devoluciones solo pueden ser rechazadas si la orden ya fue "retirada" o "entregada".
+                                      if (!isDeliveredOrPickedUp) {
+                                        if (order.currentStatus === 'Listo para el retiro de sucursal') {
+                                          return (
+                                            <div className="flex flex-col items-start sm:items-end gap-0.5">
+                                              <span className="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-xs flex items-center gap-1 shadow-2xs">
+                                                <Store className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                                <span>No retirada aún · Retiro en sucursal pendiente</span>
+                                              </span>
+                                              <span className="text-[9px] text-gray-500 font-medium">
+                                                Devoluciones disponibles solo tras retirar en {order.branchName || 'sucursal'}
+                                              </span>
+                                            </div>
+                                          );
+                                        }
+
+                                        return (
+                                          <span className="text-[10px] text-gray-500 font-medium flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                                            Disponible solo al ser Retirado o Entregado
+                                          </span>
+                                        );
+                                      }
+
+                                      // Si la orden ya fue "Retirado" o "Entregado":
+                                      // Aquí sí se evalúan devoluciones (rechazadas, aprobadas o en revisión)
                                       const existingReturn = returnRequests.find(
                                         r => r.orderNumber === order.orderNumber && r.productId === item.productId
                                       );
 
-                                      // Caso 1: Ya existe una devolución registrada para este producto
+                                      // Caso 1: Ya existe una devolución registrada para este producto en orden retirada o entregada
                                       if (existingReturn) {
                                         const isRejected = existingReturn.currentStatus === 'Rechazada' || !!existingReturn.rejectionReason;
                                         if (isRejected) {
@@ -2225,17 +2492,7 @@ export const ProfileView: React.FC = () => {
                                         );
                                       }
 
-                                      // Caso 2: El pedido aún NO ha sido Retirado ni Entregado
-                                      if (!isDeliveredOrPickedUp) {
-                                        return (
-                                          <span className="text-[10px] text-gray-500 font-medium flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
-                                            Disponible solo al ser Retirado o Entregado
-                                          </span>
-                                        );
-                                      }
-
-                                      // Caso 3: El pedido fue Entregado o Retirado (el botón de solicitud está en la cabecera de la orden)
+                                      // Caso 2: El pedido fue Entregado o Retirado (el botón de solicitud está en la cabecera de la orden)
                                       const returnEligibility = getReturnEligibility(order.date);
                                       if (returnEligibility.isEligible) {
                                         return (
@@ -2948,14 +3205,121 @@ export const ProfileView: React.FC = () => {
                       Administra múltiples domicilios y selecciona tu dirección predeterminada para el Checkout.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingAddress(!isAddingAddress)}
-                    className="winxp-button winxp-button-primary text-xs py-1.5 px-3 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto shadow-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-blue-700" />
-                    <span>{isAddingAddress ? 'Cerrar Formulario' : 'Agregar Nueva Dirección'}</span>
-                  </button>
+                  <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                    {/* Botón Editar Dirección a la izquierda */}
+                    <button
+                      type="button"
+                      onClick={handleToggleEditHeader}
+                      style={
+                        editingAddressId !== null
+                          ? {
+                              background: 'linear-gradient(180deg, #fff7ed 0%, #ffedd5 50%, #fed7aa 100%)',
+                              borderColor: '#ea580c',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.1)'
+                            }
+                          : {
+                              background: 'linear-gradient(180deg, #0284c7 0%, #0369a1 49%, #075985 51%, #0c4a6e 100%)',
+                              borderColor: '#082f49',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.3), 0 3px 8px rgba(3,105,161,0.35)',
+                              color: '#ffffff'
+                            }
+                      }
+                      className={`cursor-pointer transition-all duration-150 select-none flex items-center gap-2 rounded-[4px] border-2 active:scale-[0.98] hover:brightness-110 ${
+                        editingAddressId !== null
+                          ? 'text-amber-950 py-2 px-3.5 sm:px-4 text-xs sm:text-sm font-bold'
+                          : 'text-white py-2.5 px-4 sm:px-5 text-xs sm:text-sm font-bold tracking-wide'
+                      }`}
+                      title={editingAddressId !== null ? 'Cerrar edición de dirección' : 'Editar tu dirección registrada'}
+                    >
+                      {editingAddressId !== null ? (
+                        <>
+                          <div className="w-5.5 h-5.5 rounded-full bg-red-100 border border-red-400 flex items-center justify-center shrink-0">
+                            <X className="w-3.5 h-3.5 text-red-700 stroke-[3]" />
+                          </div>
+                          <span className="font-bold text-amber-950">Cerrar Edición</span>
+                        </>
+                      ) : (
+                        <>
+                          <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                            style={{
+                              background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)',
+                              border: '1px solid #cbd5e1',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,1), 0 1px 2px rgba(0,0,0,0.25)'
+                            }}
+                          >
+                            <Pencil className="w-3.5 h-3.5 text-black stroke-[2.5]" style={{ color: '#000000' }} />
+                          </div>
+                          <span
+                            className="font-extrabold text-xs sm:text-sm tracking-wide"
+                            style={{
+                              color: '#ffffff',
+                              textShadow: '0 1px 2px rgba(0, 0, 0, 0.75)'
+                            }}
+                          >
+                            Editar Dirección
+                          </span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Botón Agregar Nueva Dirección a la derecha */}
+                    <button
+                      type="button"
+                      onClick={handleToggleAddHeader}
+                      style={
+                        isAddingAddress
+                          ? {
+                              background: 'linear-gradient(180deg, #fff7ed 0%, #ffedd5 50%, #fed7aa 100%)',
+                              borderColor: '#ea580c',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.1)'
+                            }
+                          : {
+                              background: 'linear-gradient(180deg, #4292f7 0%, #1d6fee 49%, #1257d0 51%, #0b40a8 100%)',
+                              borderColor: '#092f7e',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.3), 0 3px 8px rgba(11,64,168,0.35)',
+                              color: '#ffffff'
+                            }
+                      }
+                      className={`cursor-pointer transition-all duration-150 select-none flex items-center gap-2 rounded-[4px] border-2 active:scale-[0.98] hover:brightness-110 ${
+                        isAddingAddress
+                          ? 'text-amber-950 py-2 px-3.5 sm:px-4 text-xs sm:text-sm font-bold'
+                          : 'text-white py-2.5 px-4.5 sm:px-5.5 text-xs sm:text-sm font-bold tracking-wide'
+                      }`}
+                      title={isAddingAddress ? 'Cerrar formulario de registro' : 'Abrir formulario para registrar nueva dirección'}
+                    >
+                      {isAddingAddress ? (
+                        <>
+                          <div className="w-5.5 h-5.5 rounded-full bg-red-100 border border-red-400 flex items-center justify-center shrink-0">
+                            <X className="w-3.5 h-3.5 text-red-700 stroke-[3]" />
+                          </div>
+                          <span className="font-bold text-amber-950">Cerrar Formulario</span>
+                        </>
+                      ) : (
+                        <>
+                          <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                            style={{
+                              background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)',
+                              border: '1px solid #cbd5e1',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,1), 0 1px 2px rgba(0,0,0,0.25)'
+                            }}
+                          >
+                            <Plus className="w-3.5 h-3.5 text-black stroke-[3.5]" style={{ color: '#000000' }} />
+                          </div>
+                          <span
+                            className="font-extrabold text-xs sm:text-sm tracking-wide"
+                            style={{
+                              color: '#ffffff',
+                              textShadow: '0 1px 2px rgba(0, 0, 0, 0.75)'
+                            }}
+                          >
+                            Agregar Nueva Dirección
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Notificación de éxito */}
@@ -2981,97 +3345,224 @@ export const ProfileView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Formulario para Agregar Nueva Dirección */}
-                {isAddingAddress && (
+                {/* Formulario para Registrar o Editar Dirección */}
+                {(isAddingAddress || editingAddressId !== null) && (
                   <form
-                    onSubmit={handleSaveNewAddress}
-                    className="p-3.5 bg-[#f0f4f8] border-2 border-blue-400 space-y-3 winxp-bevel-out"
+                    onSubmit={handleSaveAddress}
+                    className="p-4 bg-[#f0f4f8] border-2 border-blue-500 space-y-3.5 winxp-bevel-out shadow-md"
                   >
-                    <div className="font-bold text-xs text-blue-900 flex items-center gap-1.5 border-b border-gray-300 pb-1.5">
-                      <Plus className="w-4 h-4 text-blue-700" />
-                      <span>Registrar Nueva Dirección de Entrega</span>
+                    <div className="font-bold text-xs text-blue-950 flex flex-wrap items-center justify-between border-b border-blue-300 pb-2 gap-2">
+                      <div className="flex items-center gap-1.5">
+                        {editingAddressId ? (
+                          <>
+                            <Pencil className="w-4 h-4 text-blue-700 stroke-[2.5]" />
+                            <span className="text-sm">Editar Dirección de Entrega</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 text-blue-700 stroke-[3]" />
+                            <span className="text-sm">Registrar Nueva Dirección de Entrega</span>
+                          </>
+                        )}
+                      </div>
+
+                      {editingAddressId && (
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <span className="text-gray-600 font-normal">Editando:</span>
+                          {addresses.length > 1 ? (
+                            <select
+                              value={editingAddressId}
+                              onChange={(e) => {
+                                const found = addresses.find(a => a.id === e.target.value);
+                                if (found) handleStartEdit(found);
+                              }}
+                              className="winxp-input py-0.5 px-1.5 bg-white font-semibold text-blue-950 text-xs"
+                            >
+                              {addresses.map((a) => (
+                                <option key={a.id} value={a.id}>
+                                  {a.alias || `${a.street} #${a.number}`} {a.isDefault ? '★' : ''}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className="font-bold text-blue-900 bg-blue-50 px-2 py-0.5 border border-blue-200 rounded-xs">
+                              {addresses.find(a => a.id === editingAddressId)?.alias || `${addresses[0]?.street} #${addresses[0]?.number}`}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <span className="text-[10px] text-gray-500 font-normal">
+                        * Campos obligatorios
+                      </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">
-                          Nombre o Alias de la Dirección:
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={newAddrAlias}
-                          onChange={(e) => setNewAddrAlias(e.target.value)}
-                          placeholder="Ej. Casa Playa, Oficina Viña, Depto Quilpué"
-                          className="winxp-input w-full text-xs py-1"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">
-                          Nombre del Destinatario:
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={newAddrRecipient}
-                          onChange={(e) => setNewAddrRecipient(e.target.value)}
-                          placeholder="Nombre y Apellido de quien recibe"
-                          className="winxp-input w-full text-xs py-1"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <div className="sm:col-span-2">
-                          <label className="block font-bold text-gray-700 mb-1">
-                            Calle / Avenida:
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                      {/* 1. Nombre o Alias de la Dirección (máx 30 caracteres) */}
+                      <div className="sm:col-span-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="font-bold text-gray-800">
+                            Nombre o Alias de la Dirección: <span className="text-red-600">*</span>
                           </label>
+                          <span className={`text-[10px] font-mono ${newAddrAlias.length >= 30 ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                            {newAddrAlias.length} / 30 caracteres
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          maxLength={30}
+                          value={newAddrAlias}
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 30);
+                            setNewAddrAlias(clean);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') e.preventDefault();
+                          }}
+                          placeholder="Ej. Casa Principal, Depto Viña, Oficina"
+                          className="winxp-input w-full text-xs py-1.5 font-medium"
+                        />
+                        <span className="text-[10px] text-gray-500">Un nombre corto y reconocible para identificar este domicilio (máx. 30 caracteres).</span>
+                      </div>
+
+                      {/* 3. Calle / Avenida (máx 650 caracteres, sin saltos) y Número (numérico, máx 50 caracteres) con opción Calle sin número */}
+                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                        <div className="sm:col-span-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="font-bold text-gray-800">
+                              Calle / Avenida: <span className="text-red-600">*</span>
+                            </label>
+                            <span className={`text-[10px] font-mono ${newAddrStreet.length >= 650 ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                              {newAddrStreet.length} / 650 caracteres
+                            </span>
+                          </div>
                           <input
                             type="text"
                             required
+                            maxLength={650}
                             value={newAddrStreet}
-                            onChange={(e) => setNewAddrStreet(e.target.value)}
+                            onChange={(e) => {
+                              const clean = e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 650);
+                              setNewAddrStreet(clean);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') e.preventDefault();
+                            }}
                             placeholder="Ej. Av. Libertad, Calle Prat, Los Carrera"
-                            className="winxp-input w-full text-xs py-1"
+                            className="winxp-input w-full text-xs py-1.5"
                           />
                         </div>
 
                         <div>
-                          <label className="block font-bold text-gray-700 mb-1">
-                            Número:
-                          </label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="font-bold text-gray-800">
+                              Número: {!newAddrIsWithoutNumber && <span className="text-red-600">*</span>}
+                            </label>
+                            {!newAddrIsWithoutNumber && (
+                              <span className={`text-[10px] font-mono ${newAddrNumber.length >= 50 ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                                {newAddrNumber.length} / 50
+                              </span>
+                            )}
+                          </div>
                           <input
                             type="text"
-                            required
-                            value={newAddrNumber}
-                            onChange={(e) => setNewAddrNumber(e.target.value)}
-                            placeholder="Ej. 1250"
-                            className="winxp-input w-full text-xs py-1"
+                            inputMode="numeric"
+                            required={!newAddrIsWithoutNumber}
+                            disabled={newAddrIsWithoutNumber}
+                            maxLength={50}
+                            value={newAddrIsWithoutNumber ? 'S/N' : newAddrNumber}
+                            onChange={(e) => {
+                              // Solo numérico, máx 50 caracteres
+                              const clean = e.target.value.replace(/\D/g, '').slice(0, 50);
+                              setNewAddrNumber(clean);
+                            }}
+                            placeholder={newAddrIsWithoutNumber ? 'S/N' : 'Ej. 1250'}
+                            className={`winxp-input w-full text-xs py-1.5 font-mono ${
+                              newAddrIsWithoutNumber ? 'bg-gray-100 text-gray-700 font-bold cursor-not-allowed' : ''
+                            }`}
                           />
+                          <label className="flex items-center gap-1.5 mt-1.5 cursor-pointer text-[11px] text-gray-700 select-none hover:text-blue-900">
+                            <input
+                              type="checkbox"
+                              checked={newAddrIsWithoutNumber}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setNewAddrIsWithoutNumber(checked);
+                                if (checked) {
+                                  setNewAddrNumber('S/N');
+                                } else {
+                                  setNewAddrNumber('');
+                                }
+                              }}
+                              className="winxp-checkbox"
+                            />
+                            <span className="font-semibold text-[11px]">Calle sin número (S/N)</span>
+                          </label>
                         </div>
                       </div>
 
+                      {/* 4. Departamento / Oficina / Casa / etc. (Opcional, máx 650 caracteres) */}
                       <div>
-                        <label className="block font-bold text-gray-700 mb-1">
-                          Depto / Block / Torre (Opcional):
-                        </label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="font-bold text-gray-800">
+                            Departamento / Oficina / Casa / etc.: <span className="text-[11px] text-gray-500 font-normal">(Opcional)</span>
+                          </label>
+                          <span className={`text-[10px] font-mono ${newAddrApt.length >= 650 ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                            {newAddrApt.length} / 650 caracteres
+                          </span>
+                        </div>
                         <input
                           type="text"
+                          maxLength={650}
                           value={newAddrApt}
-                          onChange={(e) => setNewAddrApt(e.target.value)}
-                          placeholder="Ej. Depto 402, Torre B"
-                          className="winxp-input w-full text-xs py-1"
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 650);
+                            setNewAddrApt(clean);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') e.preventDefault();
+                          }}
+                          placeholder="Ej. Depto 402, Torre B, Casa 14"
+                          className="winxp-input w-full text-xs py-1.5"
                         />
                       </div>
 
+                      {/* 5. Código postal (Opcional, numérico máx 7 caracteres) */}
                       <div>
-                        <label className="block font-bold text-gray-700 mb-1">
-                          Comuna / Ciudad:
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="font-bold text-gray-800">
+                            Código postal: <span className="text-[11px] text-gray-500 font-normal">(Opcional)</span>
+                          </label>
+                          <span className={`text-[10px] font-mono ${newAddrPostalCode.length >= 7 ? 'text-blue-700 font-bold' : 'text-gray-500'}`}>
+                            {newAddrPostalCode.length} / 7 dígitos
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={7}
+                          value={newAddrPostalCode}
+                          onChange={(e) => {
+                            // Solo numérico, máx 7 caracteres
+                            const clean = e.target.value.replace(/\D/g, '').slice(0, 7);
+                            setNewAddrPostalCode(clean);
+                          }}
+                          placeholder="Ej. 2520000"
+                          className="winxp-input w-full text-xs py-1.5 font-mono"
+                        />
+                        <span className="text-[10px] text-gray-500">7 dígitos numéricos oficiales de CorreosChile.</span>
+                      </div>
+
+                      {/* 6. Comuna / Ciudad */}
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-gray-800 mb-1">
+                          Comuna / Ciudad: <span className="text-red-600">*</span>
                         </label>
                         <select
                           value={newAddrComuna}
                           onChange={(e) => setNewAddrComuna(e.target.value)}
-                          className="winxp-input w-full text-xs py-1 bg-white"
+                          className="winxp-input w-full text-xs py-1.5 bg-white font-medium"
                         >
                           <option value="Viña del Mar">Viña del Mar (Región de Valparaíso)</option>
                           <option value="Valparaíso">Valparaíso (Región de Valparaíso)</option>
@@ -3086,35 +3577,34 @@ export const ProfileView: React.FC = () => {
                         </select>
                       </div>
 
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">
-                          Teléfono de Contacto:
-                        </label>
+                      {/* 7. Instrucciones para Despachador (Opcional, máx 650 caracteres) */}
+                      <div className="sm:col-span-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="font-bold text-gray-800">
+                            Instrucciones para Despachador: <span className="text-[11px] text-gray-500 font-normal">(Opcional)</span>
+                          </label>
+                          <span className={`text-[10px] font-mono ${newAddrNotes.length >= 650 ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                            {newAddrNotes.length} / 650 caracteres
+                          </span>
+                        </div>
                         <input
                           type="text"
-                          required
-                          value={newAddrPhone}
-                          onChange={(e) => setNewAddrPhone(e.target.value)}
-                          placeholder="+56 9 1234 5678"
-                          className="winxp-input w-full text-xs py-1"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-gray-700 mb-1">
-                          Instrucciones para Despachador:
-                        </label>
-                        <input
-                          type="text"
+                          maxLength={650}
                           value={newAddrNotes}
-                          onChange={(e) => setNewAddrNotes(e.target.value)}
-                          placeholder="Ej. Timbre rojo, dejar con conserje"
-                          className="winxp-input w-full text-xs py-1"
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 650);
+                            setNewAddrNotes(clean);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') e.preventDefault();
+                          }}
+                          placeholder="Ej. Timbre rojo, dejar con conserje en conserjería torre B"
+                          className="winxp-input w-full text-xs py-1.5"
                         />
                       </div>
                     </div>
 
-                    <div className="pt-2 flex items-center justify-between border-t border-gray-300">
+                    <div className="pt-2.5 flex items-center justify-between border-t border-gray-300">
                       <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-blue-900 select-none">
                         <input
                           type="checkbox"
@@ -3128,16 +3618,16 @@ export const ProfileView: React.FC = () => {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => setIsAddingAddress(false)}
-                          className="winxp-button text-xs py-1 px-3 text-gray-700 cursor-pointer"
+                          onClick={handleCancelForm}
+                          className="winxp-button text-xs py-1.5 px-3.5 text-gray-700 cursor-pointer hover:bg-gray-200"
                         >
                           Cancelar
                         </button>
                         <button
                           type="submit"
-                          className="winxp-button winxp-button-primary text-xs py-1 px-4 font-bold text-blue-900 cursor-pointer"
+                          className="winxp-button winxp-button-primary text-xs py-1.5 px-5 font-bold text-blue-900 cursor-pointer shadow-xs"
                         >
-                          Guardar Dirección
+                          {editingAddressId ? 'Guardar Cambios' : 'Guardar Dirección'}
                         </button>
                       </div>
                     </div>
@@ -3154,7 +3644,49 @@ export const ProfileView: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-1 gap-3">
-                    {addresses.map((addr) => (
+                    {addresses.length === 0 ? (
+                      <div className="p-8 text-center bg-white border border-gray-300 winxp-bevel-out space-y-3">
+                        <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center mx-auto text-blue-700 shadow-inner">
+                          <MapPin className="w-6 h-6" />
+                        </div>
+                        <p className="text-xs text-gray-800 font-bold">No tienes direcciones guardadas actualmente.</p>
+                        <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
+                          Agrega tu primera dirección para disponer de despacho expedito en tus compras.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setIsAddingAddress(true)}
+                          style={{
+                            background: 'linear-gradient(180deg, #4292f7 0%, #1d6fee 49%, #1257d0 51%, #0b40a8 100%)',
+                            borderColor: '#092f7e',
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.3), 0 3px 8px rgba(11,64,168,0.35)',
+                            color: '#ffffff'
+                          }}
+                          className="cursor-pointer transition-all duration-150 select-none inline-flex items-center gap-2.5 rounded-[4px] border-2 active:scale-[0.98] hover:brightness-110 py-2.5 px-6 text-xs sm:text-sm font-bold tracking-wide"
+                        >
+                          <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                            style={{
+                              background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)',
+                              border: '1px solid #cbd5e1',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,1), 0 1px 2px rgba(0,0,0,0.25)'
+                            }}
+                          >
+                            <Plus className="w-3.5 h-3.5 text-black stroke-[3.5]" style={{ color: '#000000' }} />
+                          </div>
+                          <span
+                            className="font-extrabold text-xs sm:text-sm tracking-wide"
+                            style={{
+                              color: '#ffffff',
+                              textShadow: '0 1px 2px rgba(0, 0, 0, 0.75)'
+                            }}
+                          >
+                            Agregar Nueva Dirección
+                          </span>
+                        </button>
+                      </div>
+                    ) : (
+                      addresses.map((addr) => (
                       <div
                         key={addr.id}
                         className={`p-3.5 border transition-all rounded-xs winxp-bevel-out ${
@@ -3166,7 +3698,7 @@ export const ProfileView: React.FC = () => {
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 border-b border-gray-200 pb-2">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-sm text-blue-900">
-                              {addr.alias}
+                              {addr.alias || `${addr.street} #${addr.number}`}
                             </span>
                             {addr.isDefault ? (
                               <span
@@ -3209,7 +3741,9 @@ export const ProfileView: React.FC = () => {
                         <div className="pt-2 text-xs space-y-1 text-gray-700">
                           <div>
                             <strong className="text-gray-900">{addr.recipientName}</strong>
-                            <span className="text-gray-500 font-mono text-[11px] ml-2">({addr.phone})</span>
+                            {addr.phone && (
+                              <span className="text-gray-500 font-mono text-[11px] ml-2">({addr.phone})</span>
+                            )}
                           </div>
                           <div className="text-gray-800 font-medium">
                             {addr.street} #{addr.number} {addr.apartment && `· ${addr.apartment}`}
@@ -3224,7 +3758,8 @@ export const ProfileView: React.FC = () => {
                           )}
                         </div>
                       </div>
-                    ))}
+                    ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -3250,16 +3785,17 @@ export const ProfileView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const eligibleOrder =
-                        orders.find(
-                          o => (o.currentStatus === 'Entregado' || o.currentStatus === 'Retirado') && o.items.length > 0
-                        ) || orders[0];
-                      if (eligibleOrder && eligibleOrder.items.length > 0) {
-                        setSelectedReturnOrder(eligibleOrder.orderNumber);
-                        setSelectedReturnItem(eligibleOrder.items[0].productId);
-                        setReturnTargetOrder(eligibleOrder);
-                        setReturnTargetItem(eligibleOrder.items[0]);
+                      const eligibleOrder = orders.find(
+                        o => (o.currentStatus === 'Entregado' || o.currentStatus === 'Retirado') && o.items.length > 0
+                      );
+                      if (!eligibleOrder) {
+                        alert('No tienes compras retiradas o entregadas disponibles para solicitar devolución.');
+                        return;
                       }
+                      setSelectedReturnOrder(eligibleOrder.orderNumber);
+                      setSelectedReturnItem(eligibleOrder.items[0].productId);
+                      setReturnTargetOrder(eligibleOrder);
+                      setReturnTargetItem(eligibleOrder.items[0]);
                       setReturnModalStep('confirm');
                       setIsNewReturnModalOpen(true);
                     }}
@@ -4384,13 +4920,13 @@ export const ProfileView: React.FC = () => {
                   const currentOrder = orders.find(o => o.orderNumber === selectedReturnOrder);
                   const eligibleProds = (currentOrder?.items || []).filter(it => {
                     const ret = returnRequests.find(r => r.orderNumber === currentOrder?.orderNumber && r.productId === it.productId);
-                    return ret?.currentStatus !== 'Aprobada';
+                    return !ret;
                   });
 
                   return (
                     <div className="flex items-center justify-between gap-2 px-1 text-xs border-b border-gray-200 pb-1.5">
                       <span className="font-bold text-gray-700">
-                        {selectedReturnItems.length} de {eligibleProds.length} prendas seleccionadas para devolver
+                        {selectedReturnItems.length} de {eligibleProds.length} prendas disponibles seleccionadas
                       </span>
                       <div className="flex items-center gap-2">
                         <button
@@ -4401,7 +4937,7 @@ export const ProfileView: React.FC = () => {
                             if (allIds.length > 0) setSelectedReturnItem(allIds[0]);
                           }}
                           className="winxp-button text-[11px] py-1 px-2.5 font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 border-blue-500 shadow-xs cursor-pointer transition-colors"
-                          title="Marcar todas las prendas de esta orden"
+                          title="Marcar todas las prendas disponibles de esta orden"
                         >
                           Seleccionar todo
                         </button>
@@ -4437,7 +4973,7 @@ export const ProfileView: React.FC = () => {
                         <div
                           key={idx}
                           onClick={() => {
-                            if (!isApproved) {
+                            if (!isApproved && !isRejected) {
                               setSelectedReturnItems(prev => {
                                 const exists = prev.includes(it.productId);
                                 const updated = exists
@@ -4448,11 +4984,13 @@ export const ProfileView: React.FC = () => {
                               });
                             }
                           }}
-                          className={`p-3 border rounded-xs transition-all flex items-center justify-between gap-3 cursor-pointer ${
-                            isSelected
-                              ? 'bg-blue-50/90 border-blue-600 ring-2 ring-blue-400 shadow-sm'
-                              : 'bg-[#fafbfc] border-gray-300 hover:bg-gray-50 hover:border-gray-400'
-                          } ${isApproved ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          className={`p-3 border rounded-xs transition-all flex items-center justify-between gap-3 ${
+                            isApproved || isRejected
+                              ? 'opacity-60 cursor-not-allowed bg-gray-100 border-gray-300'
+                              : isSelected
+                              ? 'bg-blue-50/90 border-blue-600 ring-2 ring-blue-400 shadow-sm cursor-pointer'
+                              : 'bg-[#fafbfc] border-gray-300 hover:bg-gray-50 hover:border-gray-400 cursor-pointer'
+                          }`}
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             {/* Checkbox visual estilo Windows XP */}
