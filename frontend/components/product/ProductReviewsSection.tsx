@@ -32,6 +32,46 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
   const { currentUser } = useAuth();
   const storageKey = `nolimits_reviews_${product.id}`;
 
+  // Clave de almacenamiento de reseñas marcadas como "Útil" por el usuario
+  const userId = currentUser?.id || 'guest';
+  const userLikedStorageKey = `nolimits_liked_reviews_${userId}`;
+
+  const [userLikedReviewIds, setUserLikedReviewIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(userLikedStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  });
+
+  // Guardar likes del usuario en localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(userLikedStorageKey, JSON.stringify(userLikedReviewIds));
+    } catch {
+      // ignore
+    }
+  }, [userLikedReviewIds, userLikedStorageKey]);
+
+  // Sincronizar cuando cambia el usuario activo
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(userLikedStorageKey);
+      if (saved) {
+        setUserLikedReviewIds(JSON.parse(saved));
+      } else {
+        setUserLikedReviewIds([]);
+      }
+    } catch {
+      setUserLikedReviewIds([]);
+    }
+  }, [userLikedStorageKey]);
+
   // Carga de reseñas combinando mockData y las subidas localmente por el cliente (sin saltos de línea)
   const sanitizeCommentText = (text: string) =>
     (text || '').replace(/[\r\n]+/g, ' ').replace(/\s{2,}/g, ' ').trim().slice(0, 600);
@@ -258,11 +298,23 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
     }, 2000);
   };
 
-  // Incrementar Likes
-  const handleLikeReview = (revId: string) => {
-    setReviews((prev) =>
-      prev.map((r) => (r.id === revId ? { ...r, likes: r.likes + 1 } : r))
-    );
+  // Seleccionar / Deseleccionar voto de "Útil" por usuario
+  const handleToggleLikeReview = (revId: string) => {
+    const isAlreadyLiked = userLikedReviewIds.includes(revId);
+
+    if (isAlreadyLiked) {
+      // Deseleccionar: quitar de userLikedReviewIds y decrementar likes en 1 (mínimo 0)
+      setUserLikedReviewIds((prev) => prev.filter((id) => id !== revId));
+      setReviews((prev) =>
+        prev.map((r) => (r.id === revId ? { ...r, likes: Math.max(0, r.likes - 1) } : r))
+      );
+    } else {
+      // Seleccionar: agregar a userLikedReviewIds e incrementar likes en 1
+      setUserLikedReviewIds((prev) => [...prev, revId]);
+      setReviews((prev) =>
+        prev.map((r) => (r.id === revId ? { ...r, likes: r.likes + 1 } : r))
+      );
+    }
   };
 
   // Etiquetas para el dropdown
@@ -699,8 +751,9 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
             <ReviewCardItem
               key={rev.id}
               rev={rev}
+              isLiked={userLikedReviewIds.includes(rev.id)}
               onOpenLightbox={openLightbox}
-              onLikeReview={handleLikeReview}
+              onLikeReview={handleToggleLikeReview}
             />
           ))}
         </div>
@@ -853,12 +906,14 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
 // =========================================================================
 interface ReviewCardItemProps {
   rev: Review;
+  isLiked: boolean;
   onOpenLightbox: (review: Review, startIndex: number) => void;
   onLikeReview: (id: string) => void;
 }
 
 const ReviewCardItem: React.FC<ReviewCardItemProps> = ({
   rev,
+  isLiked,
   onOpenLightbox,
   onLikeReview,
 }) => {
@@ -940,14 +995,24 @@ const ReviewCardItem: React.FC<ReviewCardItemProps> = ({
         )}
       </div>
 
-      {/* Pie de la tarjeta: Botón Útil */}
+      {/* Pie de la tarjeta: Botón Útil (Seleccionable y deseleccionable por usuario) */}
       <div className="flex items-center justify-end pt-2 border-t border-gray-200 text-[10px] text-gray-500 mt-2">
         <button
           type="button"
           onClick={() => onLikeReview(rev.id)}
-          className="hover:text-blue-800 flex items-center gap-1.5 font-semibold text-gray-600 hover:bg-blue-50 px-2 py-0.5 rounded transition-colors"
+          className={`flex items-center gap-1.5 font-semibold px-2 py-0.5 rounded cursor-pointer transition-all active:scale-95 border ${
+            isLiked
+              ? 'bg-blue-100 text-blue-900 border-blue-400 font-bold shadow-xs'
+              : 'text-gray-600 hover:text-blue-800 hover:bg-blue-50/80 border-transparent'
+          }`}
+          title={isLiked ? 'Quitar mi voto de útil (clic para deseleccionar)' : 'Marcar reseña como útil'}
+          aria-pressed={isLiked}
         >
-          <ThumbsUp className="w-3.5 h-3.5 text-blue-600" />
+          <ThumbsUp
+            className={`w-3.5 h-3.5 transition-transform ${
+              isLiked ? 'text-blue-700 fill-blue-600 scale-110' : 'text-blue-600'
+            }`}
+          />
           <span>¿Útil? ({rev.likes})</span>
         </button>
       </div>

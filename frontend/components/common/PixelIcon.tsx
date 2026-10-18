@@ -1,4 +1,8 @@
 import React from 'react';
+import { PixelHeart } from './PixelHeart';
+import { MsnMessengerIcon } from './MsnMessengerIcon';
+
+export { PixelHeart, MsnMessengerIcon };
 
 export type PixelIconName =
   | 'cart'
@@ -27,7 +31,9 @@ export type PixelIconName =
   | 'badge'
   | 'register'
   | 'register-user'
-  | 'user-add';
+  | 'user-add'
+  | 'heart'
+  | 'heart-filled';
 
 interface PixelIconProps {
   name: PixelIconName;
@@ -587,6 +593,15 @@ export const PixelIcon: React.FC<PixelIconProps> = ({
             <path d="M10.5 12.5 L12 14 L14 11" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           </svg>
         );
+
+      /* ===================================================================
+         18. CORAZÓN PIXEL ART WINDOWS XP (Heart / Wishlist)
+         =================================================================== */
+      case 'heart':
+        return <PixelHeart filled={false} size={size} className={className} />;
+
+      case 'heart-filled':
+        return <PixelHeart filled={true} size={size} className={className} />;
 
       default:
         return (

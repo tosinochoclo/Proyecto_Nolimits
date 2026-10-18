@@ -25,7 +25,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('nolimits_auth_user');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Bonificación de testeo solicitada por el usuario: +1000 puntos para la cuenta del cliente
+        const testPointsApplied = localStorage.getItem('nolimits_test_1000_pts_applied');
+        if (!testPointsApplied && parsed.role === 'registered') {
+          parsed.loyaltyPoints = (parsed.loyaltyPoints || 0) + 1000;
+          localStorage.setItem('nolimits_test_1000_pts_applied', 'true');
+          localStorage.setItem('nolimits_auth_user', JSON.stringify(parsed));
+        }
+        return parsed;
       } catch {
         // fallback
       }
@@ -45,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: role === 'guest' ? 'Invitado Cyber' : `Usuario ${role}`,
       email: `${role}@nolimits.cl`,
       role,
-      loyaltyPoints: role === 'registered' ? 250 : 0,
+      loyaltyPoints: role === 'registered' ? 1250 : 0,
       createdAt: new Date().toISOString()
     };
     setCurrentUser(userForRole);

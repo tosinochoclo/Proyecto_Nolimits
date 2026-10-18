@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
-  Heart,
   Lock
 } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
@@ -14,7 +13,7 @@ import { INITIAL_PRODUCTS, INITIAL_REVIEWS } from '../services/mockData';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
-import { PixelIcon } from '../components/common/PixelIcon';
+import { PixelIcon, PixelHeart } from '../components/common/PixelIcon';
 import { SoldOutDetailBanner } from '../components/common/SoldOutState';
 import { ProductReviewsSection } from '../components/product/ProductReviewsSection';
 
@@ -101,14 +100,14 @@ export const ProductDetailView: React.FC = () => {
                 className="w-full h-full object-cover"
               />
 
-              {/* Botón flotante de un corazón para Lista de Deseos sobre la imagen */}
+              {/* Botón flotante de un corazón pixelado estilo Windows XP para Lista de Deseos sobre la imagen */}
               <button
                 type="button"
                 onClick={handleToggleWishlist}
-                className={`absolute top-2.5 right-2.5 p-2 rounded-full border shadow-md z-20 cursor-pointer transition-all active:scale-95 ${
+                className={`absolute top-2.5 right-2.5 w-8 h-8 winxp-button p-0 z-20 cursor-pointer transition-transform active:scale-95 flex items-center justify-center shadow-md ${
                   isWishlisted
-                    ? 'bg-rose-50 border-rose-500 text-rose-600 hover:bg-rose-100'
-                    : 'bg-white/95 hover:bg-white border-gray-400 text-gray-700 hover:text-rose-600'
+                    ? 'border-red-600 bg-rose-50 shadow-inner'
+                    : 'border-[#003c74]'
                 }`}
                 title={
                   !isAuthenticated
@@ -117,13 +116,9 @@ export const ProductDetailView: React.FC = () => {
                     ? 'Quitar de mi Lista de Deseos'
                     : 'Añadir a mi Lista de Deseos'
                 }
-                aria-label="Botón de corazón para lista de deseos"
+                aria-label="Botón de corazón pixelado estilo Windows XP para lista de deseos"
               >
-                <Heart
-                  className={`w-4 h-4 transition-transform ${
-                    isWishlisted ? 'text-rose-600 fill-rose-600' : 'text-gray-700 hover:text-rose-600'
-                  }`}
-                />
+                <PixelHeart filled={isWishlisted} size={20} />
               </button>
 
               {/* Etiqueta de descuento oficial sobre la imagen */}
@@ -248,11 +243,7 @@ export const ProductDetailView: React.FC = () => {
                       : 'Añadir a mi Lista de Deseos'
                   }
                 >
-                  <Heart
-                    className={`w-4 h-4 transition-transform active:scale-125 ${
-                      isWishlisted ? 'text-rose-600 fill-rose-600' : 'text-rose-600'
-                    }`}
-                  />
+                  <PixelHeart filled={isWishlisted} size={18} />
                   <span>
                     {isWishlisted
                       ? 'En tu Lista de Deseos (Te avisaremos cuando vuelva a haber stock)'
@@ -269,11 +260,7 @@ export const ProductDetailView: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <Heart
-                        className={`w-4 h-4 shrink-0 ${
-                          wishlistAlert.type === 'added' ? 'text-rose-600 fill-rose-600' : 'text-gray-500'
-                        }`}
-                      />
+                      <PixelHeart filled={wishlistAlert.type === 'added'} size={15} />
                       <span className="font-bold">{wishlistAlert.message}</span>
                     </div>
                     {wishlistAlert.type === 'added' && (
@@ -345,11 +332,7 @@ export const ProductDetailView: React.FC = () => {
                       }
                       aria-label="Botón de corazón para añadir a la lista de deseos"
                     >
-                      <Heart
-                        className={`w-4 h-4 transition-transform active:scale-125 ${
-                          isWishlisted ? 'text-rose-600 fill-rose-600' : 'text-rose-600'
-                        }`}
-                      />
+                      <PixelHeart filled={isWishlisted} size={18} />
                       <span className="hidden sm:inline">
                         {isWishlisted ? 'En Lista de Deseos' : 'Lista de Deseos'}
                       </span>
@@ -372,11 +355,7 @@ export const ProductDetailView: React.FC = () => {
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <Heart
-                          className={`w-4 h-4 shrink-0 ${
-                            wishlistAlert.type === 'added' ? 'text-rose-600 fill-rose-600' : 'text-gray-500'
-                          }`}
-                        />
+                        <PixelHeart filled={wishlistAlert.type === 'added'} size={15} />
                         <span className="font-bold">{wishlistAlert.message}</span>
                       </div>
                       {wishlistAlert.type === 'added' && (
@@ -432,7 +411,7 @@ export const ProductDetailView: React.FC = () => {
             {/* Barra de Título Windows XP */}
             <div className="winxp-titlebar flex items-center justify-between px-2 py-1 select-none text-white">
               <div className="winxp-titlebar-title flex items-center gap-1.5 text-xs text-white font-bold">
-                <Heart className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300" />
+                <PixelHeart filled={true} size={14} />
                 <span>Lista_de_Deseos.exe - [Usuario No Registrado]</span>
               </div>
               <button

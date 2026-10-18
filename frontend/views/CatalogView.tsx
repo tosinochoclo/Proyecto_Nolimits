@@ -4,8 +4,9 @@ import { Info, Check, Flame, Tag, Sparkles, XCircle } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { INITIAL_PRODUCTS } from '../services/mockData';
 import { useCart } from '../context/CartContext';
-import { PixelIcon } from '../components/common/PixelIcon';
+import { PixelIcon, PixelHeart } from '../components/common/PixelIcon';
 import { SoldOutCardOverlay } from '../components/common/SoldOutState';
+import { ProductCard } from '../components/home/ProductCard/ProductCard';
 import { Product } from '../types';
 
 export const CatalogView: React.FC = () => {
@@ -18,6 +19,7 @@ export const CatalogView: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState('all');
   const [sortBy, setSortBy] = useState<'featured' | 'price_asc' | 'price_desc' | 'rating' | 'discount'>('featured');
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const { addToCart } = useCart();
 
@@ -354,7 +356,7 @@ export const CatalogView: React.FC = () => {
         </div>
       </WindowFrame>
 
-      {/* Grilla de Resultados */}
+      {/* Grilla de Resultados con ProductCard y Botón de Lista de Deseos */}
       {filteredProducts.length === 0 ? (
         <div className="bg-white p-8 border border-gray-400 winxp-bevel-in text-center space-y-3">
           <div className="w-12 h-12 mx-auto rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
@@ -378,115 +380,72 @@ export const CatalogView: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredProducts.map((product) => {
-            const stock = product.totalStock;
-            const isSoldOut = stock <= 0;
-            const isRecentlyAdded = addedProductId === product.id;
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              currentStock={product.totalStock}
+              isRecentlyAdded={addedProductId === product.id}
+              onQuickAdd={handleQuickAdd}
+              onWishlistToggle={(_prod, res) => {
+                if (res.requiresAuth) {
+                  setShowAuthModal(true);
+                }
+              }}
+            />
+          ))}
+        </div>
+      )}
 
-            return (
-              <div key={product.id} className={`product-card-xp ${isSoldOut ? 'opacity-95' : ''}`}>
-                {/* Vista previa de imagen con badges */}
-                <div className="product-card-xp-media relative">
-                  <img
-                    src={product.images[0]}
-                    alt={product.title}
-                    className={`product-card-xp-img ${isSoldOut ? 'grayscale-30 contrast-90' : ''}`}
-                    loading="lazy"
-                  />
-
-                  {/* Componente Overlay de Agotado */}
-                  {isSoldOut && <SoldOutCardOverlay />}
-
-                  {product.discountPercent && !isSoldOut && (
-                    <span className="product-card-xp-discount">
-                      -{product.discountPercent}% OFF
-                    </span>
-                  )}
-
-                  <span
-                    className={`product-card-xp-stock ${
-                      isSoldOut ? 'bg-red-700 text-white font-bold border-red-900' : ''
-                    }`}
-                  >
-                    {isSoldOut ? '0 un. (Agotado)' : `Stock: ${stock} un.`}
-                  </span>
+      {/* Modal de Advertencia de Autenticación para Lista de Deseos */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-sm winxp-window-active border-2 border-[#0055ea] shadow-2xl animate-in zoom-in-95">
+            <div className="winxp-titlebar py-1 px-2 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs text-white font-bold">
+                <PixelIcon name="warning" size={14} />
+                <span>Acceso Exclusivo Requerido</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAuthModal(false)}
+                className="winxp-close-button text-xs w-4 h-4"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 bg-[#ece9d8] space-y-3 text-xs text-gray-800 font-sans">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center shrink-0 shadow-xs">
+                  <PixelHeart filled={true} size={18} />
                 </div>
-
-                {/* Información de la prenda */}
-                <div className="product-card-xp-info">
-                  <div>
-                    <div className="product-card-xp-category flex items-center justify-between">
-                      <span>{product.category}</span>
-                      {isSoldOut && (
-                        <span className="text-[10px] text-red-600 font-bold uppercase tracking-wider">
-                          Sin Stock
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="product-card-xp-title" title={product.title}>
-                      {product.title}
-                    </h3>
-                  </div>
-
-                  {/* Precios */}
-                  <div>
-                    <span className={`product-card-xp-price ${isSoldOut ? 'text-gray-600' : ''}`}>
-                      ${(product.salePrice ?? product.price).toLocaleString('es-CL')}
-                    </span>
-                    {product.salePrice && (
-                      <span className="product-card-xp-oldprice">
-                        ${product.price.toLocaleString('es-CL')}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Acciones */}
-                  <div className="flex items-center gap-1.5 pt-1">
-                    <Link to={`/product/${product.id}`} className="flex-1">
-                      <button
-                        type="button"
-                        className="winxp-button text-xs py-1 w-full text-gray-800"
-                      >
-                        <Info className="w-3 h-3 text-blue-700" />
-                        <span>Ver Detalle</span>
-                      </button>
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={() => handleQuickAdd(product)}
-                      disabled={isSoldOut}
-                      className={`winxp-button text-xs py-1 px-2.5 font-bold ${
-                        isSoldOut
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-400'
-                          : isRecentlyAdded
-                          ? 'bg-green-100 text-green-900 border-green-600'
-                          : 'winxp-button-primary text-blue-900'
-                      }`}
-                      title={isSoldOut ? 'Sin stock disponible en ningún nodo' : 'Añadir al Carrito'}
-                    >
-                      {isSoldOut ? (
-                        <>
-                          <XCircle className="w-3.5 h-3.5 text-red-500" />
-                          <span>Agotado</span>
-                        </>
-                      ) : isRecentlyAdded ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-green-700" />
-                          <span>¡Listo!</span>
-                        </>
-                      ) : (
-                        <>
-                          <PixelIcon name="cart" size={14} />
-                          <span>+ Carro</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
+                <div>
+                  <h4 className="font-bold text-sm text-gray-900 mb-1">
+                    Lista de Deseos Exclusiva
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed text-[11px]">
+                    La Lista de Deseos te permite guardar tus prendas favoritas y recibir alertas de reposición de stock. Esta función requiere una cuenta registrada.
+                  </p>
                 </div>
               </div>
-            );
-          })}
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-300">
+                <button
+                  type="button"
+                  onClick={() => setShowAuthModal(false)}
+                  className="winxp-button text-xs py-1 px-3"
+                >
+                  Cancelar
+                </button>
+                <Link
+                  to="/profile"
+                  className="winxp-button winxp-button-primary text-xs py-1 px-4 font-bold text-blue-900"
+                  onClick={() => setShowAuthModal(false)}
+                >
+                  Iniciar Sesión / Registrarse
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -35,7 +35,7 @@ import {
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
-import { PixelIcon } from '../components/common/PixelIcon';
+import { PixelIcon, PixelHeart } from '../components/common/PixelIcon';
 import { INITIAL_PRODUCTS } from '../services/mockData';
 import { Link } from 'react-router-dom';
 
@@ -80,6 +80,8 @@ export interface ReturnRequest {
     | 'Revisión de equipo'
     | 'Aprobada'
     | 'Rechazada'
+    | 'Envió a punto'
+    | 'Retiro Presencial'
     | 'Envió a punto/sucursal';
   notes?: string;
   rejectionReason?: string;
@@ -568,6 +570,16 @@ export const ProfileView: React.FC = () => {
 
   const [copiedCouponCode, setCopiedCouponCode] = useState<string | null>(null);
   const [pointsNotification, setPointsNotification] = useState<string | null>(null);
+  const [redeemConfirmCoupon, setRedeemConfirmCoupon] = useState<CouponItem | null>(null);
+
+  // Bonificación de 1000 puntos solicitada por el usuario para testeo de la cuenta de cliente
+  useEffect(() => {
+    const testPointsKey = 'nolimits_test_1000_pts_applied_v2';
+    if (!localStorage.getItem(testPointsKey)) {
+      localStorage.setItem(testPointsKey, 'true');
+      addLoyaltyPoints(1000);
+    }
+  }, []);
 
   // =========================================================================
   // GESTIÓN DE DIRECCIONES (Múltiples Direcciones & Selección de Predeterminada)
@@ -880,7 +892,7 @@ export const ProfileView: React.FC = () => {
 
   // =========================================================================
   // MÓDULO DE DEVOLUCIONES (Estados Obligatorios & Horarios de Sucursales)
-  // Estados: Solicitud recibida -> Revisión de equipo -> Aprobada -> Envió a punto/sucursal
+  // Estados: Solicitud recibida -> Revisión de equipo -> Aprobada -> Envió a punto / Retiro Presencial
   // =========================================================================
   const [returnRequests, setReturnRequests] = useState<ReturnRequest[]>(() => {
     try {
@@ -888,12 +900,15 @@ export const ProfileView: React.FC = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Migración de seguridad: Una orden en "Listo para el retiro de sucursal" nunca fue retirada,
+          // Migración de seguridad:
+          // 1. Una orden en "Listo para el retiro de sucursal" nunca fue retirada,
           // por lo que no puede tener una devolución rechazada. Reasignar a una orden retirada (NL-8320).
-          return parsed.map((ret: ReturnRequest) => {
-            if (ret.orderNumber === 'NL-8842') {
-              return {
-                ...ret,
+          // 2. Normalizar 'Envió a punto/sucursal' a 'Envió a punto' o 'Retiro Presencial'.
+          let updated = parsed.map((ret: ReturnRequest) => {
+            let item = { ...ret };
+            if (item.orderNumber === 'NL-8842') {
+              item = {
+                ...item,
                 orderNumber: 'NL-8320',
                 productId: 'prod_vintage_tee_03',
                 productTitle: 'Windows XP Glitch 2000 Graphic Tee',
@@ -905,8 +920,55 @@ export const ProfileView: React.FC = () => {
                 rejectionReason: 'La prenda presenta signos de uso evidente tras el retiro en sucursal y la etiqueta original fue removida. De acuerdo al Artículo 21 de la Ley 19.496 y la política NoLimits OS, la garantía legal cubre exclusivamente fallas de fábrica preexistentes comprobables.'
               };
             }
-            return ret;
+            if (item.currentStatus === 'Envió a punto/sucursal') {
+              item.currentStatus = item.returnMethod === 'courier_shipping' ? 'Envió a punto' : 'Retiro Presencial';
+            }
+            return item;
           });
+
+          // Asegurar que exista al menos una devolución en estado "Envió a punto" (solicitada por el usuario)
+          if (!updated.some(r => r.currentStatus === 'Envió a punto')) {
+            updated.push({
+              id: 'ret_case_04',
+              ticketNumber: 'DEV-5532',
+              orderNumber: 'NL-9550',
+              productId: 'prod_chaqueta_biker_10',
+              productTitle: 'Chaqueta Biker Cyber-Goth Cuero Vegano con Cierres Y2K',
+              productSize: 'L',
+              productImage: INITIAL_PRODUCTS[9]?.images[0] || 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=300',
+              reason: 'Cambio de Talla',
+              requestedSize: 'XL',
+              returnMethod: 'courier_shipping',
+              targetBranchId: 'shipping_courier',
+              targetBranchName: 'Envío Courier Blue Express (Retiro y Entrega a Domicilio)',
+              requestDate: '15 de Octubre 2026',
+              currentStatus: 'Envió a punto',
+              notes: 'Cambio de talla autorizado por bodega central. El courier se presentará a retirar la prenda en la dirección registrada.'
+            });
+          }
+
+          // Asegurar que exista al menos una devolución en estado "Retiro Presencial" (solicitada por el usuario)
+          if (!updated.some(r => r.currentStatus === 'Retiro Presencial')) {
+            updated.push({
+              id: 'ret_case_05',
+              ticketNumber: 'DEV-6277',
+              orderNumber: 'NL-9870',
+              productId: 'prod_cyber_hoodie_01',
+              productTitle: 'Cyber-Tribal Overkill Zip Hoodie',
+              productSize: 'M',
+              productImage: INITIAL_PRODUCTS[0]?.images[0] || 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=300',
+              reason: 'Cambio de Talla',
+              requestedSize: 'L',
+              returnMethod: 'branch_dropoff',
+              targetBranchId: 'vina_del_mar',
+              targetBranchName: 'Sucursal Viña del Mar - Mall Marina Studio',
+              requestDate: '15 de Octubre 2026',
+              currentStatus: 'Retiro Presencial',
+              notes: 'Prenda de recambio reservada en mesón de atención física de sucursal Viña del Mar. Presentar ticket DEV-6277.'
+            });
+          }
+
+          return updated;
         }
       }
     } catch {
@@ -927,7 +989,7 @@ export const ProfileView: React.FC = () => {
         targetBranchName: 'Sucursal Viña del Mar - Mall Marina Studio',
         requestDate: '12 de Octubre 2026',
         currentStatus: 'Aprobada',
-        notes: 'Inspección previa aprobada. El cliente debe acudir a la sucursal de Viña del Mar en horario hábil para entrega de la prenda y recepción de nota de crédito o cambio.'
+        notes: 'Inspección previa aprobada por administración. Próximamente pasará a Retiro Presencial para entrega física en sucursal.'
       },
       {
         id: 'ret_case_02',
@@ -939,12 +1001,12 @@ export const ProfileView: React.FC = () => {
         productImage: INITIAL_PRODUCTS[1]?.images[0] || 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=300',
         reason: 'Cambio de Talla',
         requestedSize: 'L',
-        returnMethod: 'branch_dropoff',
-        targetBranchId: 'valparaiso',
-        targetBranchName: 'Sucursal Valparaíso - Puerto Cyber Lab',
+        returnMethod: 'courier_shipping',
+        targetBranchId: 'shipping_courier',
+        targetBranchName: 'Cambio o Retiro por Envío (Starken a Domicilio)',
         requestDate: '14 de Octubre 2026',
         currentStatus: 'Revisión de equipo',
-        notes: 'El equipo de logística física está verificando disponibilidad de talla L en bodega central antes de autorizar el cambio en sucursal Valparaíso.'
+        notes: 'El equipo de logística física está verificando disponibilidad de talla L en bodega central antes de autorizar el cambio o envío.'
       },
       {
         id: 'ret_case_03',
@@ -964,6 +1026,40 @@ export const ProfileView: React.FC = () => {
         rejectionReason: 'La prenda presenta signos evidentes de uso y la etiqueta original fue desprendida tras el retiro presencial. De acuerdo al Artículo 21 de la Ley 19.496 y la política NoLimits OS, la garantía legal cubre exclusivamente fallas de confección preexistentes comprobables tras el retiro presencial.',
         rejectionDate: '15 de Octubre 2026',
         adminInspector: 'Administración de Control de Calidad NoLimits'
+      },
+      {
+        id: 'ret_case_04',
+        ticketNumber: 'DEV-5532',
+        orderNumber: 'NL-9550',
+        productId: 'prod_chaqueta_biker_10',
+        productTitle: 'Chaqueta Biker Cyber-Goth Cuero Vegano con Cierres Y2K',
+        productSize: 'L',
+        productImage: INITIAL_PRODUCTS[9]?.images[0] || 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=300',
+        reason: 'Cambio de Talla',
+        requestedSize: 'XL',
+        returnMethod: 'courier_shipping',
+        targetBranchId: 'shipping_courier',
+        targetBranchName: 'Envío Courier Blue Express (Retiro y Entrega a Domicilio)',
+        requestDate: '15 de Octubre 2026',
+        currentStatus: 'Envió a punto',
+        notes: 'Cambio de talla autorizado por bodega central. El courier se presentará a retirar la prenda en la dirección registrada.'
+      },
+      {
+        id: 'ret_case_05',
+        ticketNumber: 'DEV-6277',
+        orderNumber: 'NL-9870',
+        productId: 'prod_cyber_hoodie_01',
+        productTitle: 'Cyber-Tribal Overkill Zip Hoodie',
+        productSize: 'M',
+        productImage: INITIAL_PRODUCTS[0]?.images[0] || 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=300',
+        reason: 'Cambio de Talla',
+        requestedSize: 'L',
+        returnMethod: 'branch_dropoff',
+        targetBranchId: 'vina_del_mar',
+        targetBranchName: 'Sucursal Viña del Mar - Mall Marina Studio',
+        requestDate: '15 de Octubre 2026',
+        currentStatus: 'Retiro Presencial',
+        notes: 'Prenda de recambio reservada en mesón de atención física de sucursal Viña del Mar. Presentar ticket DEV-6277.'
       }
     ];
   });
@@ -1058,6 +1154,15 @@ export const ProfileView: React.FC = () => {
   const handleOpenOrderReturn = (order: PurchaseOrder) => {
     if (order.currentStatus !== 'Entregado' && order.currentStatus !== 'Retirado') {
       alert('Una devolución no puede ser solicitada si la orden nunca fue retirada o entregada.');
+      return;
+    }
+
+    const hasRejectedReturn = order.items.some(i => {
+      const ret = returnRequests.find(r => r.orderNumber === order.orderNumber && r.productId === i.productId);
+      return ret && (ret.currentStatus === 'Rechazada' || !!ret.rejectionReason);
+    });
+    if (hasRejectedReturn) {
+      alert('La solicitud de devolución para esta orden fue rechazada por la administración y se encuentra bloqueada.');
       return;
     }
 
@@ -1216,22 +1321,38 @@ export const ProfileView: React.FC = () => {
   };
 
   /**
-   * Pasos oficiales obligatorios para Devoluciones
+   * Pasos oficiales obligatorios para Devoluciones:
+   * 1. Solicitud recibida -> 2. Revisión de equipo -> 3. Aprobado / Rechazado ->
+   * 4. Envió a punto (en caso de solicitar devolución por envío) o Retiro Presencial (en caso de sucursal)
    */
-  const RETURN_STATUS_STEPS = [
-    { key: 'Solicitud recibida', label: '1. Solicitud recibida' },
-    { key: 'Revisión de equipo', label: '2. Revisión de equipo' },
-    { key: 'Aprobado / Rechazado', label: '3. Aprobado / Rechazado' },
-    { key: 'Envió a punto/sucursal', label: '4. Envió a punto/sucursal' }
-  ] as const;
+  const getReturnSteps = (ret: ReturnRequest) => {
+    const isShipping = ret.returnMethod === 'courier_shipping';
+    return [
+      { key: 'Solicitud recibida', label: '1. Solicitud recibida' },
+      { key: 'Revisión de equipo', label: '2. Revisión de equipo' },
+      { key: 'Aprobado / Rechazado', label: '3. Aprobado / Rechazado' },
+      {
+        key: isShipping ? 'Envió a punto' : 'Retiro Presencial',
+        label: isShipping ? '4. Envió a punto' : '4. Retiro Presencial'
+      }
+    ];
+  };
 
-  const getReturnStepStatus = (currentStatus: string, stepIndex: number) => {
-    if (currentStatus === 'Rechazada') {
+  const getReturnStepStatus = (ret: ReturnRequest, stepIndex: number) => {
+    if (ret.currentStatus === 'Rechazada') {
       if (stepIndex < 2) return 'completed';
       if (stepIndex === 2) return 'rejected';
       return 'cancelled';
     }
-    const statusKeys = ['Solicitud recibida', 'Revisión de equipo', 'Aprobada', 'Envió a punto/sucursal'];
+    const isShipping = ret.returnMethod === 'courier_shipping';
+    const fourthKey = isShipping ? 'Envió a punto' : 'Retiro Presencial';
+    const statusKeys = ['Solicitud recibida', 'Revisión de equipo', 'Aprobada', fourthKey];
+
+    let currentStatus: string = ret.currentStatus;
+    if (currentStatus === 'Envió a punto/sucursal') {
+      currentStatus = fourthKey;
+    }
+
     const currentIdx = statusKeys.indexOf(currentStatus);
     if (stepIndex < currentIdx) return 'completed';
     if (stepIndex === currentIdx) return 'current';
@@ -1518,7 +1639,12 @@ export const ProfileView: React.FC = () => {
       return ret.currentStatus === 'Solicitud recibida' || ret.currentStatus === 'Revisión de equipo';
     }
     if (returnsFilter === 'approved') {
-      return ret.currentStatus === 'Aprobada' || ret.currentStatus === 'Envió a punto/sucursal';
+      return (
+        ret.currentStatus === 'Aprobada' ||
+        ret.currentStatus === 'Envió a punto' ||
+        ret.currentStatus === 'Retiro Presencial' ||
+        ret.currentStatus === 'Envió a punto/sucursal'
+      );
     }
     if (returnsFilter === 'rejected') {
       return ret.currentStatus === 'Rechazada';
@@ -1577,21 +1703,41 @@ export const ProfileView: React.FC = () => {
   };
 
   /**
-   * Canjear un cupón usando puntos acumulados
+   * Solicitar canje de un cupón (abre la ventanita modal "¿Estás seguro?")
+   */
+  const handleRequestRedeem = (coupon: CouponItem) => {
+    if ((currentUser.loyaltyPoints || 0) < coupon.pointsCost) {
+      setPointsNotification(`Puntos insuficientes. Necesitas ${coupon.pointsCost} puntos y tienes ${currentUser.loyaltyPoints}.`);
+      return;
+    }
+    setRedeemConfirmCoupon(coupon);
+  };
+
+  /**
+   * Alias de compatibilidad para canjear cupón
    */
   const handleRedeemCoupon = (coupon: CouponItem) => {
+    handleRequestRedeem(coupon);
+  };
+
+  /**
+   * Confirmar el canje definitivo desde la ventanita modal "¿Estás seguro?"
+   */
+  const handleConfirmRedeem = () => {
+    if (!redeemConfirmCoupon) return;
+    const coupon = redeemConfirmCoupon;
+
     if ((currentUser.loyaltyPoints || 0) < coupon.pointsCost) {
-      alert(`Puntos insuficientes. Necesitas ${coupon.pointsCost} puntos y tienes ${currentUser.loyaltyPoints}.`);
+      setPointsNotification(`Puntos insuficientes. Necesitas ${coupon.pointsCost} puntos y tienes ${currentUser.loyaltyPoints}.`);
+      setRedeemConfirmCoupon(null);
       return;
     }
 
-    const confirmed = window.confirm(
-      `¿Deseas canjear ${coupon.pointsCost} Puntos por el "${coupon.title}"?`
-    );
-    if (!confirmed) return;
-
     const success = deductLoyaltyPoints(coupon.pointsCost);
-    if (!success) return;
+    if (!success) {
+      setRedeemConfirmCoupon(null);
+      return;
+    }
 
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const newCode = `${coupon.codePrefix}-XP-${randomSuffix}`;
@@ -1605,6 +1751,7 @@ export const ProfileView: React.FC = () => {
 
     setRedeemedCoupons(prev => [newRedeemed, ...prev]);
     setPointsNotification(`¡Cupón canjeado con éxito! Código: ${newCode}. Se descontaron ${coupon.pointsCost} puntos.`);
+    setRedeemConfirmCoupon(null);
   };
 
   /**
@@ -2069,7 +2216,12 @@ export const ProfileView: React.FC = () => {
                                       const ret = returnRequests.find(
                                         r => r.orderNumber === order.orderNumber && r.productId === it.productId
                                       );
-                                      return ret && (ret.currentStatus === 'Aprobada' || ret.currentStatus === 'Envió a punto/sucursal');
+                                      return ret && (
+                                        ret.currentStatus === 'Aprobada' ||
+                                        ret.currentStatus === 'Envió a punto' ||
+                                        ret.currentStatus === 'Retiro Presencial' ||
+                                        ret.currentStatus === 'Envió a punto/sucursal'
+                                      );
                                     });
 
                                   if (allItemsCompletedReturn) {
@@ -2124,13 +2276,13 @@ export const ProfileView: React.FC = () => {
                                   });
 
                                   // Si se hizo una devolución y fue rechazada (y no quedan otras prendas pendientes sin devolución):
-                                  if (hasRejectedReturn && remainingItemsWithoutReturn.length === 0) {
+                                  if (hasRejectedReturn) {
                                     return (
                                       <button
                                         type="button"
                                         disabled
                                         className="winxp-button text-xs py-1 px-3 font-bold flex items-center gap-1.5 cursor-not-allowed opacity-60 bg-gray-100 text-gray-500 border-gray-400 select-none shadow-xs"
-                                        title="La solicitud de devolución para esta orden fue rechazada por administración. El botón de solicitud está bloqueado."
+                                        title="La solicitud de devolución para esta orden fue rechazada por la administración. El botón de solicitud de devolución está bloqueado."
                                       >
                                         <Lock className="w-3.5 h-3.5 text-red-600 shrink-0" />
                                         <span className="font-bold">Solicitud de Devolución</span>
@@ -2139,7 +2291,7 @@ export const ProfileView: React.FC = () => {
                                           style={{ color: '#ffffff', backgroundColor: '#dc2626' }}
                                           className="!text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold ml-0.5 inline-flex items-center shadow-xs"
                                         >
-                                          Rechazada
+                                          Bloqueada (Rechazada)
                                         </span>
                                       </button>
                                     );
@@ -2569,7 +2721,7 @@ export const ProfileView: React.FC = () => {
                         <span style={{ color: '#ffffff' }}>Programa NoLimits Rewards OS</span>
                       </div>
 
-                      <div className="flex items-baseline gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3
                           className="text-3xl font-black tracking-tight"
                           style={{
@@ -2579,6 +2731,18 @@ export const ProfileView: React.FC = () => {
                         >
                           {currentUser.loyaltyPoints} PUNTOS ACUMULADOS
                         </h3>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            addLoyaltyPoints(1000);
+                            setPointsNotification('✓ Se han agregado +1.000 Puntos a tu cuenta de cliente para testeo.');
+                          }}
+                          className="winxp-button text-[10px] py-0.5 px-2.5 font-bold text-blue-950 bg-amber-200 hover:bg-amber-300 border-amber-600 shadow-xs flex items-center gap-1 cursor-pointer rounded-xs"
+                          title="Hacer clic para agregar +1.000 puntos a tu cuenta para testeo"
+                        >
+                          <Sparkles className="w-3 h-3 text-amber-900" />
+                          <span>+1.000 Pts (Testeo)</span>
+                        </button>
                       </div>
 
                       <div
@@ -3078,7 +3242,7 @@ export const ProfileView: React.FC = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-gray-300 gap-2">
                   <div>
                     <h4 className="font-bold text-sm text-blue-900 flex items-center gap-1.5">
-                      <Heart className="w-4 h-4 text-rose-600 fill-rose-600" />
+                      <PixelHeart filled={true} size={16} />
                       Prendas Guardadas en Lista de Deseos
                     </h4>
                     <p className="text-[11px] text-gray-500">
@@ -3093,7 +3257,7 @@ export const ProfileView: React.FC = () => {
                 {wishlist.length === 0 ? (
                   <div className="p-8 text-center bg-[#f8fafc] border border-gray-300 rounded-xs space-y-3 winxp-bevel-in">
                     <div className="w-12 h-12 mx-auto rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-600 shadow-inner">
-                      <Heart className="w-6 h-6 text-rose-600" />
+                      <PixelHeart filled={false} size={24} />
                     </div>
                     <div className="space-y-1">
                       <h5 className="font-bold text-sm text-gray-900">Tu Lista de Deseos está vacía</h5>
@@ -3782,28 +3946,6 @@ export const ProfileView: React.FC = () => {
                       Trazabilidad garantizada de estados y atención física presencial en sucursales.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const eligibleOrder = orders.find(
-                        o => (o.currentStatus === 'Entregado' || o.currentStatus === 'Retirado') && o.items.length > 0
-                      );
-                      if (!eligibleOrder) {
-                        alert('No tienes compras retiradas o entregadas disponibles para solicitar devolución.');
-                        return;
-                      }
-                      setSelectedReturnOrder(eligibleOrder.orderNumber);
-                      setSelectedReturnItem(eligibleOrder.items[0].productId);
-                      setReturnTargetOrder(eligibleOrder);
-                      setReturnTargetItem(eligibleOrder.items[0]);
-                      setReturnModalStep('confirm');
-                      setIsNewReturnModalOpen(true);
-                    }}
-                    className="winxp-button winxp-button-primary text-xs py-1.5 px-3.5 font-bold text-blue-900 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto shadow-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Iniciar Solicitud de Devolución</span>
-                  </button>
                 </div>
 
                 {/* Notificación de Solicitud */}
@@ -3838,7 +3980,7 @@ export const ProfileView: React.FC = () => {
                         <span>Mis Solicitudes de Devolución ({returnRequests.length}):</span>
                       </h5>
                       <span className="text-[10px] text-gray-500 font-mono">
-                        Estados: Solicitud recibida → Revisión de equipo → Aprobado / Rechazado → Envió a punto/sucursal
+                        Estados: Solicitud recibida → Revisión de equipo → Aprobado / Rechazado → Envió a punto (Envío) / Retiro Presencial (Sucursal)
                       </span>
                     </div>
 
@@ -3875,7 +4017,7 @@ export const ProfileView: React.FC = () => {
                             : 'text-gray-700'
                         }`}
                       >
-                        Aprobadas ({returnRequests.filter(r => r.currentStatus === 'Aprobada' || r.currentStatus === 'Envió a punto/sucursal').length})
+                        Aprobadas ({returnRequests.filter(r => r.currentStatus === 'Aprobada' || r.currentStatus === 'Envió a punto' || r.currentStatus === 'Retiro Presencial' || r.currentStatus === 'Envió a punto/sucursal').length})
                       </button>
                       <button
                         type="button"
@@ -3939,7 +4081,11 @@ export const ProfileView: React.FC = () => {
                                 bg = 'linear-gradient(180deg, #16a34a 0%, #15803d 100%)';
                                 border = '#14532d';
                                 icon = Check;
-                              } else if (ret.currentStatus === 'Envió a punto/sucursal') {
+                              } else if (ret.currentStatus === 'Envió a punto') {
+                                bg = 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)';
+                                border = '#075985';
+                                icon = Truck;
+                              } else if (ret.currentStatus === 'Retiro Presencial' || ret.currentStatus === 'Envió a punto/sucursal') {
                                 bg = 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)';
                                 border = '#92400e';
                                 icon = Store;
@@ -3994,7 +4140,8 @@ export const ProfileView: React.FC = () => {
 
                         {/* =========================================================
                             LÍNEA DE ESTADOS OBLIGATORIOS PARA DEVOLUCIONES:
-                            Solicitud recibida -> Revisión de equipo -> Aprobado / Rechazado -> Envió a punto/sucursal
+                            Solicitud recibida -> Revisión de equipo -> Aprobado / Rechazado -> 
+                            Envió a punto (si es por envío) o Retiro Presencial (si es sucursal)
                             ========================================================= */}
                         <div className="bg-white border border-gray-300 p-2.5 space-y-2">
                           <div className="text-[10px] font-bold text-gray-700 uppercase tracking-wider flex items-center justify-between">
@@ -4005,8 +4152,8 @@ export const ProfileView: React.FC = () => {
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-4 gap-1.5 pt-1">
-                            {RETURN_STATUS_STEPS.map((step, idx) => {
-                              const stepStatus = getReturnStepStatus(ret.currentStatus, idx);
+                            {getReturnSteps(ret).map((step, idx) => {
+                              const stepStatus = getReturnStepStatus(ret, idx);
 
                               // Estado rechazado específicamente para el Paso 3 (Aprobado / Rechazado)
                               if (stepStatus === 'rejected') {
@@ -4214,17 +4361,53 @@ export const ProfileView: React.FC = () => {
                           </div>
                         )}
 
-                        {/* Indicación de Entrega Física */}
-                        {(ret.currentStatus === 'Aprobada' || ret.currentStatus === 'Envió a punto/sucursal') && (
-                          <div className="p-2.5 bg-amber-50 border border-amber-300 text-xs flex items-center justify-between gap-2">
+                        {/* Mensaje Informativo para Aprobada por Admin (NO mostrar retiro presencial aquí) */}
+                        {ret.currentStatus === 'Aprobada' && (
+                          <div className="p-2.5 bg-green-50 border border-green-500 text-xs flex items-center justify-between gap-2 text-green-950 winxp-bevel-in shadow-2xs">
                             <div className="flex items-center gap-2">
-                              <Store className="w-4 h-4 text-amber-700 shrink-0" />
-                              <span className="text-amber-950 font-medium">
-                                Ya puedes acudir a <strong>{ret.targetBranchName}</strong> para entregar tu prenda y retirar tu cambio.
+                              <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
+                              <span className="font-medium">
+                                Tu solicitud ha sido <strong>Aprobada por Administración</strong>. Pronto avanzará al estado{' '}
+                                <strong className="text-blue-900">
+                                  {ret.returnMethod === 'courier_shipping' ? '"Envió a punto"' : '"Retiro Presencial"'}
+                                </strong>{' '}
+                                para coordinar la entrega de tu prenda.
                               </span>
                             </div>
-                            <span className="text-[10px] uppercase font-bold bg-amber-200 text-amber-900 px-2 py-0.5 border border-amber-400 shrink-0">
+                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 border bg-green-200 text-green-900 border-green-400 shrink-0 shadow-xs">
+                              Aprobada por Admin
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Indicación de Retiro Presencial en Sucursal (Solo cuando el estado es Retiro Presencial) */}
+                        {(ret.currentStatus === 'Retiro Presencial' ||
+                          (ret.currentStatus === 'Envió a punto/sucursal' && ret.returnMethod !== 'courier_shipping')) && (
+                          <div className="p-2.5 text-xs flex items-center justify-between gap-2 border bg-amber-50 border-amber-300 text-amber-950 winxp-bevel-in shadow-2xs">
+                            <div className="flex items-center gap-2">
+                              <Store className="w-4 h-4 text-amber-700 shrink-0" />
+                              <span className="font-medium">
+                                Ya puedes acudir a <strong>{ret.targetBranchName}</strong> para entregar tu prenda y retirar tu cambio presencial.
+                              </span>
+                            </div>
+                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 border bg-amber-200 text-amber-900 border-amber-400 shrink-0 shadow-xs">
                               Atención Habilitada
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Indicación de Envío a Punto / Courier */}
+                        {(ret.currentStatus === 'Envió a punto' ||
+                          (ret.currentStatus === 'Envió a punto/sucursal' && ret.returnMethod === 'courier_shipping')) && (
+                          <div className="p-2.5 text-xs flex items-center justify-between gap-2 border bg-blue-50 border-blue-300 text-blue-950 winxp-bevel-in shadow-2xs">
+                            <div className="flex items-center gap-2">
+                              <Truck className="w-4 h-4 text-blue-700 shrink-0" />
+                              <span className="font-medium">
+                                Ya puedes despachar tu prenda mediante <strong>{ret.targetBranchName}</strong> para tu cambio o nota de crédito.
+                              </span>
+                            </div>
+                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 border bg-blue-200 text-blue-900 border-blue-400 shrink-0 shadow-xs">
+                              Envío Habilitado
                             </span>
                           </div>
                         )}
@@ -5591,6 +5774,127 @@ export const ProfileView: React.FC = () => {
                   className="winxp-button winxp-button-primary text-xs py-1.5 px-5 font-bold text-blue-900 cursor-pointer shadow-sm"
                 >
                   Entendido / Cerrar Ventana
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          VENTANITA MODAL: ¿ESTÁS SEGURO? (CONFIRMACIÓN DE CANJE DE CUPÓN)
+          ========================================================================= */}
+      {redeemConfirmCoupon && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 animate-in fade-in">
+          <div className="w-full max-w-md bg-[#ece9d8] border-2 border-blue-900 shadow-2xl winxp-bevel-out">
+            {/* Barra de Título Windows XP Luna */}
+            <div
+              style={{
+                background: 'linear-gradient(180deg, #0058ee 0%, #288eff 25%, #0055ea 75%, #003db3 100%)'
+              }}
+              className="winxp-titlebar flex items-center justify-between px-2 py-1 select-none text-white"
+            >
+              <div className="winxp-titlebar-title flex items-center gap-1.5 text-xs text-white font-bold">
+                <HelpCircle className="w-3.5 h-3.5 text-yellow-300" />
+                <span>Confirmar_Canje_Cupon.exe - [NoLimits Rewards OS]</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRedeemConfirmCoupon(null)}
+                className="winxp-btn-ctrl winxp-btn-close w-4 h-4 text-[10px] font-bold text-white flex items-center justify-center cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Contenido de la Ventanita: ¿Estás seguro? */}
+            <div className="p-4 space-y-3.5 bg-white text-xs text-gray-800">
+              {/* Encabezado con Ícono de Pregunta y Título "¿Estás seguro?" */}
+              <div className="p-3 bg-blue-50 border-2 border-blue-400 rounded-xs flex items-start gap-3 winxp-bevel-in">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                  style={{
+                    background: 'linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)',
+                    border: '2px solid #1e40af'
+                  }}
+                >
+                  <HelpCircle className="w-6 h-6 text-yellow-300 stroke-[2.5]" />
+                </div>
+                <div className="space-y-0.5">
+                  <div className="font-black text-blue-950 text-base tracking-tight">
+                    ¿Estás seguro?
+                  </div>
+                  <p className="text-xs text-gray-700 leading-snug">
+                    ¿Deseas canjear tus puntos acumulados por este cupón de descuento oficial?
+                  </p>
+                </div>
+              </div>
+
+              {/* Detalle del Cupón Seleccionado */}
+              <div className="p-3 bg-[#fafbfc] border border-gray-300 rounded-xs space-y-2 winxp-bevel-in">
+                <div className="flex items-center justify-between">
+                  <span
+                    className="text-[10px] font-bold uppercase px-2 py-0.5 border rounded-xs shadow-xs"
+                    style={{
+                      background: 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)',
+                      borderColor: '#075985',
+                      color: '#ffffff'
+                    }}
+                  >
+                    {redeemConfirmCoupon.badge}
+                  </span>
+                  <span className="text-xs font-black text-red-700 font-mono">
+                    -{redeemConfirmCoupon.pointsCost} Puntos
+                  </span>
+                </div>
+                <div>
+                  <h5 className="font-bold text-sm text-gray-900">{redeemConfirmCoupon.title}</h5>
+                  <p className="text-xs text-gray-600 mt-0.5">{redeemConfirmCoupon.discountDescription}</p>
+                  <div className="text-[10px] text-gray-500 font-mono mt-1">
+                    Condición: {redeemConfirmCoupon.minPurchase}
+                  </div>
+                </div>
+              </div>
+
+              {/* Desglose de Puntos */}
+              <div className="p-2.5 bg-yellow-50/80 border border-yellow-300 rounded-xs space-y-1 text-[11px]">
+                <div className="flex justify-between items-center text-gray-600">
+                  <span>Tu saldo actual de puntos:</span>
+                  <strong className="text-gray-900 font-mono">{currentUser.loyaltyPoints || 0} pts</strong>
+                </div>
+                <div className="flex justify-between items-center text-red-700 font-semibold">
+                  <span>Puntos que se descontarán:</span>
+                  <strong className="font-mono">-{redeemConfirmCoupon.pointsCost} pts</strong>
+                </div>
+                <div className="border-t border-yellow-200 pt-1 flex justify-between items-center text-blue-950 font-bold">
+                  <span>Saldo restante tras el canje:</span>
+                  <strong className="font-mono text-emerald-800">
+                    {Math.max(0, (currentUser.loyaltyPoints || 0) - redeemConfirmCoupon.pointsCost)} pts
+                  </strong>
+                </div>
+              </div>
+
+              {/* Botones de Acción */}
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-300">
+                <button
+                  type="button"
+                  onClick={() => setRedeemConfirmCoupon(null)}
+                  className="winxp-button text-xs py-1.5 px-4 text-gray-700 cursor-pointer hover:bg-gray-200"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmRedeem}
+                  style={{
+                    background: 'linear-gradient(180deg, #16a34a 0%, #15803d 100%)',
+                    borderColor: '#14532d',
+                    color: '#ffffff'
+                  }}
+                  className="winxp-button text-xs py-1.5 px-4 font-bold cursor-pointer shadow-sm flex items-center gap-1.5 active:scale-95"
+                >
+                  <Sparkles className="w-3.5 h-3.5" style={{ color: '#ffffff' }} />
+                  <span style={{ color: '#ffffff' }}>Sí, Canjear Cupón</span>
                 </button>
               </div>
             </div>

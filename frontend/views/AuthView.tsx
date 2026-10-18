@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { WindowFrame } from '../components/layout/WindowFrame';
 import { useAuth } from '../context/AuthContext';
-import { PixelIcon } from '../components/common/PixelIcon';
+import { PixelIcon, MsnMessengerIcon } from '../components/common/PixelIcon';
 
 /**
  * Logotipo vectorial de Google oficial
@@ -49,6 +49,8 @@ export const AuthView: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -94,11 +96,14 @@ export const AuthView: React.FC = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
-    if (!email) return;
+    if (!email) {
+      setErrorMessage('Por favor ingrese su correo electrónico.');
+      return;
+    }
 
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       setMessage('¡Sesión iniciada con éxito!');
       setTimeout(() => navigate('/profile'), 600);
     } catch {
@@ -111,16 +116,37 @@ export const AuthView: React.FC = () => {
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
-    if (!email) return;
 
-    if (password && confirmPassword && password !== confirmPassword) {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) {
+      setErrorMessage('Por favor, ingrese un correo electrónico.');
+      return;
+    }
+
+    // Validación estricta solicitada: el correo debe terminar en @gmail.com
+    if (!trimmedEmail.endsWith('@gmail.com')) {
+      setErrorMessage('El correo electrónico debe terminar en @gmail.com');
+      return;
+    }
+
+    if (!password) {
+      setErrorMessage('Por favor, ingrese una contraseña.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    if (confirmPassword && password !== confirmPassword) {
       setErrorMessage('Las contraseñas no coinciden. Por favor verifíquelas.');
       return;
     }
 
     setLoading(true);
     try {
-      await register(name || email.split('@')[0], email, password);
+      await register(name || trimmedEmail.split('@')[0], trimmedEmail, password);
       setMessage('¡Cuenta creada exitosamente en NoLimits! Bienvenido.');
       setTimeout(() => navigate('/profile'), 600);
     } catch {
@@ -174,7 +200,7 @@ export const AuthView: React.FC = () => {
   }
 
   /* =========================================================================
-     CASO 1: FORMULARIO DE ACCESO (En su propia pantalla/página al presionar Iniciar Sesión)
+     CASO 1: FORMULARIO DE ACCESO (Iniciar Sesión)
      ========================================================================= */
   if (viewMode === 'login') {
     return (
@@ -187,8 +213,8 @@ export const AuthView: React.FC = () => {
           <div className="space-y-4">
             {/* Cabecera estilo Logon */}
             <div className="flex items-center gap-3 p-2 bg-[#f0f4f8] border border-gray-300">
-              <div className="w-12 h-12 bg-blue-100 border border-blue-400 flex items-center justify-center text-2xl shrink-0">
-                👤
+              <div className="w-12 h-12 bg-gradient-to-b from-white to-blue-50 border border-blue-300 winxp-bevel-in flex items-center justify-center shrink-0 overflow-hidden shadow-inner p-0.5">
+                <MsnMessengerIcon size={40} />
               </div>
               <div>
                 <div className="font-bold text-xs text-blue-900">
@@ -202,26 +228,26 @@ export const AuthView: React.FC = () => {
 
             {/* Mensajes */}
             {message && (
-              <div className="p-2 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2">
+              <div className="p-2.5 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2 rounded-xs shadow-xs">
                 <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
-                <span>{message}</span>
+                <span className="font-bold">{message}</span>
               </div>
             )}
             {errorMessage && (
-              <div className="p-2 bg-red-100 border border-red-500 text-red-900 text-xs flex items-center gap-2">
+              <div className="p-2.5 bg-red-100 border border-red-500 text-red-900 text-xs flex items-center gap-2 rounded-xs shadow-xs">
                 <PixelIcon name="error" size={15} />
-                <span>{errorMessage}</span>
+                <span className="font-bold">{errorMessage}</span>
               </div>
             )}
 
             {/* Formulario Tradicional de Acceso */}
-            <form onSubmit={handleLoginSubmit} className="space-y-3">
+            <form onSubmit={handleLoginSubmit} noValidate className="space-y-3">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
                   Correo Electrónico:
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -234,18 +260,32 @@ export const AuthView: React.FC = () => {
                 <label className="block text-xs font-bold text-gray-700 mb-1">
                   Contraseña de Acceso:
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="winxp-input w-full text-xs py-1"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="winxp-input w-full text-xs py-1 pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-1.5 p-1 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                    title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4 text-blue-800" />
+                    ) : (
+                      <Eye className="w-4 h-4 text-gray-600 hover:text-black" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2">
-                {/* Botón rojo con texto blanco garantizado */}
                 <button
                   type="submit"
                   disabled={loading}
@@ -262,21 +302,14 @@ export const AuthView: React.FC = () => {
               </div>
             </form>
 
-            {/* Navegación y enlace inferior */}
-            <div className="pt-3 border-t border-gray-300 flex items-center justify-between text-xs">
-              <button
-                type="button"
-                onClick={goToPortal}
-                className="winxp-button text-xs py-1 px-2.5 text-gray-800"
-              >
-                <span>← Volver a opciones</span>
-              </button>
+            {/* Navegación inferior */}
+            <div className="pt-3 border-t border-gray-300 text-center text-xs">
               <button
                 type="button"
                 onClick={goToRegister}
-                className="text-blue-700 hover:underline font-bold"
+                className="text-blue-700 hover:underline font-bold cursor-pointer"
               >
-                ¿Aún no estás registrado?
+                ¿Aún no estás registrado? Crear cuenta aquí
               </button>
             </div>
           </div>
@@ -286,7 +319,7 @@ export const AuthView: React.FC = () => {
   }
 
   /* =========================================================================
-     CASO 2: FORMULARIO DE REGISTRO (En su propia pantalla/página al presionar ¡Regístrate ahora!)
+     CASO 2: FORMULARIO DE REGISTRO
      ========================================================================= */
   if (viewMode === 'register') {
     return (
@@ -299,8 +332,8 @@ export const AuthView: React.FC = () => {
           <div className="space-y-4">
             {/* Cabecera estilo Logon */}
             <div className="flex items-center gap-3 p-2 bg-[#f0f4f8] border border-gray-300">
-              <div className="w-12 h-12 bg-blue-100 border border-blue-400 flex items-center justify-center text-2xl shrink-0">
-                👤
+              <div className="w-12 h-12 bg-gradient-to-b from-white to-blue-50 border border-blue-300 winxp-bevel-in flex items-center justify-center shrink-0 overflow-hidden shadow-inner p-0.5">
+                <MsnMessengerIcon size={40} />
               </div>
               <div>
                 <div className="font-bold text-xs text-blue-900">
@@ -312,22 +345,24 @@ export const AuthView: React.FC = () => {
               </div>
             </div>
 
-            {/* Mensajes */}
-            {message && (
-              <div className="p-2 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
-                <span>{message}</span>
+            {/* Alerta de Error (aparece al presionar ¡Regístrate ahora!) */}
+            {errorMessage && (
+              <div className="p-2.5 bg-red-100 border border-red-500 text-red-900 text-xs flex items-center gap-2 rounded-xs shadow-xs animate-in fade-in">
+                <PixelIcon name="error" size={16} />
+                <span className="font-bold">{errorMessage}</span>
               </div>
             )}
-            {errorMessage && (
-              <div className="p-2 bg-red-100 border border-red-500 text-red-900 text-xs flex items-center gap-2">
-                <PixelIcon name="error" size={15} />
-                <span>{errorMessage}</span>
+
+            {/* Mensaje de Éxito */}
+            {message && (
+              <div className="p-2.5 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2 rounded-xs shadow-xs animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
+                <span className="font-bold">{message}</span>
               </div>
             )}
 
             {/* Formulario Tradicional de Registro */}
-            <form onSubmit={handleRegisterSubmit} className="space-y-3">
+            <form onSubmit={handleRegisterSubmit} noValidate className="space-y-3">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
                   Nombre Completo:
@@ -344,14 +379,14 @@ export const AuthView: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Correo Electrónico:
+                  Correo Electrónico (Debe terminar en @gmail.com):
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="usuario@correo.cl"
+                  placeholder="usuario@gmail.com"
                   className="winxp-input w-full text-xs py-1"
                 />
               </div>
@@ -360,28 +395,58 @@ export const AuthView: React.FC = () => {
                 <label className="block text-xs font-bold text-gray-700 mb-1">
                   Contraseña de Acceso:
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="winxp-input w-full text-xs py-1"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="winxp-input w-full text-xs py-1 pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-1.5 p-1 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                    title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4 text-blue-800" />
+                    ) : (
+                      <Eye className="w-4 h-4 text-gray-600 hover:text-black" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
                   Confirmar Contraseña:
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="winxp-input w-full text-xs py-1"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="winxp-input w-full text-xs py-1 pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-1.5 p-1 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                    title={showConfirmPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-4 h-4 text-blue-800" />
+                    ) : (
+                      <Eye className="w-4 h-4 text-gray-600 hover:text-black" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2">
@@ -402,19 +467,12 @@ export const AuthView: React.FC = () => {
               </div>
             </form>
 
-            {/* Navegación y enlace inferior */}
-            <div className="pt-3 border-t border-gray-300 flex items-center justify-between text-xs">
-              <button
-                type="button"
-                onClick={goToPortal}
-                className="winxp-button text-xs py-1 px-2.5 text-gray-800"
-              >
-                <span>← Volver a opciones</span>
-              </button>
+            {/* Enlace inferior sin botón "Volver a opciones" */}
+            <div className="pt-3 border-t border-gray-300 text-center text-xs">
               <button
                 type="button"
                 onClick={goToLogin}
-                className="text-blue-700 hover:underline font-bold"
+                className="text-blue-700 hover:underline font-bold cursor-pointer"
               >
                 ¿Ya tienes cuenta? Iniciar sesión aquí
               </button>
@@ -426,7 +484,7 @@ export const AuthView: React.FC = () => {
   }
 
   /* =========================================================================
-     CASO 3: PÁGINA PORTAL DE ACCESO Y REGISTRO (Pantalla principal con los botones ordenados)
+     CASO 3: PÁGINA PORTAL DE ACCESO Y REGISTRO (Pantalla principal)
      ========================================================================= */
   return (
     <div className="max-w-md mx-auto py-6 font-sans">
@@ -436,10 +494,10 @@ export const AuthView: React.FC = () => {
         statusBarText="SEGURIDAD SSL 128-BITS // AUTENTICACIÓN OFICIAL NOLIMITS"
       >
         <div className="space-y-4">
-          {/* Cabecera estilo Logon de Windows XP */}
+          {/* Cabecera estilo Logon de Windows XP con icono de MSN Messenger */}
           <div className="flex items-center gap-3 p-2 bg-[#f0f4f8] border border-gray-300">
-            <div className="w-12 h-12 bg-blue-100 border border-blue-400 flex items-center justify-center text-2xl shrink-0">
-              👤
+            <div className="w-12 h-12 bg-gradient-to-b from-white to-blue-50 border border-blue-300 winxp-bevel-in flex items-center justify-center shrink-0 overflow-hidden shadow-inner p-0.5">
+              <MsnMessengerIcon size={40} />
             </div>
             <div>
               <div className="font-bold text-xs text-blue-900">
@@ -453,15 +511,15 @@ export const AuthView: React.FC = () => {
 
           {/* Mensajes de feedback */}
           {message && (
-            <div className="p-2 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2">
+            <div className="p-2.5 bg-green-100 border border-green-500 text-green-900 text-xs flex items-center gap-2 rounded-xs shadow-xs">
               <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
-              <span>{message}</span>
+              <span className="font-bold">{message}</span>
             </div>
           )}
           {errorMessage && (
-            <div className="p-2 bg-red-100 border border-red-500 text-red-900 text-xs flex items-center gap-2">
+            <div className="p-2.5 bg-red-100 border border-red-500 text-red-900 text-xs flex items-center gap-2 rounded-xs shadow-xs">
               <PixelIcon name="error" size={15} />
-              <span>{errorMessage}</span>
+              <span className="font-bold">{errorMessage}</span>
             </div>
           )}
 
@@ -499,7 +557,7 @@ export const AuthView: React.FC = () => {
               </button>
             </div>
 
-            {/* 2. Botón "Iniciar Sesión" (Rojo) intercambiado al lugar superior:
+            {/* 2. Botón "Iniciar Sesión" (Rojo):
                    Al hacer clic, abre el Formulario de Acceso en otra página */}
             <div className="pt-1">
               <button

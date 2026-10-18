@@ -51,7 +51,7 @@ export const INITIAL_USERS: User[] = [
     email: 'valeria.k@gmail.com',
     role: 'registered',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    loyaltyPoints: 340,
+    loyaltyPoints: 1340, // 340 + 1000 puntos para testeo del cliente
     phone: '+56 9 9123 4567',
     rut: '19.824.112-K',
     createdAt: '2026-02-10'
@@ -368,7 +368,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     subCategory: 'Chokers',
     tags: ['Punk', 'Choker', 'Oferta', 'Chrome', 'Sale'],
     images: [
-      'https://joyaspatriciolillo.cl/wp-content/uploads/2023/12/WhatsApp-Image-2021-04-21-at-7.29.28-PM.jpeg'
+      'https://images.unsplash.com/photo-1611591475152-47354c5ec054?w=800&auto=format&fit=crop&q=80'
     ],
     sizes: [],
     colors: [

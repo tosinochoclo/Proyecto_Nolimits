@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Info, XCircle, Heart } from 'lucide-react';
+import { Check, Info, XCircle } from 'lucide-react';
 import { Product } from '../../../types';
-import { PixelIcon } from '../../common/PixelIcon';
+import { PixelIcon, PixelHeart } from '../../common/PixelIcon';
 import { SoldOutCardOverlay } from '../../common/SoldOutState';
 import { useWishlist } from '../../../context/WishlistContext';
 import { useAuth } from '../../../context/AuthContext';
@@ -13,6 +13,7 @@ interface ProductCardProps {
   currentStock: number;
   isRecentlyAdded: boolean;
   onQuickAdd: (product: Product) => void;
+  onWishlistToggle?: (product: Product, result: { success: boolean; isAdded: boolean; requiresAuth: boolean }) => void;
 }
 
 /**
@@ -22,12 +23,14 @@ interface ProductCardProps {
  * - Fondo blanco limpio (#ffffff).
  * - Tipografía pequeña no pixelada y de máxima legibilidad (Tahoma).
  * - Componente y overlay oficial de "Agotado" para productos sin stock.
+ * - Botón de Lista de Deseos (Corazón Pixel Art Windows XP).
  */
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   currentStock,
   isRecentlyAdded,
   onQuickAdd,
+  onWishlistToggle,
 }) => {
   const isSoldOut = currentStock <= 0;
   const { isInWishlist, toggleWishlist } = useWishlist();
@@ -45,18 +48,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           loading="lazy"
         />
 
-        {/* Botón rápido de Lista de Deseos */}
+        {/* Botón rápido de Lista de Deseos con Corazón Pixel Art */}
         <button
           type="button"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            toggleWishlist(product);
+            const result = toggleWishlist(product);
+            if (onWishlistToggle) {
+              onWishlistToggle(product, result);
+            }
           }}
-          className={`absolute top-1.5 right-1.5 p-1 rounded-full border shadow-xs z-10 cursor-pointer transition-all active:scale-90 ${
+          className={`absolute top-1.5 right-1.5 w-7.5 h-7.5 winxp-button p-0 z-10 cursor-pointer transition-transform active:scale-90 flex items-center justify-center shadow-xs ${
             isWishlisted
-              ? 'bg-rose-50 border-rose-500 text-rose-600'
-              : 'bg-white/85 hover:bg-white border-gray-400 text-gray-600 hover:text-rose-600'
+              ? 'border-red-600 bg-rose-50 shadow-inner'
+              : 'border-[#003c74]'
           }`}
           title={
             !isAuthenticated
@@ -67,7 +73,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           }
           aria-label="Lista de Deseos"
         >
-          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'text-rose-600 fill-rose-600' : ''}`} />
+          <PixelHeart filled={isWishlisted} size={16} />
         </button>
 
         {/* Overlay oficial de Agotado */}
@@ -75,7 +81,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {product.discountPercent && !isSoldOut && (
           <span className="product-card-xp-discount">
-            -{product.discountPercent}%
+            -{product.discountPercent}% OFF
           </span>
         )}
 
