@@ -28,11 +28,20 @@ export const GlobalDashboardView: React.FC = () => {
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Link to="/admin/express-upload">
+            <div className="flex flex-wrap items-center gap-2">
+              <Link to="/admin/inventory">
                 <button
                   type="button"
                   className="winxp-button winxp-button-primary text-xs py-1 px-3 text-blue-900 font-bold"
+                >
+                  <Package className="w-3.5 h-3.5 text-blue-700 inline mr-1" />
+                  <span>Gestión de Inventario</span>
+                </button>
+              </Link>
+              <Link to="/admin/express-upload">
+                <button
+                  type="button"
+                  className="winxp-button text-xs py-1 px-3 text-gray-800"
                 >
                   <Zap className="w-3.5 h-3.5 text-amber-600 inline mr-1" />
                   <span>Carga Express Live</span>
@@ -78,7 +87,22 @@ export const GlobalDashboardView: React.FC = () => {
           </div>
 
           {/* Accesos Directos a los Módulos de Administración */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+            <Link to="/admin/inventory" className="block group">
+              <div className="p-4 bg-white border border-[#7f9db9] hover:border-blue-600 hover:shadow-md transition-all space-y-2 h-full">
+                <div className="flex items-center justify-between">
+                  <Package className="w-5 h-5 text-blue-700" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-700 transition-colors" />
+                </div>
+                <h3 className="font-bold text-xs text-blue-900 group-hover:underline">
+                  GESTIÓN DE INVENTARIO
+                </h3>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Resumen de categorías, usuarios, productos, ventas por sucursal y gráficos Top 10 de pedidos y ventas.
+                </p>
+              </div>
+            </Link>
+
             <Link to="/admin/branches" className="block group">
               <div className="p-4 bg-white border border-[#7f9db9] hover:border-blue-600 hover:shadow-md transition-all space-y-2 h-full">
                 <div className="flex items-center justify-between">

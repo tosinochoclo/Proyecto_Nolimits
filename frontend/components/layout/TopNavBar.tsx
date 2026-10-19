@@ -6,6 +6,7 @@ import {
   RotateCw,
   Home,
   Shield,
+  Package,
   User as UserIcon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -49,6 +50,16 @@ export const TopNavBar: React.FC = () => {
             <option value="branch_admin">Admin Sucursal (Viña)</option>
             <option value="super_admin">Súper Administrador</option>
           </select>
+
+          {currentRole === 'super_admin' && (
+            <Link
+              to="/admin/inventory"
+              className="winxp-button text-[10px] py-0.5 px-2 bg-blue-100 hover:bg-blue-200 text-blue-950 border border-blue-600 font-bold flex items-center gap-1"
+            >
+              <Package className="w-3 h-3 text-blue-700" />
+              <span>INVENTARIO ROOT</span>
+            </Link>
+          )}
 
           {(currentRole === 'branch_admin' || currentRole === 'super_admin') && (
             <Link

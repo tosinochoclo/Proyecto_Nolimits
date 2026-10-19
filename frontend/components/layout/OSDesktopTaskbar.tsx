@@ -6,6 +6,7 @@ import {
   Radio,
   Layers,
   ShoppingBag,
+  Package,
   Shield,
   Zap,
   Store,
@@ -363,6 +364,14 @@ export const OSDesktopTaskbar: React.FC = () => {
 
               {(currentRole === 'branch_admin' || currentRole === 'super_admin') ? (
                 <>
+                  <Link
+                    to="/admin/inventory"
+                    className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
+                  >
+                    <Package className="w-4 h-4 text-blue-800" />
+                    <span className="font-semibold text-blue-900 hover:text-white">Inventario (Super Admin)</span>
+                  </Link>
+
                   <Link
                     to="/admin/logistics"
                     className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
