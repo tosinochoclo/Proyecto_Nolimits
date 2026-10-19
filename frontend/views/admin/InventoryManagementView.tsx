@@ -10,7 +10,8 @@ import {
   Store,
   ChevronRight,
   TrendingUp,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Receipt
 } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
 import { PixelIcon } from '../../components/common/PixelIcon';
@@ -482,6 +483,18 @@ export const InventoryManagementView: React.FC = () => {
 
             {/* Acciones de la Barra Superior */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Botón "Registrar Gasto" a la izquierda del botón "Top 10" */}
+              <Link to="/admin/register-expense">
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1 px-3 text-red-950 font-bold flex items-center gap-1.5 shadow-xs border-red-700 bg-red-50/70 hover:bg-red-100"
+                  title="Registrar nuevo gasto de inventario o sucursal"
+                >
+                  <Receipt className="w-3.5 h-3.5 text-red-700" />
+                  <span>Registrar Gasto</span>
+                </button>
+              </Link>
+
               {/* Botón "Top 10" a la izquierda del botón "Actualizar" */}
               <Link to="/admin/top10">
                 <button
