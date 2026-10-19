@@ -373,6 +373,14 @@ export const OSDesktopTaskbar: React.FC = () => {
                   </Link>
 
                   <Link
+                    to="/admin/top10"
+                    className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
+                  >
+                    <Layers className="w-4 h-4 text-purple-700" />
+                    <span className="font-semibold text-purple-950 hover:text-white">Top 10 Analítica</span>
+                  </Link>
+
+                  <Link
                     to="/admin/logistics"
                     className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
                   >

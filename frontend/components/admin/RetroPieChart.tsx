@@ -203,20 +203,29 @@ export const RetroPieChart: React.FC<RetroPieChartProps> = ({
                   {item.index + 1}
                 </span>
 
-                {item.image && (
+                {item.image ? (
                   <img
                     src={item.image}
                     alt={item.label}
                     className="w-6 h-6 object-cover border border-gray-300 rounded-xs shrink-0 bg-white"
                   />
+                ) : (
+                  <div className="w-6 h-6 rounded-xs bg-[#e0e7ff] text-[#3730a3] border border-indigo-200 flex items-center justify-center text-[10px] font-bold shrink-0">
+                    {item.label.substring(0, 2).toUpperCase()}
+                  </div>
                 )}
 
                 <div className="min-w-0">
                   <div className="text-[11px] font-bold truncate leading-tight" title={item.label}>
                     {item.label}
                   </div>
-                  {item.sku && (
-                    <div className="text-[10px] text-gray-500 font-mono leading-none">
+                  {item.subLabel && (
+                    <div className="text-[10px] text-gray-500 truncate leading-none mt-0.5">
+                      {item.subLabel}
+                    </div>
+                  )}
+                  {item.sku && !item.subLabel && (
+                    <div className="text-[10px] text-gray-500 font-mono leading-none mt-0.5">
                       SKU: {item.sku}
                     </div>
                   )}
@@ -227,6 +236,11 @@ export const RetroPieChart: React.FC<RetroPieChartProps> = ({
                 <div className="font-mono text-[11px] font-bold text-blue-900">
                   {valuePrefix}{item.value.toLocaleString('es-CL')}{valueSuffix}
                 </div>
+                {item.secondaryText && (
+                  <div className="text-[10px] text-gray-600 font-mono font-medium">
+                    {item.secondaryText}
+                  </div>
+                )}
                 <div className="text-[10px] text-gray-500 font-semibold">
                   {item.percentage}%
                 </div>

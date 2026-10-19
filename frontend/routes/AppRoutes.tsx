@@ -16,6 +16,7 @@ import { LocalBranchAdminView } from '../views/admin/LocalBranchAdminView';
 import { LogisticsAnalyticsView } from '../views/admin/LogisticsAnalyticsView';
 import { ExpressProductUploadView } from '../views/admin/ExpressProductUploadView';
 import { InventoryManagementView } from '../views/admin/InventoryManagementView';
+import { Top10AnalyticsView } from '../views/admin/Top10AnalyticsView';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -55,6 +56,15 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
             <InventoryManagementView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/top10"
+        element={
+          <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
+            <Top10AnalyticsView />
           </ProtectedRoute>
         }
       />

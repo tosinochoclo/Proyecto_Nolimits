@@ -482,6 +482,18 @@ export const InventoryManagementView: React.FC = () => {
 
             {/* Acciones de la Barra Superior */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Botón "Top 10" a la izquierda del botón "Actualizar" */}
+              <Link to="/admin/top10">
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1 px-3 text-blue-900 font-bold flex items-center gap-1.5 shadow-xs"
+                  title="Ver componentes y métricas Top 10"
+                >
+                  <PieChartIcon className="w-3.5 h-3.5 text-blue-700" />
+                  <span>Top 10</span>
+                </button>
+              </Link>
+
               <button
                 type="button"
                 onClick={handleRefresh}
