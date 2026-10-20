@@ -19,6 +19,7 @@ import {
   Users,
   HelpCircle,
   CreditCard,
+  BarChart3,
   FileText,
   ShieldCheck,
   Truck,
@@ -386,6 +387,14 @@ export const OSDesktopTaskbar: React.FC = () => {
                   >
                     <CreditCard className="w-4 h-4 text-red-700" />
                     <span className="font-semibold text-red-950 hover:text-white">Registrar Gasto</span>
+                  </Link>
+
+                  <Link
+                    to="/admin/income-expenses"
+                    className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
+                  >
+                    <BarChart3 className="w-4 h-4 text-green-700" />
+                    <span className="font-semibold text-green-950 hover:text-white">Ingresos / Gastos</span>
                   </Link>
 
                   <Link

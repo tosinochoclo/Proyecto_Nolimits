@@ -11,7 +11,8 @@ import {
   ChevronRight,
   TrendingUp,
   FileSpreadsheet,
-  Receipt
+  Receipt,
+  BarChart3
 } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
 import { PixelIcon } from '../../components/common/PixelIcon';
@@ -483,6 +484,18 @@ export const InventoryManagementView: React.FC = () => {
 
             {/* Acciones de la Barra Superior */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Botón "Ingresos / Gastos" a la izquierda del botón "Registrar Gasto" */}
+              <Link to="/admin/income-expenses">
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1 px-3 text-green-950 font-bold flex items-center gap-1.5 shadow-xs border-green-700 bg-green-50/80 hover:bg-green-100"
+                  title="Ver gráfico comparativo de Ingresos vs. Gastos"
+                >
+                  <BarChart3 className="w-3.5 h-3.5 text-green-700" />
+                  <span>Ingresos / Gastos</span>
+                </button>
+              </Link>
+
               {/* Botón "Registrar Gasto" a la izquierda del botón "Top 10" */}
               <Link to="/admin/register-expense">
                 <button
