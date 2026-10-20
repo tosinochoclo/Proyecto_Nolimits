@@ -21,6 +21,7 @@ import { RegisterExpenseView } from '../views/admin/RegisterExpenseView';
 import { IncomeExpensesAnalyticsView } from '../views/admin/IncomeExpensesAnalyticsView';
 import { SalesHistoryView } from '../views/admin/SalesHistoryView';
 import { SupplierManagementView } from '../views/admin/SupplierManagementView';
+import { ProductStockSummaryView } from '../views/admin/ProductStockSummaryView';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -132,6 +133,33 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
             <SupplierManagementView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/product-stock"
+        element={
+          <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
+            <ProductStockSummaryView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/resumen-stock"
+        element={
+          <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
+            <ProductStockSummaryView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/stock"
+        element={
+          <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
+            <ProductStockSummaryView />
           </ProtectedRoute>
         }
       />

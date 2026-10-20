@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Zap, TrendingUp, Users, Store, Package, Bell, FileSpreadsheet, ArrowRight } from 'lucide-react';
+import { Shield, Zap, TrendingUp, Users, Store, Package, Bell, FileSpreadsheet, ArrowRight, Boxes } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
 import { PixelIcon } from '../../components/common/PixelIcon';
 import { INITIAL_ANALYTICS, INITIAL_BRANCHES } from '../../services/mockData';
@@ -36,6 +36,15 @@ export const GlobalDashboardView: React.FC = () => {
                 >
                   <Package className="w-3.5 h-3.5 text-blue-700 inline mr-1" />
                   <span>Gestión de Inventario</span>
+                </button>
+              </Link>
+              <Link to="/admin/product-stock">
+                <button
+                  type="button"
+                  className="winxp-button text-xs py-1 px-3 text-emerald-950 font-bold border-emerald-700 bg-emerald-50/70 hover:bg-emerald-100"
+                >
+                  <Boxes className="w-3.5 h-3.5 text-emerald-700 inline mr-1" />
+                  <span>Resumen Stock Productos</span>
                 </button>
               </Link>
               <Link to="/admin/express-upload">

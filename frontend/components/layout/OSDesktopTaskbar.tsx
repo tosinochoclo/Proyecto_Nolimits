@@ -31,7 +31,8 @@ import {
   ChevronDown,
   Phone,
   ExternalLink,
-  Info
+  Info,
+  Boxes
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -413,6 +414,14 @@ export const OSDesktopTaskbar: React.FC = () => {
                   >
                     <Building2 className="w-4 h-4 text-indigo-700" />
                     <span className="font-semibold text-indigo-950 hover:text-white">Proveedores</span>
+                  </Link>
+
+                  <Link
+                    to="/admin/product-stock"
+                    className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
+                  >
+                    <Boxes className="w-4 h-4 text-emerald-700" />
+                    <span className="font-semibold text-emerald-950 hover:text-white">Resumen Stock Productos</span>
                   </Link>
 
                   <Link

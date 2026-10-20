@@ -14,7 +14,8 @@ import {
   Receipt,
   BarChart3,
   History,
-  Building2
+  Building2,
+  Boxes
 } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
 import { PixelIcon } from '../../components/common/PixelIcon';
@@ -486,6 +487,18 @@ export const InventoryManagementView: React.FC = () => {
 
             {/* Acciones de la Barra Superior */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Botón "Resumen Stock Productos" a la izquierda del botón "Crear/Editar Proveedor" */}
+              <Link to="/admin/product-stock">
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1 px-3 text-emerald-950 font-bold flex items-center gap-1.5 shadow-xs border-emerald-700 bg-emerald-50/80 hover:bg-emerald-100"
+                  title="Ver resumen de stock por productos, desglose por tallas y actualización manual"
+                >
+                  <Boxes className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Resumen Stock Productos</span>
+                </button>
+              </Link>
+
               {/* Botón "Crear/Editar Proveedor" a la izquierda del botón "Historial de Ventas" */}
               <Link to="/admin/suppliers">
                 <button
