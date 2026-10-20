@@ -13,7 +13,8 @@ import {
   FileSpreadsheet,
   Receipt,
   BarChart3,
-  History
+  History,
+  Building2
 } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
 import { PixelIcon } from '../../components/common/PixelIcon';
@@ -485,6 +486,18 @@ export const InventoryManagementView: React.FC = () => {
 
             {/* Acciones de la Barra Superior */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Botón "Crear/Editar Proveedor" a la izquierda del botón "Historial de Ventas" */}
+              <Link to="/admin/suppliers">
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1 px-3 text-indigo-950 font-bold flex items-center gap-1.5 shadow-xs border-indigo-700 bg-indigo-50/80 hover:bg-indigo-100"
+                  title="Crear, editar y gestionar proveedores"
+                >
+                  <Building2 className="w-3.5 h-3.5 text-indigo-700" />
+                  <span>Crear/Editar Proveedor</span>
+                </button>
+              </Link>
+
               {/* Botón "Historial de Ventas" a la izquierda del botón "Ingresos / Gastos" */}
               <Link to="/admin/sales-history">
                 <button

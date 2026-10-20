@@ -21,6 +21,7 @@ import {
   CreditCard,
   BarChart3,
   History,
+  Building2,
   FileText,
   ShieldCheck,
   Truck,
@@ -404,6 +405,14 @@ export const OSDesktopTaskbar: React.FC = () => {
                   >
                     <History className="w-4 h-4 text-blue-700" />
                     <span className="font-semibold text-blue-950 hover:text-white">Historial de Ventas</span>
+                  </Link>
+
+                  <Link
+                    to="/admin/suppliers"
+                    className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
+                  >
+                    <Building2 className="w-4 h-4 text-indigo-700" />
+                    <span className="font-semibold text-indigo-950 hover:text-white">Proveedores</span>
                   </Link>
 
                   <Link
