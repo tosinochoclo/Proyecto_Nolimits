@@ -20,6 +20,7 @@ import {
   HelpCircle,
   CreditCard,
   BarChart3,
+  History,
   FileText,
   ShieldCheck,
   Truck,
@@ -395,6 +396,14 @@ export const OSDesktopTaskbar: React.FC = () => {
                   >
                     <BarChart3 className="w-4 h-4 text-green-700" />
                     <span className="font-semibold text-green-950 hover:text-white">Ingresos / Gastos</span>
+                  </Link>
+
+                  <Link
+                    to="/admin/sales-history"
+                    className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
+                  >
+                    <History className="w-4 h-4 text-blue-700" />
+                    <span className="font-semibold text-blue-950 hover:text-white">Historial de Ventas</span>
                   </Link>
 
                   <Link

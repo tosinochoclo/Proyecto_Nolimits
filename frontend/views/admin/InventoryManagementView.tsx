@@ -12,7 +12,8 @@ import {
   TrendingUp,
   FileSpreadsheet,
   Receipt,
-  BarChart3
+  BarChart3,
+  History
 } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
 import { PixelIcon } from '../../components/common/PixelIcon';
@@ -484,6 +485,18 @@ export const InventoryManagementView: React.FC = () => {
 
             {/* Acciones de la Barra Superior */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Botón "Historial de Ventas" a la izquierda del botón "Ingresos / Gastos" */}
+              <Link to="/admin/sales-history">
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1 px-3 text-blue-950 font-bold flex items-center gap-1.5 shadow-xs border-blue-700 bg-blue-50/80 hover:bg-blue-100"
+                  title="Ver Historial de Ventas, clientes y promedios"
+                >
+                  <History className="w-3.5 h-3.5 text-blue-700" />
+                  <span>Historial de Ventas</span>
+                </button>
+              </Link>
+
               {/* Botón "Ingresos / Gastos" a la izquierda del botón "Registrar Gasto" */}
               <Link to="/admin/income-expenses">
                 <button
