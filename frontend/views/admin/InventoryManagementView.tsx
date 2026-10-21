@@ -15,7 +15,8 @@ import {
   BarChart3,
   History,
   Building2,
-  Boxes
+  Boxes,
+  BellRing
 } from 'lucide-react';
 import { WindowFrame } from '../../components/layout/WindowFrame';
 import { PixelIcon } from '../../components/common/PixelIcon';
@@ -487,6 +488,18 @@ export const InventoryManagementView: React.FC = () => {
 
             {/* Acciones de la Barra Superior */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Botón "Notificaciones de Interés" a la izquierda del botón "Resumen Stock Productos" */}
+              <Link to="/admin/interest-notifications">
+                <button
+                  type="button"
+                  className="winxp-button winxp-button-primary text-xs py-1 px-3 text-amber-950 font-bold flex items-center gap-1.5 shadow-xs border-amber-700 bg-amber-50/80 hover:bg-amber-100"
+                  title="Ver notificaciones de interés, alertas automatizadas, cobranzas y recordatorios"
+                >
+                  <BellRing className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Notificaciones de Interés</span>
+                </button>
+              </Link>
+
               {/* Botón "Resumen Stock Productos" a la izquierda del botón "Crear/Editar Proveedor" */}
               <Link to="/admin/product-stock">
                 <button

@@ -47,6 +47,15 @@ export const GlobalDashboardView: React.FC = () => {
                   <span>Resumen Stock Productos</span>
                 </button>
               </Link>
+              <Link to="/admin/interest-notifications">
+                <button
+                  type="button"
+                  className="winxp-button text-xs py-1 px-3 text-amber-950 font-bold border-amber-700 bg-amber-50/70 hover:bg-amber-100"
+                >
+                  <Bell className="w-3.5 h-3.5 text-amber-700 inline mr-1" />
+                  <span>Notificaciones de Interés</span>
+                </button>
+              </Link>
               <Link to="/admin/express-upload">
                 <button
                   type="button"

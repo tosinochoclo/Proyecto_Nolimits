@@ -417,6 +417,14 @@ export const OSDesktopTaskbar: React.FC = () => {
                   </Link>
 
                   <Link
+                    to="/admin/interest-notifications"
+                    className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
+                  >
+                    <Bell className="w-4 h-4 text-amber-700" />
+                    <span className="font-semibold text-amber-950 hover:text-white">Notificaciones de Interés</span>
+                  </Link>
+
+                  <Link
                     to="/admin/product-stock"
                     className="flex items-center gap-2 p-1.5 hover:bg-[#316ac5] hover:text-white rounded-xs"
                   >

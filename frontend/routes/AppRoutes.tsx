@@ -22,6 +22,7 @@ import { IncomeExpensesAnalyticsView } from '../views/admin/IncomeExpensesAnalyt
 import { SalesHistoryView } from '../views/admin/SalesHistoryView';
 import { SupplierManagementView } from '../views/admin/SupplierManagementView';
 import { ProductStockSummaryView } from '../views/admin/ProductStockSummaryView';
+import { InterestNotificationsView } from '../views/admin/InterestNotificationsView';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -160,6 +161,33 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
             <ProductStockSummaryView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/interest-notifications"
+        element={
+          <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
+            <InterestNotificationsView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/notificaciones-interes"
+        element={
+          <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
+            <InterestNotificationsView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/alerts"
+        element={
+          <ProtectedRoute allowedRoles={['super_admin', 'branch_admin']}>
+            <InterestNotificationsView />
           </ProtectedRoute>
         }
       />
